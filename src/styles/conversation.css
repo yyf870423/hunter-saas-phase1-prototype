@@ -121,7 +121,7 @@
 }
 .workstream-conversation-nav > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .workstream-conversation-list {
   min-height: 0;
@@ -167,12 +167,12 @@
 }
 .workstream-conversation-list > button > span b {
   color: var(--ink);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .workstream-conversation-list > button > span time,
 .workstream-conversation-list > button > small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .workstream-conversation-list > button > small {
   justify-self: end;
@@ -180,7 +180,7 @@
 .workstream-conversation-list > button p {
   grid-column: 1 / -1;
   margin: 0;
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .workstream-conversation-list > button > .status {
   grid-column: 1 / -1;
@@ -250,7 +250,7 @@
 .conversation-preview > header small,
 .conversation-detail > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .creation-progress > header b,
 .conversation-preview > header b,
@@ -307,7 +307,7 @@
   border-radius: 50%;
   color: var(--ink-tertiary);
   background: var(--surface);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-style: normal;
   font-weight: 700;
 }
@@ -325,12 +325,12 @@
   padding-top: 2px;
 }
 .creation-progress-scroll > ol b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .creation-progress-scroll > ol small,
 .creation-progress-scroll > section small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .creation-progress-scroll > section {
   display: grid;
@@ -342,13 +342,13 @@
   background: var(--surface-subtle);
 }
 .creation-progress-scroll > section b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .creation-progress-scroll > section p,
 .draft-save-note {
   margin: 0;
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   line-height: 1.5;
 }
 .draft-save-note {
@@ -392,7 +392,7 @@
 .preview-hero p {
   margin: 0;
   color: var(--ink-secondary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   line-height: 1.65;
 }
 .preview-warning {
@@ -421,12 +421,12 @@
 }
 .preview-metrics dt {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .preview-metrics dd {
   margin-top: 4px;
   overflow: hidden;
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-weight: 650;
   line-height: 1.45;
   text-overflow: ellipsis;
@@ -438,7 +438,7 @@
 }
 .preview-section h3 {
   margin: 0 0 8px;
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .preview-section ul {
   display: grid;
@@ -448,7 +448,7 @@
 }
 .preview-section li {
   color: var(--ink-secondary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 .preview-evidence {
@@ -470,7 +470,7 @@
 }
 .preview-evidence span {
   overflow: hidden;
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -519,7 +519,7 @@
 }
 .workstream-runtime-panel > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .workstream-runtime-panel > header b {
   font-size: 12px;
@@ -539,7 +539,7 @@
   justify-content: center;
   gap: 6px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .runtime-panel-tabs > button::after {
   position: absolute;
@@ -563,7 +563,7 @@
 }
 .runtime-panel-tabs small {
   color: inherit;
-  font-size: 8px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .runtime-panel-scroll {
@@ -582,7 +582,7 @@
   padding: 0 13px;
   color: var(--ink-tertiary);
   background: var(--surface-subtle);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .runtime-plan ol,
 .runtime-tasks > div {
@@ -612,7 +612,7 @@
   border-radius: 50%;
   color: var(--ink-tertiary);
   background: var(--surface);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-style: normal;
   font-weight: 700;
 }
@@ -638,12 +638,12 @@
 .runtime-plan li b,
 .runtime-tasks b {
   color: var(--ink);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .runtime-plan li small,
 .runtime-tasks small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
 }
 .runtime-tasks > div > button {
@@ -749,7 +749,7 @@
   min-height: 16px;
   margin-top: 3px;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   line-height: 16px;
   opacity: 0;
   visibility: hidden;
@@ -772,7 +772,7 @@
 }
 .markdown-eyebrow {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .markdown-message h3 {
@@ -792,7 +792,7 @@
   color: var(--ink-secondary);
 }
 .markdown-message li {
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.7;
 }
 .markdown-message footer {
@@ -831,7 +831,7 @@
   animation-delay: 0.28s;
 }
 .agent-thinking b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 550;
 }
 @keyframes agent-thinking-pulse {
@@ -894,7 +894,7 @@
 }
 .workstream-type-grid small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
 }
 .workstream-type-grid > button > svg {
@@ -915,7 +915,7 @@
   color: var(--blue-strong);
   background: var(--surface-subtle);
   text-align: left;
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .suggested-prompts button:hover {
   border-color: var(--blue);
@@ -946,7 +946,7 @@
 .conversation-config-card small,
 .business-event header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .conversation-config-card dl {
@@ -966,7 +966,7 @@
 .conversation-config-card dt,
 .conversation-config-card dd {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .conversation-config-card dt {
   color: var(--ink-tertiary);
@@ -992,7 +992,7 @@
   align-items: center;
   gap: 7px;
   color: var(--ink-secondary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .creation-ready-actions > span svg {
   flex: 0 0 auto;
@@ -1035,12 +1035,12 @@
   gap: 2px;
 }
 .plan-list-toggle b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .plan-list-toggle small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1081,7 +1081,7 @@
   border-radius: 50%;
   color: var(--ink-tertiary);
   background: var(--surface);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-style: normal;
   font-weight: 700;
 }
@@ -1104,12 +1104,12 @@
   gap: 2px;
 }
 .plan-list-dock li b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .plan-list-dock li small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1150,12 +1150,12 @@
   gap: 2px;
 }
 .task-run-toggle b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .task-run-toggle small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1203,11 +1203,11 @@
 }
 .task-run-list b {
   color: var(--ink);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .task-run-list small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .task-run-state {
   display: grid;
@@ -1294,7 +1294,7 @@
 }
 .composer-attachments b {
   overflow: hidden;
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1335,11 +1335,11 @@
   white-space: nowrap;
 }
 .message-attachments b {
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .message-attachments small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .conversation-composer > textarea {
   width: 100%;
@@ -1374,7 +1374,7 @@
 .conversation-composer > footer > div > span {
   margin-left: 6px;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .agent-mode-select {
   position: relative;
@@ -1388,7 +1388,7 @@
   border: 1px solid transparent;
   border-radius: 6px;
   color: var(--ink-secondary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .agent-mode-select > button:hover,
@@ -1424,11 +1424,11 @@
   padding: 7px 8px 8px;
 }
 .agent-mode-panel > header b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .agent-mode-panel > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .agent-mode-panel > button {
   width: 100%;
@@ -1463,11 +1463,11 @@
   gap: 2px;
 }
 .agent-mode-panel > button b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .agent-mode-panel > button small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
 }
 .agent-mode-panel > button > svg {
@@ -1482,7 +1482,7 @@
   padding: 8px;
   border-top: 1px solid var(--line);
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
 }
 .agent-mode-panel > footer svg {
@@ -1509,7 +1509,7 @@
 .summary-placeholder p {
   max-width: 240px;
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .summary-title {
   display: grid;
@@ -1529,7 +1529,7 @@
 .summary-title small,
 .summary-help {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .creation-summary-list {
   margin: 0;
@@ -1544,7 +1544,7 @@
 .creation-summary-list dt,
 .creation-summary-list dd {
   margin: 0;
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .creation-summary-list dt {
   color: var(--ink-tertiary);
@@ -1574,7 +1574,7 @@
 }
 .duplicate-inline p {
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .duplicate-inline > div > div {
   display: flex;
@@ -1611,7 +1611,7 @@
 .workstream-workbar-title > small {
   overflow: hidden;
   color: var(--blue-strong);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1634,7 +1634,7 @@
   overflow: hidden;
   margin: 0;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1671,12 +1671,12 @@
 }
 .conversation-current-process small {
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
 }
 .conversation-current-process b {
   max-width: 520px;
   overflow: hidden;
-  font-size: 11px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1729,13 +1729,13 @@
 }
 .business-event header time {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .business-event > p {
   margin: 0;
   padding: 13px 14px 8px;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.7;
 }
 .business-event > footer {
@@ -1763,7 +1763,7 @@
   border-radius: 5px;
   color: var(--ink-secondary);
   background: var(--surface-subtle);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .business-event-approval,
 .business-event-impact {
@@ -1803,11 +1803,11 @@
   gap: 2px;
 }
 .conversation-waiting-note b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .conversation-waiting-note small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .permission-scope {
   display: grid;
@@ -1841,12 +1841,12 @@
 .inline-metrics dt,
 .inline-scope dt {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .inline-metrics dd {
   margin-top: 3px;
   color: var(--ink);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 650;
   line-height: 1.5;
 }
@@ -1866,7 +1866,7 @@
 .inline-scope dd {
   margin-top: 2px;
   color: var(--ink-secondary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 .inline-data {
@@ -1888,11 +1888,11 @@
   background: var(--surface-subtle);
 }
 .inline-data > header b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .inline-data > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .inline-data-scroll {
   overflow-x: auto;
@@ -1910,7 +1910,7 @@
   color: var(--ink-secondary);
   text-align: left;
   vertical-align: top;
-  font-size: 9px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 .inline-data th {
@@ -1928,7 +1928,7 @@
   border-top: 1px solid var(--line);
   color: var(--ink-tertiary);
   background: var(--surface-subtle);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .inline-decision {
   display: flex;
@@ -1962,11 +1962,11 @@
 }
 .large-result-link b {
   color: var(--blue-strong);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .large-result-link small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .large-result-link > svg {
   color: var(--blue-strong);
@@ -1978,7 +1978,7 @@
 .permission-scope dt,
 .permission-scope dd {
   margin: 0;
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .permission-scope dt {
   color: var(--ink-tertiary);
@@ -1999,7 +1999,7 @@
 .mainline-context-summary small,
 .context-copy small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .mainline-context-summary > div b {
   font-size: 12px;
@@ -2024,11 +2024,11 @@
 }
 .mainline-context-summary dt {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .mainline-context-summary dd {
   margin-top: 3px;
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .context-copy {
@@ -2042,7 +2042,7 @@
 .context-copy p {
   margin: 4px 0 0;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.65;
 }
 .conversation-empty {
@@ -2054,7 +2054,7 @@
   color: var(--ink-tertiary);
 }
 .conversation-empty p {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .conversation-upload {
   min-height: 70px;
@@ -2072,7 +2072,7 @@
 }
 .conversation-upload small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .chat-mobile-button,
 .context-mobile-button {
@@ -2106,7 +2106,7 @@
 }
 .component-agent-mode > span {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 
 @media (max-width: 1120px) {

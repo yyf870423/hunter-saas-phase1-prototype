@@ -46,16 +46,29 @@ test("截图 position-workstream-detail", async ({ page }) => {
   });
 });
 
+test("截图 client-contact-complete-review", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/client-xinglan/client");
+  await page
+    .getByRole("button", { name: /打开审核：已形成公司与联系人草稿/ })
+    .click();
+  await page.screenshot({
+    path: "artifacts/client-contact-complete-review-1440x900.png",
+    fullPage: true,
+  });
+});
+
 test("截图 position-workstream-natural-language-command", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./#/workstreams/position-vla/position");
+  await page.getByText("首批候选人已完成匹配").waitFor();
   await page
     .getByLabel("发送给 Hunter")
     .fill(
       "联系 85 分以上的候选人，赵星羽虽然分高但不适合这个岗位，其余筛选出来的候选人加入岗位储备",
     );
   await page.getByRole("button", { name: "发送", exact: true }).click();
-  await page.getByText("确认候选人批量处理指令").waitFor();
+  await page.getByText(/我已按你的指令处理本批候选人/).waitFor();
   await page.screenshot({
     path: "artifacts/position-workstream-natural-language-command-1440x900.png",
     fullPage: true,

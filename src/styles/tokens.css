@@ -2,6 +2,9 @@
   color-scheme: light;
   --font-sans:
     Inter, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-size-min: 12px;
+  --font-size-secondary: 13px;
+  --font-size-body: 14px;
   --canvas: #f5f7fb;
   --canvas-top: #edf5ff;
   --surface: #ffffff;

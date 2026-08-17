@@ -71,29 +71,14 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
   await page.getByRole("button", { name: /相关任务 1 运行中/ }).click();
   await expect(page.getByText("猎聘候选人读取", { exact: true })).toBeVisible();
   await expect(page.getByText("脉脉候选人读取", { exact: true })).toBeVisible();
+  await expect(page.getByText("首批候选人已完成匹配")).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill(
       "联系 85 分以上的候选人，赵星羽虽然分高但不适合这个岗位，其余筛选出来的候选人加入岗位储备",
     );
   await page.getByRole("button", { name: "发送", exact: true }).click();
-  await expect(
-    page.getByText("Hunter 正在应用你的决定并检查后续步骤"),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/我先把自然语言转换为明确的业务操作/),
-  ).toBeVisible();
-  await expect(
-    page
-      .locator(".mainline-conversation-main")
-      .getByText("确认候选人批量处理指令"),
-  ).toBeVisible();
-  await expect(
-    page.getByText("综合匹配 85 分及以上共 4 位，排除赵星羽后为 3 位"),
-  ).toBeVisible();
-  await expect(page.getByText("赵星羽：不适合当前岗位")).toBeVisible();
-  await expect(page.getByText("14 位加入岗位储备")).toBeVisible();
-  await page.getByRole("button", { name: "确认并执行" }).click();
+  await expect(page.getByText(/我已按你的指令处理本批候选人/)).toBeVisible();
   await expect(
     page.getByText("允许联系已进入联系名单的候选人？"),
   ).toBeVisible();
@@ -107,6 +92,48 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
     0,
   );
   await page.getByRole("button", { name: "返回业务主线" }).click();
+});
+
+test("业务主线首次只显示用户第一句话并逐条推进", async ({ page }) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  await expect(
+    page.getByText(
+      "管理经验可以适当放宽，但必须有 VLA 或端到端机器人学习落地经验。今天给我首批候选人。",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
+  ).toHaveCount(0);
+  await expect(page.getByText("Hunter 正在理解当前信息")).toBeVisible();
+  await expect(
+    page.getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
+  ).toBeVisible();
+  await expect(page.getByText("Hunter 正在更新执行计划")).toBeVisible();
+});
+
+test("业务主线所有可见文字不小于 12 CSS px", async ({ page }) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  const undersized = await page.locator("body").evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return (
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          element.children.length === 0 &&
+          element.textContent.trim()
+        );
+      })
+      .map((element) => ({
+        text: element.textContent.trim().slice(0, 40),
+        size: Number.parseFloat(window.getComputedStyle(element).fontSize),
+      }))
+      .filter((item) => item.size < 12),
+  );
+  expect(undersized).toEqual([]);
 });
 
 test("业务主线入口直接打开会话并通过左侧加号新建", async ({ page }) => {
@@ -220,7 +247,8 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
       route: "client-xinglan/client",
       current: "已形成公司与联系人草稿",
       hidden: "是否联系 HRD 周雅雯？",
-      confirm: "确认公司与联系人",
+      open: /打开审核：已形成公司与联系人草稿/,
+      submit: "提交联系人审核",
       next: "是否联系 HRD 周雅雯？",
       large: false,
     },
@@ -228,7 +256,8 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
       route: "position-vla/position",
       current: "首批候选人已完成匹配",
       hidden: "地点变化需要重新评估 6 位候选人",
-      confirm: "确认首批名单",
+      open: /查看大结果：首批候选人已完成匹配/,
+      submit: "提交本批审核",
       next: "允许联系已进入联系名单的候选人？",
       large: true,
     },
@@ -237,17 +266,9 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
     await page.goto(`./#/workstreams/${item.route}`);
     await expect(page.getByText(item.current)).toBeVisible();
     await expect(page.getByText(item.hidden)).toHaveCount(0);
-    if (item.large) {
-      await page
-        .getByRole("button", {
-          name: /查看大结果：首批候选人已完成匹配/,
-        })
-        .click();
-      await page.getByRole("button", { name: "按建议处理未审核" }).click();
-      await page.getByRole("button", { name: "提交本批审核" }).click();
-    } else {
-      await page.getByRole("button", { name: item.confirm }).click();
-    }
+    await page.getByRole("button", { name: item.open }).click();
+    await page.getByRole("button", { name: "按建议处理未审核" }).click();
+    await page.getByRole("button", { name: item.submit }).click();
     await expect(page.getByText(item.next)).toBeVisible();
   }
 
@@ -268,15 +289,37 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
 
 test("客户开发主线从信号核验渐进到客户回复和岗位机会", async ({ page }) => {
   await page.goto("./#/workstreams/client-xinglan/client");
-  await page.getByRole("button", { name: "确认公司与联系人" }).click();
-  await page.getByRole("button", { name: "确认联系内容" }).click();
+  await page
+    .getByRole("button", { name: /打开审核：已形成公司与联系人草稿/ })
+    .click();
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await page.getByRole("button", { name: "提交联系人审核" }).click();
+  await page
+    .getByRole("button", { name: /打开审核：是否联系 HRD 周雅雯/ })
+    .click();
+  const revisedMail =
+    "周女士，您好。关注到星澜机器人正在扩充 VLA 团队，想先确认相关岗位的 HC、目标职级和合作方式。如方便，我可以根据贵司要求整理目标人才画像。";
+  await page.getByLabel("邮件正文").fill(revisedMail);
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await page.getByRole("button", { name: "保存联系内容" }).click();
+  const resolvedContactEvent = page
+    .getByText("是否联系 HRD 周雅雯？", { exact: true })
+    .locator("..");
+  await resolvedContactEvent.locator("button.large-result-link").click();
+  await expect(page.getByLabel("邮件正文")).toHaveValue(revisedMail);
+  await expect(page.getByLabel("邮件正文")).toBeDisabled();
+  await page.getByRole("button", { name: "返回业务主线" }).click();
   await page.getByRole("button", { name: "仅允许本次" }).click();
   await expect(page.getByText("等待客户联系人回复")).toBeVisible();
   await expect(page.getByText("客户回复确认 2 个在招岗位")).toBeVisible();
   await expect(page.getByText("发现潜在支线：灵巧手团队也在扩招")).toHaveCount(
     0,
   );
-  await page.getByRole("button", { name: "确认客户机会" }).click();
+  await page
+    .getByRole("button", { name: /打开审核：客户回复确认 2 个在招岗位/ })
+    .click();
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await page.getByRole("button", { name: "提交机会审核" }).click();
   await expect(
     page.getByText("发现潜在支线：灵巧手团队也在扩招"),
   ).toBeVisible();
@@ -285,12 +328,14 @@ test("客户开发主线从信号核验渐进到客户回复和岗位机会", as
 test("人才摸排支持自然语言核验关系并继续发现支线", async ({ page }) => {
   await page.goto("./#/workstreams/mapping-embodied/mapping");
   await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
+  await expect(page.getByText("7 条人物关系需要人工核验")).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill("有两项独立证据的关系确认写入，只有单一来源的继续保留为待核验");
   await page.getByRole("button", { name: "发送", exact: true }).click();
-  await expect(page.getByText("确认人才摸排处理指令")).toBeVisible();
-  await page.getByRole("button", { name: "确认并执行" }).click();
+  await expect(
+    page.getByText(/我已按你的回复处理当前人才摸排结果/),
+  ).toBeVisible();
   await expect(
     page.getByText("发现潜在支线：云脉芯能成立机器人芯片团队"),
   ).toBeVisible();
@@ -298,12 +343,14 @@ test("人才摸排支持自然语言核验关系并继续发现支线", async ({
 
 test("候选人求职支持自然语言控制资料更新和局部重匹配", async ({ page }) => {
   await page.goto("./#/workstreams/career-linhao/career");
+  await expect(page.getByText("允许解析候选人刚发送的新简历？")).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill("解析新简历，但不要覆盖原资料；先给我字段差异，再只重算受影响岗位");
   await page.getByRole("button", { name: "发送", exact: true }).click();
-  await expect(page.getByText("确认候选人资料处理指令")).toBeVisible();
-  await page.getByRole("button", { name: "确认并执行" }).click();
+  await expect(
+    page.getByText(/我已按你的回复处理候选人资料或岗位匹配结果/),
+  ).toBeVisible();
   await expect(page.getByText("新简历已生成资料更新建议")).toBeVisible();
 });
 
@@ -325,7 +372,23 @@ test("Agent 操作权限在主线对话中显示当前授权范围", async ({ pa
 
 test("业务主线查看与确认始终留在当前页面", async ({ page }) => {
   await page.goto("./#/workstreams/client-xinglan/client");
-  await expect(page.getByLabel("公司与联系人草稿")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "公司与联系人草稿" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "确认公司与联系人" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: /打开审核：已形成公司与联系人草稿/ })
+    .click();
+  await expect(page.getByLabel("审核星澜机器人及 4 位联系人")).toBeVisible();
+  await expect(page.getByText("yawen.zhou@xinglan-robotics.com")).toBeVisible();
+  await expect(
+    page.getByText("可直接联系", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("联系方式状态", { exact: true })).toBeVisible();
+  await expect(page.getByText("证据与来源", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "返回业务主线" }).click();
   await expect(page.getByLabel("业务主线详情")).toHaveCount(0);
 
   await page.goto("./#/workstreams/position-vla/position");
@@ -378,6 +441,9 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
     page.getByText("地点变化需要重新评估 6 位候选人", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("候选人赵星羽已加入结果")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "确认局部重匹配" }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "主线信息" }).click();
   await page.getByRole("button", { name: "终止业务主线" }).click();
   await page.getByRole("button", { name: "确认终止" }).click();
@@ -386,6 +452,28 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
     page.locator(".conversation-waiting-note b").getByText("业务主线已终止"),
   ).toBeVisible();
   await expect(page.getByLabel("发送给 Hunter")).toBeDisabled();
+});
+
+test("四类主线的完整审核复用当前 Hunter 业务资产结构", async ({ page }) => {
+  await page.goto("./#/workstreams/mapping-embodied/mapping");
+  await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
+  await page
+    .getByRole("button", { name: /打开审核：7 条人物关系需要人工核验/ })
+    .click();
+  await expect(page.getByLabel("核验 7 条人物关系")).toBeVisible();
+  await expect(page.getByText("是否仍有效", { exact: true })).toBeVisible();
+  await expect(page.getByText("联系路径", { exact: true })).toBeVisible();
+  await expect(page.getByText("证据强度", { exact: true })).toBeVisible();
+
+  await page.goto("./#/workstreams/career-linhao/career");
+  await page
+    .getByRole("button", { name: /打开审核：已筛出 6 个建议岗位/ })
+    .click();
+  await expect(page.getByLabel("林昊的 6 个建议岗位")).toBeVisible();
+  await expect(page.getByText("方向经验", { exact: true })).toBeVisible();
+  await expect(page.getByText("角色职级", { exact: true })).toBeVisible();
+  await expect(page.getByText("匹配优势", { exact: true })).toBeVisible();
+  await expect(page.getByText("风险提示", { exact: true })).toBeVisible();
 });
 
 test("Agent 操作模式在当前业务主线中切换并保留记录", async ({ page }) => {
@@ -466,13 +554,17 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await page.getByRole("button", { name: "提交本批审核" }).click();
   await page.getByRole("button", { name: "仅准备本批联系" }).click();
   await expect(page.getByText("地点变化需要重新评估 6 位候选人")).toBeVisible();
-  await page.getByRole("button", { name: "确认局部重匹配" }).click();
+  await page
+    .getByRole("button", { name: /打开审核：地点变化需要重新评估 6 位候选人/ })
+    .click();
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await page.getByRole("button", { name: "提交影响处理" }).click();
   await page.getByRole("button", { name: /执行计划 3\/6/ }).click();
   await expect(
     page.getByText("重算 6 位候选人的地点适配", { exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("执行计划详情").getByText("v5")).toBeVisible();
-  await expect(page.getByText(/地点范围已经更新为上海或杭州/)).toBeVisible();
+  await expect(page.getByText(/地点范围已更新为上海或杭州/)).toBeVisible();
 });
 
 test("移动端业务主线点击大结果后仍在当前页完成审核", async ({ page }) => {

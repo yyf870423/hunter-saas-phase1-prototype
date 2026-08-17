@@ -285,7 +285,7 @@
   color: var(--ink-tertiary);
   background: var(--surface-subtle);
   font-family: inherit;
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 
 .select,
@@ -509,7 +509,7 @@
   display: grid;
   place-items: center;
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .days button {
   aspect-ratio: 1;
@@ -528,7 +528,7 @@
   padding-top: 8px;
   border-top: 1px solid var(--line);
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .date-panel footer button {
   color: var(--blue-strong);
@@ -609,7 +609,7 @@
   padding: 0 5px;
   border-radius: 999px;
   background: var(--surface-strong);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
 }
 .tabs button.is-active em {
@@ -829,7 +829,7 @@
   color: var(--ink-on-accent);
   background: var(--tooltip-fill);
   box-shadow: var(--shadow-2);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
   opacity: 0;
   pointer-events: none;
@@ -894,7 +894,7 @@
   border-bottom: 1px solid var(--line);
   color: var(--ink-tertiary);
   background: var(--surface-subtle);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 700;
   text-align: left;
 }
@@ -956,7 +956,7 @@
 .cell-main small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -974,7 +974,7 @@
   border-radius: 5px;
   color: var(--ink-secondary);
   background: var(--surface-subtle);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   white-space: nowrap;
 }
 
@@ -1013,7 +1013,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .progress em {
   color: var(--ink-tertiary);
@@ -1080,7 +1080,7 @@
   display: block;
   margin-bottom: 5px;
   color: var(--blue-strong);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 750;
 }
 .title-row {

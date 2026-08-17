@@ -531,6 +531,8 @@ const events = {
         "公司官网新增 6 个算法岗位，B+ 轮融资公告提到扩充机器人研发团队，两类证据时间一致。",
       status: "已确认",
       tone: "success",
+      action: "查看全部证据",
+      reviewId: "client-signals",
       inlineData: {
         title: "已核验的招聘证据",
         summary: "5 条证据，展示关键 4 条",
@@ -577,44 +579,50 @@ const events = {
         "星澜机器人公司资料已补充；识别 4 位联系人，其中 HRD 周雅雯最可能确认招聘需求。",
       status: "待确认",
       tone: "warning",
-      action: "查看并审核",
+      action: "打开完整审核",
       blocking: "review",
-      confirmLabel: "确认公司与联系人",
+      reviewId: "client-company-contacts",
       inlineData: {
         title: "公司与联系人草稿",
-        summary: "1 家公司 · 4 位联系人",
+        summary: "1 家公司 · 4 位联系人 · 3 位已有可用联系路径",
         columns: [
           { key: "name", label: "姓名" },
           { key: "role", label: "角色" },
+          { key: "contact", label: "可用联系方式" },
+          { key: "state", label: "核验状态" },
           { key: "path", label: "建议用途" },
-          { key: "confidence", label: "可信度" },
         ],
         rows: [
           {
             name: "周雅雯",
             role: "HRD",
+            contact: "工作邮箱、电话、脉脉一度关系",
+            state: "可直接联系",
             path: "优先确认 HC 与合作方式",
-            confidence: "高",
           },
           {
             name: "陈树明",
             role: "机器人研发 VP",
+            contact: "工作邮箱、候选人关系",
+            state: "可间接联系",
             path: "核验团队与岗位方向",
-            confidence: "高",
           },
           {
             name: "许晴",
             role: "招聘负责人",
+            contact: "脉脉可申请好友",
+            state: "无直接联系方式",
             path: "确认招聘流程",
-            confidence: "中",
           },
           {
             name: "郭宇航",
             role: "创始人办公室",
+            contact: "2 位共同联系人",
+            state: "邮箱仍需核验",
             path: "必要时补充关系路径",
-            confidence: "中",
           },
         ],
+        note: "完整审核中可查看电话、邮箱、关系路径、来源证据和可信度，并逐人处理。",
       },
       afterResponse:
         "公司资料与 4 位联系人已确认，HRD 周雅雯被标记为首选需求确认人。下一步需要审核联系内容。",
@@ -629,10 +637,9 @@ const events = {
       time: "今天 09:29",
       title: "是否联系 HRD 周雅雯？",
       detail: "建议先询问 VLA 团队是否新增负责人岗位。邮件草稿不会自动发送。",
-      primary: "查看并审核联系内容",
-      secondary: "暂不联系",
+      action: "打开联系内容审核",
       blocking: "review",
-      confirmLabel: "确认联系内容",
+      reviewId: "client-contact-message",
       inlineData: {
         title: "联系内容草稿",
         columns: [
@@ -641,6 +648,8 @@ const events = {
         ],
         rows: [
           { field: "收件人", content: "周雅雯 · HRD" },
+          { field: "联系方式", content: "工作邮箱已核验，可直接联系" },
+          { field: "发送身份", content: "于一凡 · Hunter 猎头顾问" },
           {
             field: "主题",
             content: "关于星澜机器人 VLA 团队招聘需求的合作沟通",
@@ -712,8 +721,8 @@ const events = {
       status: "待确认",
       tone: "warning",
       blocking: "review",
-      action: "审核客户机会",
-      confirmLabel: "确认客户机会",
+      action: "打开机会审核",
+      reviewId: "client-opportunities",
       inlineData: {
         title: "客户回复形成的招聘机会",
         summary: "2 个岗位 · 1 条合作意向",
@@ -740,13 +749,13 @@ const events = {
     },
     {
       type: "branch",
-      time: "今天 09:35",
+      time: "今天 11:20",
       title: "发现潜在支线：灵巧手团队也在扩招",
       detail:
         "招聘页面新增结构工程师和运动控制岗位，可建立独立岗位招聘主线；当前主线不会自动创建。",
-      primary: "查看支线建议",
-      secondary: "忽略",
-      blocking: "action",
+      action: "打开支线处理",
+      reviewId: "client-branch",
+      blocking: "review",
       afterResponse:
         "支线建议已记录，我会按你的选择决定是否创建独立岗位招聘主线。",
     },
@@ -809,7 +818,6 @@ const events = {
       reviewType: "candidate-batch",
       largeResultHint: "18 位候选人包含分层、匹配证据和风险说明",
       blocking: "review",
-      confirmLabel: "确认首批名单",
       metrics: [
         ["进入候选池", "46 位"],
         ["本批待审核", "18 位"],
@@ -886,9 +894,9 @@ const events = {
       title: "地点变化需要重新评估 6 位候选人",
       detail:
         "本次变化来自客户刚补充的工作地点要求。已进入候选池的 46 位候选人中，40 位的地点结论不变；6 位此前因工作地点受限而需要重新计算地点适配。确认后不会重新找人，也不会改动其他 40 位候选人的结果。",
-      primary: "确认局部重匹配",
-      secondary: "保留原条件",
-      blocking: "action",
+      action: "打开影响范围",
+      reviewId: "position-location-impact",
+      blocking: "review",
       afterResponse:
         "地点范围已经更新为上海或杭州。我会重新评估 6 位受地点变化影响的候选人，其他 40 位候选人的结果保持不变。",
       planUpdate: {
@@ -954,6 +962,7 @@ const events = {
       status: "已确认",
       tone: "success",
       action: "打开人才摸排",
+      reviewId: "mapping-coverage",
       inlineData: {
         title: "本轮补齐结果",
         summary: "3 个团队 · 24 位人物",
@@ -996,10 +1005,9 @@ const events = {
       title: "7 条人物关系需要人工核验",
       detail:
         "公开论文与履历显示有合作关系，但无法确认当前汇报线，不会自动写入正式关系。",
-      primary: "开始核验",
-      secondary: "稍后处理",
+      action: "打开关系核验",
       blocking: "review",
-      confirmLabel: "确认核验结果",
+      reviewId: "mapping-relations",
       inlineData: {
         title: "待核验人物关系",
         summary: "7 条关系，当前展示全部",
@@ -1062,9 +1070,9 @@ const events = {
       time: "今天 09:28",
       title: "发现潜在支线：云脉芯能成立机器人芯片团队",
       detail: "可建立客户开发主线核验招聘需求，也可先纳入当前摸排的目标公司。",
-      primary: "查看两种处理方式",
-      secondary: "仅加入摸排",
-      blocking: "action",
+      action: "打开支线处理",
+      reviewId: "mapping-branch",
+      blocking: "review",
       afterResponse:
         "云脉芯能已按你的选择处理，当前摸排范围和后续计划已同步更新。",
     },
@@ -1088,6 +1096,8 @@ const events = {
         "从 18 个岗位中筛出 6 个；其中星澜机器人 VLA 负责人匹配度最高，地点和技术方向符合。",
       status: "已确认",
       tone: "success",
+      action: "查看完整岗位匹配",
+      reviewId: "career-position-matches",
       inlineData: {
         title: "建议和候选人讨论的岗位",
         summary: "6 个岗位",
@@ -1203,7 +1213,7 @@ const events = {
       tone: "warning",
       action: "查看并审核资料更新",
       blocking: "review",
-      confirmLabel: "确认资料更新",
+      reviewId: "career-profile-update",
       inlineData: {
         title: "字段级更新建议",
         summary: "4 项变化",
@@ -1239,9 +1249,9 @@ const events = {
       time: "今天 09:06",
       title: "资料更新会影响 6 个岗位匹配",
       detail: "确认更新后只重新计算相关岗位，不重新搜索已经完成的来源。",
-      primary: "确认更新并重匹配",
-      secondary: "仅保存资料",
-      blocking: "action",
+      action: "打开影响范围",
+      reviewId: "career-match-impact",
+      blocking: "review",
       afterResponse:
         "局部重匹配已加入当前计划，只重算 6 个相关岗位，不会重新搜索已完成的来源。",
       planUpdate: {

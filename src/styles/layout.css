@@ -47,7 +47,7 @@
 .brand small {
   display: block;
   color: rgba(234, 244, 255, 0.6);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-weight: 650;
 }
 .sidebar nav {
@@ -84,7 +84,7 @@
 .sidebar-section-label {
   margin: 20px 10px 6px;
   color: rgba(234, 244, 255, 0.42);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-weight: 750;
   text-transform: uppercase;
 }
@@ -105,7 +105,7 @@
   display: flex;
   justify-content: space-between;
   color: rgba(234, 244, 255, 0.68);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .usage-mini i {
   height: 4px;
@@ -139,7 +139,7 @@
   border-radius: 50%;
   color: var(--ink-on-accent);
   background: var(--avatar-fill);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 750;
 }
 .profile-mini span {
@@ -147,12 +147,12 @@
   display: grid;
 }
 .profile-mini b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .profile-mini small {
   overflow: hidden;
   color: rgba(234, 244, 255, 0.56);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -203,7 +203,7 @@
   border-radius: 999px;
   color: var(--ink-on-accent);
   background: var(--danger);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   font-style: normal;
 }
 .page-content {
@@ -314,7 +314,7 @@
 .metric small {
   margin-top: 8px;
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .two-column {
   display: grid;
@@ -427,7 +427,7 @@
   border-radius: 6px;
   color: var(--blue-strong);
   background: var(--blue-soft);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .page-index-card span {
   min-width: 0;
@@ -442,7 +442,7 @@
 .page-index-card small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -507,7 +507,7 @@
 }
 .auth-points small {
   color: rgba(255, 255, 255, 0.55);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .auth-form-wrap {
   display: grid;

@@ -40,7 +40,7 @@
 }
 .new-menu > button small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   line-height: 1.45;
 }
 
@@ -100,7 +100,7 @@
 }
 .notification-list article small {
   color: var(--blue-strong);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .notification-list article b {
   font-size: 12px;
@@ -108,7 +108,7 @@
 }
 .notification-list article time {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 
 .global-search .search-input {
@@ -156,11 +156,11 @@
 }
 .search-results small {
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .search-results em {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
 }
 .search-results > button > svg {
@@ -207,7 +207,7 @@
 }
 .info-grid dt {
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .info-grid dd {
   margin: 6px 0 0;
@@ -284,7 +284,7 @@
 .summary-list small,
 .evidence-list small {
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .summary-list > button > svg:last-child,
 .evidence-list > button > svg:last-child {
@@ -343,7 +343,7 @@
 }
 .activity-timeline time {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .activity-timeline b {
   font-size: 13px;
@@ -397,7 +397,7 @@
 }
 .workstream-board > section > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .workstream-board > section > header em {
   min-width: 24px;
@@ -407,7 +407,7 @@
   border-radius: 999px;
   color: var(--ink-secondary);
   background: var(--surface-strong);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
 }
 .workstream-board > section > div {
@@ -440,12 +440,12 @@
 .workstream-board article p {
   margin: 7px 0 10px;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 .workstream-board article small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .workstream-board .lane-drop {
   min-height: 36px;
@@ -453,7 +453,7 @@
   border: 1px dashed var(--line-strong);
   border-radius: 6px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .workstream-board .lane-drop:hover {
   color: var(--blue-strong);
@@ -481,7 +481,7 @@
 .task-process time {
   padding-top: 7px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .task-process > button > i {
   width: 32px;
@@ -511,7 +511,7 @@
 .task-process p {
   margin: 0;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 .task-process > button > svg {
@@ -555,7 +555,7 @@
 .match-card header p {
   margin: 3px 0 0;
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .match-card header strong {
   color: var(--blue-strong);
@@ -568,7 +568,7 @@
 .match-card section p {
   margin: 0;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.6;
 }
 .match-card footer {
@@ -611,7 +611,7 @@
 }
 .stat-strip small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 
 .form-grid {
@@ -663,7 +663,7 @@
 }
 .choice-card small {
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.55;
 }
 
@@ -706,7 +706,7 @@
   font-size: 12px;
 }
 .banner small {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 
 .task-run-layout {
@@ -737,13 +737,13 @@
 }
 .task-context-strip b {
   overflow: hidden;
-  font-size: 11px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .task-context-strip small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .thread-main {
   min-width: 0;
@@ -763,7 +763,7 @@
 }
 .thread-main > header small {
   color: var(--blue-strong);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .thread {
   padding: 20px;
@@ -808,7 +808,7 @@
 }
 .message-row article small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .message-row article p {
   margin: 6px 0 0;
@@ -885,7 +885,7 @@
 }
 .upload-drop p {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .stepper {
   display: grid;
@@ -898,7 +898,7 @@
   justify-items: center;
   gap: 6px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .stepper > div::before {
   content: "";
@@ -924,7 +924,7 @@
   border-radius: 50%;
   color: var(--ink-secondary);
   background: var(--surface);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
 }
 .stepper .is-active i,

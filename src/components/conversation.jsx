@@ -782,6 +782,7 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
         )}
         <div>
           {!event.resolved &&
+            event.type === "permission" &&
             event.options?.map((option) => (
               <Button
                 key={option.value}
@@ -792,24 +793,28 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
                 {option.label}
               </Button>
             ))}
-          {!event.resolved && event.secondary && (
-            <Button size="sm" onClick={() => onAction(event, "secondary")}>
-              {event.secondary}
-            </Button>
-          )}
-          {!event.resolved && (event.primary || event.action) && (
-            <Button
-              size="sm"
-              tone={event.blocking === "review" ? "primary" : "secondary"}
-              onClick={() =>
-                event.blocking === "review"
-                  ? onSelect?.(event)
-                  : onAction(event, "primary")
-              }
-            >
-              {event.primary || event.action}
-            </Button>
-          )}
+          {!event.resolved &&
+            event.type === "permission" &&
+            event.secondary && (
+              <Button size="sm" onClick={() => onAction(event, "secondary")}>
+                {event.secondary}
+              </Button>
+            )}
+          {!event.resolved &&
+            event.type === "permission" &&
+            (event.primary || event.action) && (
+              <Button
+                size="sm"
+                tone={event.blocking === "review" ? "primary" : "secondary"}
+                onClick={() =>
+                  event.blocking === "review"
+                    ? onSelect?.(event)
+                    : onAction(event, "primary")
+                }
+              >
+                {event.primary || event.action}
+              </Button>
+            )}
         </div>
       </footer>
     </article>
@@ -818,8 +823,10 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
 
 function MarkdownEvent({ event, onAction, onSelect }) {
   const [, label] = eventAppearance[event.type] || ["info", "进展更新"];
+  const hasReview = Boolean(event.reviewId || event.reviewType);
   const hasDecision =
     !event.resolved &&
+    event.type === "permission" &&
     (event.options?.length || event.secondary || event.primary || event.action);
   return (
     <ConversationEntry time={event.time}>
@@ -857,22 +864,22 @@ function MarkdownEvent({ event, onAction, onSelect }) {
           </dl>
         ) : null}
         <InlineDataTable data={event.inlineData} />
-        {event.largeResult && (
+        {hasReview && (
           <button
             type="button"
             className="large-result-link"
             onClick={() => onSelect(event)}
-            aria-label={`查看大结果：${event.title}`}
+            aria-label={`${event.largeResult ? "查看大结果" : "打开审核"}：${event.title}`}
           >
             <span>
               <b>
                 {event.resolved
                   ? "查看已处理结果"
-                  : event.action || "查看完整结果"}
+                  : event.action || "打开完整审核"}
               </b>
               <small>
                 {event.largeResultHint ||
-                  "在宽幅审核区查看、筛选并处理完整数据"}
+                  "在当前工作区查看完整字段、来源证据并处理结果"}
               </small>
             </span>
             <Icon name="panelRight" />
@@ -882,7 +889,7 @@ function MarkdownEvent({ event, onAction, onSelect }) {
           {event.status && (
             <Status tone={event.tone || "neutral"}>{event.status}</Status>
           )}
-          {event.route && !event.largeResult && !event.blocking && (
+          {event.route && !hasReview && !event.blocking && (
             <Button
               size="sm"
               tone="ghost"

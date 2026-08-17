@@ -33,7 +33,7 @@
 }
 .dashboard-workstreams > button > span:nth-child(2) small {
   color: var(--blue-strong);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-workstreams > button > span:nth-child(2) b {
   overflow: hidden;
@@ -43,7 +43,7 @@
 .dashboard-workstreams > button > span:nth-child(2) em {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -55,7 +55,7 @@
 }
 .dashboard-workstreams > button > span:nth-child(3) small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-workstreams > button > svg {
   color: var(--ink-tertiary);
@@ -86,11 +86,11 @@
   white-space: nowrap;
 }
 .mini-task b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .mini-task small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .decision-summary {
   display: grid;
@@ -148,7 +148,7 @@
   align-items: center;
   gap: 7px;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   font-weight: 650;
   white-space: nowrap;
 }
@@ -163,7 +163,7 @@
 }
 .dashboard-status-strip small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   white-space: nowrap;
 }
 .dashboard-action-queue .surface-header > div,
@@ -174,7 +174,7 @@
 .dashboard-action-queue .surface-header span,
 .dashboard-primary-grid .surface-header span,
 .dashboard-discoveries .surface-header span {
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .action-queue-filters,
 .dashboard-task-tabs {
@@ -222,7 +222,7 @@
 .action-queue-copy > span > small {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -236,13 +236,13 @@
   overflow: hidden;
   margin: 0;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .action-queue-list time {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   text-align: right;
 }
 .dashboard-primary-grid {
@@ -289,19 +289,19 @@
 }
 .dashboard-workstream-table small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-workstream-table em {
   overflow: hidden;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .dashboard-workstream-table b {
   overflow: hidden;
-  font-size: 10px;
+  font-size: var(--font-size-min);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -349,11 +349,11 @@
   white-space: nowrap;
 }
 .dashboard-task-list b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .dashboard-task-list small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-wait-note {
   display: flex;
@@ -365,7 +365,7 @@
   border-radius: 6px;
   color: var(--ink-tertiary);
   background: var(--surface-subtle);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-wait-note svg {
   color: var(--blue-strong);
@@ -406,11 +406,11 @@
   white-space: nowrap;
 }
 .dashboard-discoveries b {
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .dashboard-discoveries small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .dashboard-expiry {
   margin-top: 14px;
@@ -537,7 +537,7 @@
 }
 .asset-card small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .asset-card strong {
   margin: 4px 0 8px;
@@ -545,7 +545,7 @@
 }
 .asset-card em {
   color: var(--ink-secondary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   font-style: normal;
   line-height: 1.5;
 }
@@ -588,7 +588,7 @@
 }
 .mini-upload small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .impact-list {
   display: grid;
@@ -616,7 +616,7 @@
 }
 .impact-list small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .mapping-workspace {
   display: grid;
@@ -656,7 +656,7 @@
 .mapping-tree article small {
   margin-top: 4px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .mapping-tree > div {
   width: 100%;
@@ -688,7 +688,7 @@
 }
 .coverage-row b {
   color: var(--blue-strong);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   text-align: right;
 }
 
@@ -711,7 +711,7 @@
 }
 .task-live-summary small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .technical-detail {
   min-height: 240px;
@@ -766,7 +766,7 @@
 }
 .action-options small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
   line-height: 1.5;
 }
 .action-options > button > svg {
@@ -802,12 +802,12 @@
   background: var(--blue-soft);
 }
 .trigger-chain b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .trigger-chain small {
   grid-column: 2;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 
 .communication-layout {
@@ -848,7 +848,7 @@
 }
 .conversation-list small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .conversation-main {
   min-width: 0;
@@ -869,7 +869,7 @@
 }
 .conversation-main > header small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .conversation-main > section {
   padding: 18px;
@@ -887,7 +887,7 @@
 }
 .conversation-main time {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .conversation-main article p {
   margin: 0;
@@ -922,7 +922,7 @@
 }
 .message-attachment small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .conversation-composer {
   padding: 10px;
@@ -946,7 +946,7 @@
 }
 .reply-suggestion p {
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
   line-height: 1.6;
 }
 
@@ -1014,7 +1014,7 @@
 }
 .settings-list small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .danger-zone {
   border-color: color-mix(in srgb, var(--danger) 32%, var(--line));
@@ -1051,7 +1051,7 @@
 }
 .rule-list small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .platform-summary {
   min-height: 88px;
@@ -1073,7 +1073,7 @@
 .platform-summary span,
 .platform-summary p {
   color: var(--ink-tertiary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .platform-summary p {
   margin: 0;
@@ -1106,7 +1106,7 @@
 }
 .platform-list article header small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .platform-list article > div {
   display: grid;
@@ -1123,10 +1123,10 @@
 }
 .platform-list article > div small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .platform-list article > div b {
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .platform-list article > footer {
   display: flex;
@@ -1156,7 +1156,7 @@
 .browser-preview header span {
   margin-left: 6px;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .browser-preview > div {
   min-height: 170px;
@@ -1255,7 +1255,7 @@
   display: flex;
   justify-content: space-between;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .usage-grid article footer button {
   color: var(--blue-strong);
@@ -1287,7 +1287,7 @@
   bottom: calc(100% + 4px);
   left: 50%;
   color: var(--ink-tertiary);
-  font-size: 8px;
+  font-size: var(--font-size-min);
   opacity: 0;
   transform: translateX(-50%);
 }
@@ -1333,11 +1333,11 @@
 .import-kind-grid p {
   margin: 0 0 8px;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 .import-kind-grid small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
   line-height: 1.5;
 }
 .import-kind-grid > button > svg {
@@ -1391,7 +1391,7 @@
 .import-history small,
 .import-history time {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .import-history .progress {
   max-width: 280px;
@@ -1456,7 +1456,7 @@
 }
 .check-list article small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .field-diff {
   display: grid;
@@ -1483,7 +1483,7 @@
 .field-diff p {
   margin: 7px 0 0;
   color: var(--ink-secondary);
-  font-size: 11px;
+  font-size: var(--font-size-min);
 }
 
 .progress-table,
@@ -1526,7 +1526,7 @@
 .progress-table small,
 .related-table small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .related-pagination {
   min-height: 60px;
@@ -1535,7 +1535,7 @@
   justify-content: space-between;
   padding: 10px 14px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .related-pagination div {
   display: flex;
@@ -1581,7 +1581,7 @@
 }
 .experience-list article small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .experience-list article p {
   margin: 10px 0 0;
@@ -1644,7 +1644,7 @@
 }
 .split-position small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 
 .mapping-detail {
@@ -1677,7 +1677,7 @@
   place-items: center;
   border-radius: 999px;
   background: var(--surface-strong);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .org-canvas {
   min-width: 0;
@@ -1710,7 +1710,7 @@
 .org-levels button small {
   margin-top: 3px;
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .org-levels .root-node > button {
   min-width: 240px;
@@ -1762,7 +1762,7 @@
   justify-items: center;
   gap: 7px;
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .progress-stepbar button:not(:first-child)::before {
   content: "";
@@ -1828,7 +1828,7 @@
 }
 .health-row small {
   color: var(--ink-tertiary);
-  font-size: 9px;
+  font-size: var(--font-size-min);
 }
 .ops-chart {
   height: 320px;
@@ -2019,7 +2019,7 @@
 }
 .story-list article small {
   color: var(--ink-tertiary);
-  font-size: 10px;
+  font-size: var(--font-size-min);
 }
 .not-found {
   min-height: calc(100vh - var(--topbar));
