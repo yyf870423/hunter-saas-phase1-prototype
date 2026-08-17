@@ -29,6 +29,7 @@ import {
   ConfigurationCard,
   ConversationEntry,
   PermissionRequestCard,
+  WorkstreamNavigator,
 } from "../components/conversation";
 
 export function ComponentsPage() {
@@ -266,7 +267,7 @@ export function ComponentsPage() {
                     { value: "once", label: "仅允许本次" },
                     {
                       value: "mainline",
-                      label: "当前会话持续允许",
+                      label: "当前业务主线持续允许",
                       tone: "primary",
                     },
                   ],
@@ -295,6 +296,63 @@ export function ComponentsPage() {
                   stop: "确认招聘机会或连续三次无新增",
                 }}
                 onEdit={() => toast("已进入配置编辑", "info")}
+              />
+            </div>
+          </div>
+          <div className="surface span-2">
+            <header className="surface-header">
+              <h2>业务主线导航</h2>
+            </header>
+            <div className="surface-body component-workstream-navigator">
+              <WorkstreamNavigator
+                config={{
+                  status: "推进中",
+                  tone: "info",
+                  next: "审核首批 18 位候选人，并决定是否扩大寻访范围。",
+                }}
+                phases={[
+                  ["理解岗位", "已完成"],
+                  ["寻找候选人", "进行中"],
+                  ["审核并联系", "等待处理"],
+                ]}
+                filters={[
+                  {
+                    value: "all",
+                    label: "全部过程",
+                    description: "交互、任务和结果",
+                    icon: "route",
+                    count: 28,
+                  },
+                  {
+                    value: "decisions",
+                    label: "等待处理",
+                    description: "授权、审核和支线",
+                    icon: "user",
+                    count: 4,
+                  },
+                ]}
+                filter="all"
+                tasks={[
+                  {
+                    id: "sourcing",
+                    title: "多渠道候选人寻访",
+                    meta: "猎聘第 2 页 · 脉脉等待回复",
+                    status: "运行中",
+                    tone: "info",
+                  },
+                  {
+                    id: "review",
+                    title: "首批候选人审核",
+                    meta: "18 位候选人等待审核",
+                    status: "待处理",
+                    tone: "warning",
+                  },
+                ]}
+                onFilter={(value) => toast(`已切换过程筛选：${value}`, "info")}
+                onPhase={(value) => toast(`已定位业务阶段：${value}`, "info")}
+                onTask={(task) => toast(`已打开任务：${task.title}`, "info")}
+                onOpenContext={() => toast("已打开业务主线信息", "info")}
+                onOpenTasks={() => toast("已打开任务中心", "info")}
               />
             </div>
           </div>

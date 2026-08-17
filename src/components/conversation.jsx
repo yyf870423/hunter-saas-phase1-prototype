@@ -19,7 +19,7 @@ export const agentModes = [
     value: "auto",
     label: "自动执行",
     icon: "play",
-    description: "在当前会话授权范围内不逐次询问，强制门禁仍生效。",
+    description: "在当前业务主线授权范围内不逐次询问，强制门禁仍生效。",
   },
 ];
 
@@ -59,7 +59,7 @@ export function AgentModeSelect({ value, onChange, disabled = false }) {
         <div className="agent-mode-panel">
           <header>
             <b>Agent 操作模式</b>
-            <small>仅影响当前会话</small>
+            <small>仅影响当前业务主线</small>
           </header>
           {agentModes.map((item) => (
             <button
@@ -91,96 +91,137 @@ export function AgentModeSelect({ value, onChange, disabled = false }) {
   );
 }
 
-export function ConversationHistory({
-  sessions,
-  activeId,
-  onSelect,
-  onNew,
-  onPin,
-  onDelete,
-  eyebrow = "当前业务主线",
+export function WorkstreamNavigator({
+  config,
+  phases,
+  filters,
+  filter,
+  tasks,
+  onFilter,
+  onPhase,
+  onTask,
+  onOpenContext,
+  onOpenTasks,
 }) {
-  const [query, setQuery] = useState("");
-  const visible = sessions.filter((session) =>
-    `${session.title} ${session.summary}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
-  const groups = [
-    ["已置顶", visible.filter((session) => session.pinned)],
-    ["历史会话", visible.filter((session) => !session.pinned)],
-  ];
   return (
-    <aside className="conversation-history" aria-label="历史会话">
+    <aside className="workstream-navigator" aria-label="主线导航">
       <header>
         <span>
-          <small>{eyebrow}</small>
-          <b>会话</b>
+          <small>当前业务主线</small>
+          <b>主线导航</b>
         </span>
-        <IconButton icon="plus" label="新建会话" onClick={onNew} />
-      </header>
-      <label className="conversation-search">
-        <Icon name="search" />
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="搜索当前主线会话"
-          aria-label="搜索当前主线会话"
+        <IconButton
+          icon="settings"
+          label="查看业务主线信息"
+          onClick={onOpenContext}
         />
-        {query && (
-          <button
-            type="button"
-            aria-label="清空会话搜索"
-            onClick={() => setQuery("")}
-          >
-            <Icon name="close" />
-          </button>
-        )}
-      </label>
-      <div className="conversation-history-scroll">
-        {groups.map(([label, items]) =>
-          items.length ? (
-            <section key={label}>
-              <h3>{label}</h3>
-              <div>
-                {items.map((session) => (
-                  <article
-                    className={activeId === session.id ? "is-active" : ""}
-                    key={session.id}
-                  >
-                    <button type="button" onClick={() => onSelect(session.id)}>
-                      <span>
-                        <b>{session.title}</b>
-                        <small>{session.summary}</small>
-                      </span>
-                      <time>{session.time}</time>
-                    </button>
-                    <div>
-                      <IconButton
-                        icon="pin"
-                        label={session.pinned ? "取消置顶" : "置顶会话"}
-                        onClick={() => onPin(session.id)}
-                      />
-                      {sessions.length > 1 && (
-                        <IconButton
-                          icon="trash"
-                          label="删除会话"
-                          onClick={() => onDelete(session)}
-                        />
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null,
-        )}
-        {!visible.length && (
-          <div className="conversation-history-empty">
-            <Icon name="search" />
-            <span>没有匹配的会话</span>
+      </header>
+      <div className="workstream-navigator-scroll">
+        <section className="navigator-summary">
+          <Status tone={config.tone}>{config.status}</Status>
+          <p>{config.next}</p>
+        </section>
+        <section className="navigator-section">
+          <h3>过程定位</h3>
+          <nav aria-label="业务过程筛选">
+            {filters.map((item) => (
+              <button
+                type="button"
+                className={filter === item.value ? "is-active" : ""}
+                key={item.value}
+                onClick={() => onFilter(item.value)}
+              >
+                <Icon name={item.icon} />
+                <span>
+                  <b>{item.label}</b>
+                  <small>{item.description}</small>
+                </span>
+                <strong>{item.count}</strong>
+              </button>
+            ))}
+          </nav>
+        </section>
+        <section className="navigator-section navigator-phases">
+          <h3>业务阶段</h3>
+          <ol>
+            {phases.map(([title, status], index) => (
+              <li key={title}>
+                <button type="button" onClick={() => onPhase(title)}>
+                  <i>{index + 1}</i>
+                  <span>
+                    <b>{title}</b>
+                    <small>{status}</small>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="navigator-section navigator-tasks">
+          <h3>当前任务</h3>
+          <div>
+            {tasks.map((task) => (
+              <button type="button" key={task.id} onClick={() => onTask(task)}>
+                <Icon name={task.icon || "task"} />
+                <span>
+                  <b>{task.title}</b>
+                  <small>{task.meta}</small>
+                </span>
+                <Status tone={task.tone} dot={false}>
+                  {task.status}
+                </Status>
+              </button>
+            ))}
           </div>
-        )}
+          <Button size="sm" icon="task" onClick={onOpenTasks}>
+            查看全部任务
+          </Button>
+        </section>
+      </div>
+    </aside>
+  );
+}
+
+export function CreationProgress({ kind, step, mode }) {
+  const selectedMode = agentModes.find((item) => item.value === mode);
+  const steps = [
+    ["选择业务目标", Boolean(kind)],
+    ["补齐范围和完成标准", step >= 2],
+    ["检查授权和停止条件", step >= 2],
+    ["确认创建业务主线", step >= 3],
+  ];
+  return (
+    <aside className="creation-progress" aria-label="创建进度">
+      <header>
+        <span>
+          <small>新建业务主线</small>
+          <b>创建进度</b>
+        </span>
+        <Status tone={step >= 3 ? "success" : "info"}>
+          {step >= 3 ? "可创建" : "准备中"}
+        </Status>
+      </header>
+      <div className="creation-progress-scroll">
+        <ol>
+          {steps.map(([label, complete], index) => (
+            <li className={complete ? "is-complete" : ""} key={label}>
+              <i>{complete ? <Icon name="check" /> : index + 1}</i>
+              <span>
+                <b>{label}</b>
+                <small>{complete ? "已完成" : "等待补充"}</small>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <section>
+          <small>Agent 操作模式</small>
+          <b>{selectedMode?.label}</b>
+          <p>{selectedMode?.description}</p>
+        </section>
+        <div className="draft-save-note">
+          <Icon name="check" />
+          <span>当前内容自动保存；返回业务主线列表后可以继续。</span>
+        </div>
       </div>
     </aside>
   );
@@ -197,7 +238,7 @@ export function ConversationPreview({
     <aside className="conversation-preview" aria-label="结果预览">
       <header>
         <span>
-          <small>{preview?.eyebrow || "当前会话"}</small>
+          <small>{preview?.eyebrow || "当前业务主线"}</small>
           <b>{preview?.title || "尚未生成结果"}</b>
         </span>
         <IconButton icon="maximize" label="展开结果预览" onClick={onOpen} />
@@ -301,10 +342,10 @@ export function ConversationPreview({
   );
 }
 
-export function ConversationWorkspace({ children, history, preview }) {
+export function ConversationWorkspace({ children, navigation, preview }) {
   return (
     <section className="conversation-workspace">
-      <div className="mainline-conversation-history">{history}</div>
+      <div className="mainline-conversation-navigation">{navigation}</div>
       <div className="mainline-conversation-main">{children}</div>
       <div className="mainline-conversation-preview">{preview}</div>
     </section>

@@ -9,7 +9,7 @@
   align-items: stretch;
   margin-top: 18px;
 }
-.mainline-conversation-history,
+.mainline-conversation-navigation,
 .mainline-conversation-main,
 .mainline-conversation-preview {
   min-width: 0;
@@ -25,13 +25,14 @@
   box-shadow: var(--shadow-1);
   overflow: clip;
 }
-.mainline-conversation-history,
+.mainline-conversation-navigation,
 .mainline-conversation-preview {
   position: sticky;
   top: calc(var(--topbar) + 18px);
   height: fit-content;
 }
-.conversation-history,
+.workstream-navigator,
+.creation-progress,
 .conversation-preview {
   height: 100%;
   display: flex;
@@ -42,7 +43,8 @@
   box-shadow: var(--shadow-1);
   overflow: hidden;
 }
-.conversation-history > header,
+.workstream-navigator > header,
+.creation-progress > header,
 .conversation-preview > header {
   min-height: 58px;
   display: flex;
@@ -53,148 +55,35 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
-.conversation-history > header > span,
+.workstream-navigator > header > span,
+.creation-progress > header > span,
 .conversation-preview > header > span {
   min-width: 0;
   display: grid;
   gap: 2px;
 }
-.conversation-history > header small,
+.workstream-navigator > header small,
+.creation-progress > header small,
 .conversation-preview > header small {
   color: var(--ink-tertiary);
   font-size: 9px;
 }
-.conversation-history > header b,
+.workstream-navigator > header b,
+.creation-progress > header b,
 .conversation-preview > header b {
   overflow: hidden;
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.conversation-search {
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 20px;
-  align-items: center;
-  gap: 6px;
-  margin: 10px;
-  padding: 0 7px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface-subtle);
-}
-.conversation-search:focus-within {
-  border-color: var(--blue);
-  box-shadow: inset 0 0 0 1px var(--blue);
-}
-.conversation-search > svg {
-  width: 14px;
-  color: var(--ink-tertiary);
-}
-.conversation-search input {
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-size: 10px;
-}
-.conversation-search button {
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  color: var(--ink-tertiary);
-}
-.conversation-search button svg {
-  width: 12px;
-}
-.conversation-history-scroll,
+.workstream-navigator-scroll,
+.creation-progress-scroll,
 .conversation-preview-scroll {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.conversation-history-scroll {
-  padding: 0 7px 10px;
-}
-.conversation-history-scroll section + section {
-  margin-top: 13px;
-}
-.conversation-history-scroll h3 {
-  margin: 0;
-  padding: 6px 7px;
-  color: var(--ink-tertiary);
-  font-size: 9px;
-  font-weight: 650;
-}
-.conversation-history-scroll section > div {
-  display: grid;
-  gap: 3px;
-}
-.conversation-history-scroll article {
-  position: relative;
-  min-width: 0;
-  border: 1px solid transparent;
-  border-radius: 7px;
-}
-.conversation-history-scroll article:hover,
-.conversation-history-scroll article.is-active {
-  border-color: color-mix(in srgb, var(--blue) 22%, var(--line));
-  background: var(--blue-soft);
-}
-.conversation-history-scroll article > button:first-child {
-  width: 100%;
-  min-height: 62px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 5px 8px;
-  padding: 9px 8px;
-  text-align: left;
-}
-.conversation-history-scroll article > button:first-child > span {
-  min-width: 0;
-  display: grid;
-  gap: 4px;
-}
-.conversation-history-scroll article b,
-.conversation-history-scroll article small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.conversation-history-scroll article b {
-  font-size: 10px;
-}
-.conversation-history-scroll article small,
-.conversation-history-scroll article time {
-  color: var(--ink-tertiary);
-  font-size: 8px;
-}
-.conversation-history-scroll article time {
-  padding-right: 1px;
-  white-space: nowrap;
-}
-.conversation-history-scroll article > div {
-  position: absolute;
-  right: 5px;
-  bottom: 4px;
-  display: none;
-  padding-left: 14px;
-  background: linear-gradient(90deg, transparent, var(--blue-soft) 28%);
-}
-.conversation-history-scroll article:hover > div,
-.conversation-history-scroll article:focus-within > div {
-  display: flex;
-}
-.conversation-history-scroll article > div .icon-button {
-  width: 24px;
-  height: 24px;
-}
-.conversation-history-scroll article > div svg {
-  width: 12px;
-}
-.conversation-history-empty,
 .preview-empty {
   min-height: 210px;
   display: grid;
@@ -205,8 +94,226 @@
   color: var(--ink-tertiary);
   text-align: center;
 }
-.conversation-history-empty span {
+.workstream-navigator-scroll,
+.creation-progress-scroll {
+  padding: 10px;
+}
+.navigator-summary {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-subtle);
+}
+.navigator-summary p {
+  margin: 8px 0 0;
+  color: var(--ink-secondary);
+  font-size: 9px;
+  line-height: 1.55;
+}
+.navigator-section {
+  margin-top: 14px;
+}
+.navigator-section > h3 {
+  margin: 0 0 6px;
+  padding: 0 4px;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+}
+.navigator-section nav,
+.navigator-tasks > div {
+  display: grid;
+  gap: 3px;
+}
+.navigator-section nav > button,
+.navigator-tasks > div > button {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  text-align: left;
+}
+.navigator-section nav > button:hover,
+.navigator-section nav > button.is-active,
+.navigator-tasks > div > button:hover {
+  border-color: color-mix(in srgb, var(--blue) 24%, var(--line));
+  background: var(--blue-soft);
+}
+.navigator-section nav > button > svg,
+.navigator-tasks > div > button > svg {
+  width: 14px;
+  color: var(--blue-strong);
+}
+.navigator-section nav > button > span,
+.navigator-tasks > div > button > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.navigator-section nav b,
+.navigator-tasks b {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navigator-section nav small,
+.navigator-tasks small {
+  overflow: hidden;
+  color: var(--ink-tertiary);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navigator-section nav strong {
+  min-width: 18px;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  text-align: center;
+}
+.navigator-phases ol {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.navigator-phases button {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 6px;
+  text-align: left;
+}
+.navigator-phases button:hover {
+  background: var(--surface-strong);
+}
+.navigator-phases i {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink-tertiary);
+  background: var(--surface-strong);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+}
+.navigator-phases span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+.navigator-phases b {
+  font-size: 9px;
+}
+.navigator-phases small {
+  color: var(--ink-tertiary);
+  font-size: 8px;
+}
+.navigator-tasks .status {
+  max-width: 48px;
+  padding: 2px 5px;
+  font-size: 7px;
+}
+.navigator-tasks > .button {
+  width: 100%;
+  margin-top: 6px;
+}
+.creation-progress-scroll > ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.creation-progress-scroll > ol li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0 14px;
+}
+.creation-progress-scroll > ol li:not(:last-child)::after {
+  position: absolute;
+  top: 30px;
+  bottom: 0;
+  left: 13px;
+  width: 1px;
+  background: var(--line);
+  content: "";
+}
+.creation-progress-scroll > ol i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-tertiary);
+  background: var(--surface);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.creation-progress-scroll > ol i svg {
+  width: 13px;
+}
+.creation-progress-scroll > ol li.is-complete i {
+  border-color: var(--blue);
+  color: var(--ink-on-accent);
+  background: var(--blue);
+}
+.creation-progress-scroll > ol span {
+  display: grid;
+  gap: 2px;
+  padding-top: 2px;
+}
+.creation-progress-scroll > ol b {
   font-size: 10px;
+}
+.creation-progress-scroll > ol small,
+.creation-progress-scroll > section small {
+  color: var(--ink-tertiary);
+  font-size: 8px;
+}
+.creation-progress-scroll > section {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-subtle);
+}
+.creation-progress-scroll > section b {
+  font-size: 10px;
+}
+.creation-progress-scroll > section p,
+.draft-save-note {
+  margin: 0;
+  color: var(--ink-tertiary);
+  font-size: 8px;
+  line-height: 1.5;
+}
+.draft-save-note {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px;
+}
+.draft-save-note svg {
+  width: 13px;
+  color: var(--success);
 }
 .conversation-preview-scroll {
   padding: 12px;
@@ -365,7 +472,8 @@
 .preview-context dd {
   color: var(--ink-secondary);
 }
-.drawer .conversation-history,
+.drawer .workstream-navigator,
+.drawer .creation-progress,
 .drawer .conversation-preview {
   height: auto;
   min-height: 560px;
@@ -851,17 +959,17 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
-.conversation-current-session {
+.conversation-current-process {
   min-width: 0;
   display: grid;
   gap: 2px;
 }
-.conversation-current-session small {
+.conversation-current-process small {
   color: var(--ink-tertiary);
   font-size: 8px;
 }
-.conversation-current-session b {
-  max-width: 250px;
+.conversation-current-process b {
+  max-width: 520px;
   overflow: hidden;
   font-size: 11px;
   text-overflow: ellipsis;
@@ -1136,6 +1244,12 @@
 .conversation-component-demo .surface-body {
   overflow: hidden;
 }
+.component-workstream-navigator {
+  max-width: 360px;
+}
+.component-workstream-navigator .workstream-navigator {
+  height: 560px;
+}
 .component-agent-mode {
   min-height: 44px;
   display: flex;
@@ -1156,7 +1270,7 @@
   .conversation-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
-  .mainline-conversation-history,
+  .mainline-conversation-navigation,
   .mainline-conversation-preview {
     display: none;
   }
@@ -1197,11 +1311,7 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .conversation-toolbar .segmented {
-    width: 100%;
-    overflow-x: auto;
-  }
-  .conversation-toolbar .conversation-current-session {
+  .conversation-toolbar .conversation-current-process {
     width: 100%;
   }
   .conversation-composer > footer > div > span {

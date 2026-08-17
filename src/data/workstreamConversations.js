@@ -186,179 +186,6 @@ const phases = {
   ],
 };
 
-const conversationSessions = {
-  client: [
-    {
-      id: "client-contact",
-      title: "确认负责人并准备首次联系",
-      summary: "HRD 周雅雯 · 联系内容待确认",
-      time: "12 分钟前",
-      pinned: true,
-    },
-    {
-      id: "client-signal",
-      title: "融资后招聘信号核验",
-      summary: "官网岗位与融资公告已交叉验证",
-      time: "今天 09:18",
-      pinned: false,
-      prompt: "核验 B+ 轮融资后是否真的扩招机器人研发团队。",
-      result: "招聘信号核验完成",
-      resultDetail:
-        "官网新增 6 个算法岗位，融资公告明确提到扩充机器人研发团队。",
-      status: "已完成",
-      tone: "success",
-    },
-    {
-      id: "client-competitors",
-      title: "同类创业公司机会补充",
-      summary: "新增 3 家值得持续观察的公司",
-      time: "昨天",
-      pinned: false,
-      prompt: "补充星澜机器人上下游同类公司，但先不要创建新的客户主线。",
-      result: "同类公司观察清单已更新",
-      resultDetail: "新增云脉芯能、原力机器人和行知动力，均保留公开招聘证据。",
-      status: "已记录",
-      tone: "info",
-    },
-  ],
-  position: [
-    {
-      id: "position-candidates",
-      title: "首批候选人召回与匹配",
-      summary: "46 人进入候选池 · 18 人待审核",
-      time: "6 分钟前",
-      pinned: true,
-    },
-    {
-      id: "position-profile",
-      title: "岗位画像与寻访关键词",
-      summary: "岗位理解和 5 组关键词已确认",
-      time: "今天 08:18",
-      pinned: true,
-      prompt: "先把岗位做深度分析，给出适合猎聘和脉脉的找人关键词。",
-      result: "岗位画像和寻访计划已确认",
-      resultDetail:
-        "岗位定位、上下游关系、关键技能和 5 组搜索关键词已经写入岗位资料。",
-      status: "已完成",
-      tone: "success",
-    },
-    {
-      id: "position-location",
-      title: "杭州地点补充影响",
-      summary: "仅 6 位候选人需要局部重匹配",
-      time: "今天 09:14",
-      pinned: false,
-      prompt: "客户补充杭州也可以，但每周至少三天到岗。",
-      result: "地点变化影响分析完成",
-      resultDetail: "不需要重新召回；只重算 6 位此前因地点受限的候选人。",
-      status: "待确认",
-      tone: "warning",
-    },
-    {
-      id: "position-interviews",
-      title: "本周候选人推进",
-      summary: "2 人面试 · 3 人等待回复",
-      time: "昨天",
-      pinned: false,
-      prompt: "汇总本周候选人推进，提醒我哪些人需要跟进。",
-      result: "本周推进摘要已生成",
-      resultDetail:
-        "赵星羽等待技术二面，林昊等待候选人确认，另有 3 人超过 48 小时未回复。",
-      status: "需跟进",
-      tone: "warning",
-    },
-  ],
-  mapping: [
-    {
-      id: "mapping-relationships",
-      title: "关键人物与联系路径核验",
-      summary: "7 条关系待核验 · 3 位负责人待补齐",
-      time: "18 分钟前",
-      pinned: true,
-    },
-    {
-      id: "mapping-orgs",
-      title: "12 家公司组织结构摸排",
-      summary: "3 个团队已补齐 · 总覆盖 72%",
-      time: "今天 09:11",
-      pinned: false,
-      prompt: "先补齐星澜、云脉和原力机器人的 VLA 团队组织结构。",
-      result: "三家公司组织结构已更新",
-      resultDetail: "新增 18 位确认人物、6 位待核验人物和 4 条团队变动证据。",
-      status: "已完成",
-      tone: "success",
-    },
-    {
-      id: "mapping-gaps",
-      title: "关键角色覆盖缺口",
-      summary: "灵巧手控制和机器人平台仍有缺口",
-      time: "昨天",
-      pinned: false,
-      prompt: "检查目前人才地图还漏掉了哪些关键角色和公司。",
-      result: "覆盖缺口分析完成",
-      resultDetail:
-        "灵巧手控制负责人缺 4 人，机器人平台负责人缺 3 人，建议优先补齐两类角色。",
-      status: "待处理",
-      tone: "warning",
-    },
-  ],
-  career: [
-    {
-      id: "career-resume",
-      title: "新简历更新与局部重匹配",
-      summary: "新增项目经历 · 影响 6 个岗位",
-      time: "9 分钟前",
-      pinned: true,
-    },
-    {
-      id: "career-opportunities",
-      title: "上海与杭州岗位机会",
-      summary: "18 个岗位中筛出 6 个建议岗位",
-      time: "昨天 16:36",
-      pinned: false,
-      prompt: "只找上海和杭州，技术负责人可以，纯管理岗位不要。",
-      result: "首批岗位机会已筛选完成",
-      resultDetail:
-        "从 18 个岗位中筛出 6 个，星澜机器人 VLA 负责人匹配度最高。",
-      status: "已完成",
-      tone: "success",
-    },
-    {
-      id: "career-followup",
-      title: "候选人回复与跟进",
-      summary: "等待确认新版简历和地点范围",
-      time: "昨天 17:42",
-      pinned: false,
-      prompt: "林昊说晚上发最新版简历，收到后提醒我并继续处理。",
-      result: "已进入外部等待",
-      resultDetail:
-        "收到附件后将自动生成资料更新建议，但不会直接覆盖候选人资料。",
-      status: "等待外部",
-      tone: "neutral",
-    },
-  ],
-};
-
-function archivedEvents(session) {
-  return [
-    { type: "user", time: session.time, text: session.prompt },
-    {
-      type: "agent",
-      time: session.time,
-      text: "我已使用当前业务主线中确认过的目标、对象和授权范围处理这项工作。",
-    },
-    {
-      type: "result",
-      time: session.time,
-      title: session.result,
-      detail: session.resultDetail,
-      status: session.status,
-      tone: session.tone,
-      action: "查看完整结果",
-    },
-  ];
-}
-
 const events = {
   client: [
     {
@@ -464,7 +291,7 @@ const events = {
       options: [
         { value: "deny", label: "拒绝" },
         { value: "once", label: "仅允许本次" },
-        { value: "mainline", label: "当前会话持续允许", tone: "primary" },
+        { value: "mainline", label: "当前业务主线持续允许", tone: "primary" },
       ],
     },
     {
@@ -540,7 +367,7 @@ const events = {
       options: [
         { value: "deny", label: "拒绝" },
         { value: "once", label: "仅允许本次" },
-        { value: "mainline", label: "当前会话持续允许", tone: "primary" },
+        { value: "mainline", label: "当前业务主线持续允许", tone: "primary" },
       ],
     },
     {
@@ -647,10 +474,6 @@ export const workstreamDetails = Object.fromEntries(
       ...meta,
       phases: phases[kind],
       events: events[kind],
-      sessions: conversationSessions[kind].map((session, index) => ({
-        ...session,
-        events: index === 0 ? events[kind] : archivedEvents(session),
-      })),
     },
   ]),
 );

@@ -6,7 +6,6 @@ import {
   Input,
   Modal,
   PageHeader,
-  Segmented,
   Status,
   Switch,
   Textarea,
@@ -19,11 +18,12 @@ import {
   ConversationComposer,
   ConversationEntry,
   ConversationEvent,
-  ConversationHistory,
   ConversationPreview,
   ConversationWorkspace,
+  CreationProgress,
   MainlineContextPanel,
   PhaseList,
+  WorkstreamNavigator,
   WorkstreamTypeChooser,
 } from "../components/conversation";
 import {
@@ -31,36 +31,6 @@ import {
   workstreamDetails,
   workstreamKinds,
 } from "../data/workstreamConversations";
-
-const initialCreationSessions = [
-  {
-    id: "draft-new",
-    title: "新的业务主线",
-    summary: "选择业务目标后开始整理",
-    time: "刚刚",
-    pinned: true,
-    kind: "",
-    mode: "edit",
-  },
-  {
-    id: "draft-position",
-    title: "星澜机器人 VLA 招聘",
-    summary: "岗位招聘草稿 · 还需确认完成标准",
-    time: "今天 09:40",
-    pinned: false,
-    kind: "position",
-    mode: "edit",
-  },
-  {
-    id: "draft-mapping",
-    title: "具身智能核心人才摸排",
-    summary: "人才摸排草稿 · 已保存 12 家公司",
-    time: "昨天",
-    pinned: false,
-    kind: "mapping",
-    mode: "plan",
-  },
-];
 
 function CreationSummary({ kind, flow, step, mode, onEdit, onCreate }) {
   const selectedMode = agentModes.find((item) => item.value === mode);
@@ -156,10 +126,7 @@ export function NewWorkstreamPage() {
   const [autoConfirm, setAutoConfirm] = useState(false);
   const [contact, setContact] = useState(false);
   const [mode, setMode] = useState("edit");
-  const [sessions, setSessions] = useState(initialCreationSessions);
-  const [activeSessionId, setActiveSessionId] = useState("draft-new");
-  const [deleteSession, setDeleteSession] = useState(null);
-  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const flow = kind ? creationFlows[kind] : null;
 
@@ -168,71 +135,6 @@ export function NewWorkstreamPage() {
     setStep(1);
     setMessages([]);
     setMessage("");
-    setSessions((current) =>
-      current.map((session) =>
-        session.id === activeSessionId
-          ? {
-              ...session,
-              title: workstreamKinds.find((item) => item.value === value)
-                ?.label,
-              summary: `${creationFlows[value].title} · 正在补齐配置`,
-              kind: value,
-              time: "刚刚",
-            }
-          : session,
-      ),
-    );
-  };
-
-  const selectCreationSession = (id) => {
-    const session = sessions.find((item) => item.id === id);
-    setActiveSessionId(id);
-    setKind(session?.kind || "");
-    setMode(session?.mode || "edit");
-    setStep(session?.kind ? 1 : 0);
-    setSessionsOpen(false);
-    setMessages(
-      session?.kind
-        ? [
-            {
-              role: "agent",
-              text: "草稿已恢复。你可以继续补充目标，或检查右侧启动摘要。",
-              time: "刚刚",
-            },
-          ]
-        : [],
-    );
-  };
-
-  const createConversation = () => {
-    const id = `draft-${Date.now()}`;
-    setSessions((current) => [
-      {
-        id,
-        title: "新的业务主线",
-        summary: "尚未选择业务目标",
-        time: "刚刚",
-        pinned: false,
-        kind: "",
-        mode: "edit",
-      },
-      ...current,
-    ]);
-    setActiveSessionId(id);
-    setKind("");
-    setStep(0);
-    setMessages([]);
-    setMessage("");
-    setMode("edit");
-    setSessionsOpen(false);
-  };
-
-  const toggleSessionPin = (id) => {
-    setSessions((current) =>
-      current.map((session) =>
-        session.id === id ? { ...session, pinned: !session.pinned } : session,
-      ),
-    );
   };
 
   const send = (preset) => {
@@ -263,16 +165,8 @@ export function NewWorkstreamPage() {
     navigate(`/workstreams/${kind}-new/${kind}`);
   };
 
-  const creationHistory = (
-    <ConversationHistory
-      sessions={sessions}
-      activeId={activeSessionId}
-      eyebrow="业务主线草稿"
-      onSelect={selectCreationSession}
-      onNew={createConversation}
-      onPin={toggleSessionPin}
-      onDelete={setDeleteSession}
-    />
+  const creationNavigation = (
+    <CreationProgress kind={kind} step={step} mode={mode} />
   );
   const creationPreview = (
     <CreationSummary
@@ -297,9 +191,9 @@ export function NewWorkstreamPage() {
             <Button
               className="chat-mobile-button"
               icon="panelLeft"
-              onClick={() => setSessionsOpen(true)}
+              onClick={() => setNavigationOpen(true)}
             >
-              会话
+              进度
             </Button>
             <Button
               className="chat-mobile-button"
@@ -312,7 +206,7 @@ export function NewWorkstreamPage() {
         }
       />
       <ConversationWorkspace
-        history={creationHistory}
+        navigation={creationNavigation}
         preview={creationPreview}
       >
         <div className="conversation-thread creation-thread">
@@ -392,13 +286,6 @@ export function NewWorkstreamPage() {
           mode={mode}
           onModeChange={(value) => {
             setMode(value);
-            setSessions((current) =>
-              current.map((session) =>
-                session.id === activeSessionId
-                  ? { ...session, mode: value }
-                  : session,
-              ),
-            );
             toast(
               `已切换为${agentModes.find((item) => item.value === value)?.label}`,
               "info",
@@ -412,12 +299,12 @@ export function NewWorkstreamPage() {
         />
       </ConversationWorkspace>
       <Drawer
-        open={sessionsOpen}
-        onClose={() => setSessionsOpen(false)}
-        title="业务主线草稿"
+        open={navigationOpen}
+        onClose={() => setNavigationOpen(false)}
+        title="创建进度"
         width="360px"
       >
-        {creationHistory}
+        {creationNavigation}
       </Drawer>
       <Drawer
         open={previewOpen}
@@ -472,40 +359,86 @@ export function NewWorkstreamPage() {
           </div>
         )}
       </Modal>
-      <Modal
-        danger
-        open={Boolean(deleteSession)}
-        onClose={() => setDeleteSession(null)}
-        title="删除这条会话草稿"
-        description={deleteSession?.title}
-        footer={
-          <>
-            <Button onClick={() => setDeleteSession(null)}>取消</Button>
-            <Button
-              tone="danger"
-              onClick={() => {
-                const remaining = sessions.filter(
-                  (session) => session.id !== deleteSession.id,
-                );
-                setSessions(remaining);
-                if (activeSessionId === deleteSession.id)
-                  selectCreationSession(remaining[0].id);
-                setDeleteSession(null);
-                toast("会话草稿已删除", "info");
-              }}
-            >
-              删除会话
-            </Button>
-          </>
-        }
-      >
-        <p>只删除这条尚未创建的会话草稿，不会影响已经存在的业务主线。</p>
-      </Modal>
     </div>
   );
 }
 
-function eventToPreview(event, config, session, kind) {
+const navigatorTasks = {
+  client: [
+    {
+      id: "client-research",
+      title: "负责人公开信息核验",
+      meta: "3 个来源正在交叉核验",
+      status: "运行中",
+      tone: "info",
+      route: "/tasks",
+    },
+    {
+      id: "client-contact-review",
+      title: "首次联系内容审核",
+      meta: "等待猎头确认发送对象和内容",
+      status: "待处理",
+      tone: "warning",
+      route: "/tasks",
+    },
+  ],
+  position: [
+    {
+      id: "position-sourcing",
+      title: "多渠道候选人寻访",
+      meta: "猎聘第 2 页 · 脉脉等待回复",
+      status: "运行中",
+      tone: "info",
+      route: "/tasks/task-sourcing",
+    },
+    {
+      id: "position-review",
+      title: "首批候选人审核",
+      meta: "18 位候选人等待审核",
+      status: "待处理",
+      tone: "warning",
+      route: "/candidates",
+    },
+  ],
+  mapping: [
+    {
+      id: "mapping-org",
+      title: "目标公司组织结构补全",
+      meta: "3 个团队正在补充",
+      status: "运行中",
+      tone: "info",
+      route: "/tasks",
+    },
+    {
+      id: "mapping-relation",
+      title: "人物关系核验",
+      meta: "7 条关系等待人工核验",
+      status: "待处理",
+      tone: "warning",
+      route: "/mappings/embodied",
+    },
+  ],
+  career: [
+    {
+      id: "career-resume",
+      title: "候选人新简历解析",
+      meta: "等待允许读取附件",
+      status: "等待授权",
+      tone: "warning",
+      route: "/tasks/task-enrich",
+    },
+    {
+      id: "career-rematch",
+      title: "相关岗位局部重匹配",
+      meta: "确认资料更新后自动开始",
+      status: "未开始",
+      tone: "neutral",
+      route: "/tasks",
+    },
+  ],
+};
+
+function eventToPreview(event, config, kind) {
   if (!event) return null;
   const kindEvidence = {
     client: ["星澜机器人官网招聘页", "B+ 轮融资公告", "负责人公开履历"],
@@ -527,9 +460,9 @@ function eventToPreview(event, config, session, kind) {
             : event.type === "permission"
               ? "权限请求"
               : "结果预览",
-    title: event.title || session.title,
+    title: event.title || config.title,
     detail: event.detail || event.text,
-    status: event.status || (event.type === "plan" ? "已更新" : "当前会话"),
+    status: event.status || (event.type === "plan" ? "已更新" : "当前业务主线"),
     tone: event.tone || (event.type === "permission" ? "warning" : "info"),
     icon:
       event.type === "object"
@@ -540,7 +473,7 @@ function eventToPreview(event, config, session, kind) {
             ? "settings"
             : "sparkles",
     metrics: [
-      ["所属会话", session.title],
+      ["所属主线", config.title],
       ["主线状态", config.status],
       ["更新时间", event.time],
     ],
@@ -557,35 +490,15 @@ export function WorkstreamDetailPage({ kind }) {
   const config = workstreamDetails[kind];
   const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState("");
-  const [sessions, setSessions] = useState(config.sessions);
-  const [activeSessionId, setActiveSessionId] = useState(config.sessions[0].id);
-  const [eventsBySession, setEventsBySession] = useState(() =>
-    Object.fromEntries(
-      config.sessions.map((session) => [session.id, session.events]),
-    ),
-  );
-  const [modeBySession, setModeBySession] = useState(() =>
-    Object.fromEntries(config.sessions.map((session) => [session.id, "edit"])),
-  );
+  const [events, setEvents] = useState(config.events);
+  const [mode, setMode] = useState("edit");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [paused, setPaused] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
-  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [terminate, setTerminate] = useState(false);
   const [attachment, setAttachment] = useState(false);
-  const [deleteSession, setDeleteSession] = useState(null);
-
-  const activeSession =
-    sessions.find((session) => session.id === activeSessionId) || sessions[0];
-  const events = eventsBySession[activeSessionId] || [];
-  const mode = modeBySession[activeSessionId] || "edit";
-  const updateCurrentEvents = (updater) => {
-    setEventsBySession((current) => ({
-      ...current,
-      [activeSessionId]: updater(current[activeSessionId] || []),
-    }));
-  };
 
   const visibleEvents = useMemo(() => {
     if (filter === "all") return events;
@@ -605,47 +518,48 @@ export function WorkstreamDetailPage({ kind }) {
     [...events]
       .reverse()
       .find((item) => !["user", "agent"].includes(item.type));
-  const preview = eventToPreview(previewEvent, config, activeSession, kind);
+  const preview = eventToPreview(previewEvent, config, kind);
 
-  const selectSession = (id) => {
-    setActiveSessionId(id);
-    setFilter("all");
-    setSelectedEvent(null);
-    setSessionsOpen(false);
-  };
-
-  const createConversation = () => {
-    const id = `${kind}-conversation-${Date.now()}`;
-    const session = {
-      id,
-      title: "新的会话",
-      summary: "继承主线目标，尚未开始处理",
-      time: "刚刚",
-      pinned: false,
-    };
-    setSessions((current) => [session, ...current]);
-    setEventsBySession((current) => ({
-      ...current,
-      [id]: [
-        {
-          type: "agent",
-          time: "刚刚",
-          text: `新会话已继承“${config.title}”中已经确认的目标与业务资料。你可以直接提出新的问题或补充信息。`,
-        },
-      ],
-    }));
-    setModeBySession((current) => ({ ...current, [id]: "edit" }));
-    setActiveSessionId(id);
-    setSelectedEvent(null);
-    setFilter("all");
-    setSessionsOpen(false);
-    toast("新会话已创建", "info");
-  };
+  const filterItems = [
+    {
+      value: "all",
+      label: "全部过程",
+      description: "交互、任务和结果",
+      icon: "route",
+      count: events.length,
+    },
+    {
+      value: "decisions",
+      label: "等待处理",
+      description: "授权、审核和支线",
+      icon: "user",
+      count: events.filter((item) =>
+        ["approval", "impact", "branch", "permission"].includes(item.type),
+      ).length,
+    },
+    {
+      value: "tasks",
+      label: "任务与等待",
+      description: "运行任务和外部等待",
+      icon: "task",
+      count: events.filter((item) =>
+        ["plan", "task", "wait"].includes(item.type),
+      ).length,
+    },
+    {
+      value: "results",
+      label: "结果与资产",
+      description: "阶段结果和正式对象",
+      icon: "database",
+      count: events.filter((item) => ["result", "object"].includes(item.type))
+        .length,
+    },
+  ];
 
   const changeMode = (value) => {
     const selected = agentModes.find((item) => item.value === value);
-    setModeBySession((current) => ({ ...current, [activeSessionId]: value }));
-    updateCurrentEvents((current) => {
+    setMode(value);
+    setEvents((current) => {
       const updated =
         value === "auto"
           ? current.map((item) =>
@@ -653,10 +567,10 @@ export function WorkstreamDetailPage({ kind }) {
               item.options?.some((option) => option.value === "mainline")
                 ? {
                     ...item,
-                    status: "当前会话已授权",
+                    status: "当前业务主线已授权",
                     tone: "success",
                     options: undefined,
-                    detail: `${item.detail} 已按自动执行模式在当前会话内授权，Hunter 强制门禁仍然生效。`,
+                    detail: `${item.detail} 已按自动执行模式在当前业务主线内授权，Hunter 强制门禁仍然生效。`,
                   }
                 : item,
             )
@@ -670,8 +584,8 @@ export function WorkstreamDetailPage({ kind }) {
             value === "plan"
               ? "操作模式已切换为规划模式。后续只研究和生成计划，不执行外部操作或业务写入。"
               : value === "auto"
-                ? "操作模式已切换为自动执行。当前会话已授权范围内的普通操作不再逐次询问，Hunter 强制门禁和人工业务边界保持不变。"
-                : "操作模式已切换为执行模式。可以继续搜索、分析和生成草稿，敏感操作会在当前会话中询问。",
+                ? "操作模式已切换为自动执行。当前业务主线已授权范围内的普通操作不再逐次询问，Hunter 强制门禁和人工业务边界保持不变。"
+                : "操作模式已切换为执行模式。可以继续搜索、分析和生成草稿，敏感操作会在当前业务主线中询问。",
         },
       ];
     });
@@ -685,16 +599,16 @@ export function WorkstreamDetailPage({ kind }) {
           ? ["已拒绝", "danger", "相关任务将保持等待，不会执行该操作。"]
           : action === "mainline"
             ? [
-                "当前会话已授权",
+                "当前业务主线已授权",
                 "success",
-                "授权只在当前会话有效，仍受预算和安全门禁约束。",
+                "授权只在当前业务主线有效，仍受预算和安全门禁约束。",
               ]
             : [
                 "已授权本次",
                 "success",
                 "授权只对本次操作有效，执行完成后自动失效。",
               ];
-      updateCurrentEvents((current) =>
+      setEvents((current) =>
         current.map((item) =>
           item === event
             ? {
@@ -736,47 +650,35 @@ export function WorkstreamDetailPage({ kind }) {
       primary: "确认局部更新",
       secondary: "先不处理",
     };
-    updateCurrentEvents((current) => [
+    setEvents((current) => [
       ...current,
       { type: "user", time: "刚刚", text },
       impact,
     ]);
-    setSessions((current) =>
-      current.map((session) =>
-        session.id === activeSessionId
-          ? {
-              ...session,
-              title:
-                session.title === "新的会话"
-                  ? text.slice(0, 18)
-                  : session.title,
-              summary: `刚刚补充：${text}`,
-              time: "刚刚",
-            }
-          : session,
-      ),
-    );
     setSelectedEvent(impact);
     setMessage("");
-    toast("补充信息已加入当前会话", "info");
+    toast("补充信息已加入当前业务主线", "info");
   };
 
-  const history = (
-    <ConversationHistory
-      sessions={sessions}
-      activeId={activeSessionId}
-      onSelect={selectSession}
-      onNew={createConversation}
-      onPin={(id) =>
-        setSessions((current) =>
-          current.map((session) =>
-            session.id === id
-              ? { ...session, pinned: !session.pinned }
-              : session,
-          ),
-        )
-      }
-      onDelete={setDeleteSession}
+  const navigation = (
+    <WorkstreamNavigator
+      config={{ ...config, status: paused ? "已暂停" : config.status }}
+      phases={config.phases}
+      filters={filterItems}
+      filter={filter}
+      tasks={navigatorTasks[kind]}
+      onFilter={(value) => {
+        setFilter(value);
+        setNavigationOpen(false);
+      }}
+      onPhase={(phase) => {
+        setFilter("all");
+        setNavigationOpen(false);
+        toast(`已定位到“${phase}”相关过程`, "info");
+      }}
+      onTask={(task) => navigate(task.route)}
+      onOpenContext={() => setContextOpen(true)}
+      onOpenTasks={() => navigate("/tasks")}
     />
   );
 
@@ -816,9 +718,9 @@ export function WorkstreamDetailPage({ kind }) {
             <Button
               className="chat-mobile-button"
               icon="panelLeft"
-              onClick={() => setSessionsOpen(true)}
+              onClick={() => setNavigationOpen(true)}
             >
-              会话
+              导航
             </Button>
             <Button
               className="chat-mobile-button"
@@ -846,22 +748,15 @@ export function WorkstreamDetailPage({ kind }) {
           </>
         }
       />
-      <ConversationWorkspace history={history} preview={resultPreview}>
+      <ConversationWorkspace navigation={navigation} preview={resultPreview}>
         <div className="conversation-toolbar">
-          <span className="conversation-current-session">
-            <small>当前会话</small>
-            <b>{activeSession.title}</b>
+          <span className="conversation-current-process">
+            <small>连续业务过程</small>
+            <b>交互、任务、结果和人工处理统一保留在当前业务主线</b>
           </span>
-          <Segmented
-            value={filter}
-            onChange={setFilter}
-            items={[
-              { value: "all", label: "全部" },
-              { value: "decisions", label: "待处理" },
-              { value: "tasks", label: "任务" },
-              { value: "results", label: "成果" },
-            ]}
-          />
+          <Status tone="info" dot={false}>
+            {filterItems.find((item) => item.value === filter)?.label}
+          </Status>
         </div>
         <div className="conversation-thread detail-thread">
           {visibleEvents.length ? (
@@ -870,7 +765,7 @@ export function WorkstreamDetailPage({ kind }) {
                 event={event}
                 onAction={act}
                 onSelect={setSelectedEvent}
-                key={`${activeSessionId}-${event.type}-${index}`}
+                key={`${event.type}-${index}`}
               />
             ))
           ) : (
@@ -957,12 +852,12 @@ export function WorkstreamDetailPage({ kind }) {
         </div>
       </Drawer>
       <Drawer
-        open={sessionsOpen}
-        onClose={() => setSessionsOpen(false)}
-        title="当前主线会话"
+        open={navigationOpen}
+        onClose={() => setNavigationOpen(false)}
+        title="业务主线导航"
         width="360px"
       >
-        {history}
+        {navigation}
       </Drawer>
       <Drawer
         open={previewOpen}
@@ -972,37 +867,6 @@ export function WorkstreamDetailPage({ kind }) {
       >
         {resultPreview}
       </Drawer>
-      <Modal
-        danger
-        open={Boolean(deleteSession)}
-        onClose={() => setDeleteSession(null)}
-        title="删除这条会话"
-        description={deleteSession?.title}
-        footer={
-          <>
-            <Button onClick={() => setDeleteSession(null)}>取消</Button>
-            <Button
-              tone="danger"
-              onClick={() => {
-                const remaining = sessions.filter(
-                  (session) => session.id !== deleteSession.id,
-                );
-                setSessions(remaining);
-                if (activeSessionId === deleteSession.id)
-                  selectSession(remaining[0].id);
-                setDeleteSession(null);
-                toast("会话已删除，正式业务资产和任务记录仍然保留", "info");
-              }}
-            >
-              删除会话
-            </Button>
-          </>
-        }
-      >
-        <p>
-          删除后不会出现在当前主线的会话列表中；已经形成的公司、岗位、候选人、任务和证据不会删除。
-        </p>
-      </Modal>
       <Modal
         danger
         open={terminate}

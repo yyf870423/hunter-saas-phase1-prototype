@@ -63,7 +63,10 @@ test("四类业务主线使用不同问题和配置", async ({ page }) => {
 
 test("业务主线对话可以筛选过程并分析补充信息", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  await page.getByRole("button", { name: "待处理" }).click();
+  await page
+    .getByLabel("业务过程筛选")
+    .getByRole("button", { name: /等待处理/ })
+    .click();
   await expect(
     page
       .locator(".mainline-conversation-main")
@@ -86,44 +89,43 @@ test("Agent 操作权限可以在主线对话中按范围授权", async ({ page 
   await expect(
     page.getByText("允许使用已登录的人才平台查找候选人？"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "当前会话持续允许" }).click();
-  await expect(page.getByText("当前会话已授权", { exact: true })).toBeVisible();
-  await expect(page.getByText(/授权只在当前会话有效/).first()).toBeVisible();
+  await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
+  await expect(
+    page.getByText("当前业务主线已授权", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/授权只在当前业务主线有效/).first(),
+  ).toBeVisible();
 });
 
-test("业务主线支持历史会话置顶、切换和结果预览", async ({ page }) => {
+test("业务主线导航可以定位过程、任务和结果预览", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  await expect(page.getByLabel("历史会话")).toBeVisible();
-  await page.getByRole("button", { name: /杭州地点补充影响/ }).click();
+  await expect(page.getByLabel("主线导航")).toBeVisible();
+  await page
+    .getByLabel("业务过程筛选")
+    .getByRole("button", { name: /等待处理/ })
+    .click();
   await expect(
     page
       .locator(".mainline-conversation-main")
-      .getByText("地点变化影响分析完成"),
-  ).toBeVisible();
-  const activeHistory = page.locator(
-    ".conversation-history-scroll article.is-active",
-  );
-  await activeHistory.hover();
-  await activeHistory.getByRole("button", { name: "置顶会话" }).click();
-  await page
-    .locator(
-      ".mainline-conversation-history .conversation-history-scroll article.is-active",
-    )
-    .hover();
-  await expect(
-    page
-      .locator(".mainline-conversation-history")
-      .getByRole("button", { name: "取消置顶" }),
+      .getByText("新信息只影响 6 位候选人"),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: /在右侧预览：地点变化影响分析完成/ })
+    .getByLabel("业务过程筛选")
+    .getByRole("button", { name: /全部过程/ })
+    .click();
+  await page
+    .getByRole("button", { name: /在右侧预览：首批候选人已完成匹配/ })
     .click();
   await expect(
-    page.getByLabel("结果预览").getByText("地点变化影响分析完成"),
+    page.getByLabel("结果预览").getByText("首批候选人已完成匹配"),
   ).toBeVisible();
+
+  await page.getByRole("button", { name: /多渠道候选人寻访/ }).click();
+  await expect(page).toHaveURL(/tasks\/task-sourcing/);
 });
 
-test("Agent 操作模式在当前会话中切换并保留记录", async ({ page }) => {
+test("Agent 操作模式在当前业务主线中切换并保留记录", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
   await page.getByRole("button", { name: "Agent 操作模式" }).click();
   await page.getByRole("button", { name: /自动执行/ }).click();
@@ -131,27 +133,25 @@ test("Agent 操作模式在当前会话中切换并保留记录", async ({ page 
     page.getByRole("button", { name: "Agent 操作模式" }),
   ).toContainText("自动执行");
   await expect(page.getByText(/操作模式已切换为自动执行/)).toBeVisible();
-  await expect(page.getByText("当前会话已授权", { exact: true })).toBeVisible();
-
-  await page.getByRole("button", { name: /岗位画像与寻访关键词/ }).click();
   await expect(
-    page.getByRole("button", { name: "Agent 操作模式" }),
-  ).toContainText("执行模式");
-  await page.getByRole("button", { name: /首批候选人召回与匹配/ }).click();
+    page.getByText("当前业务主线已授权", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("业务过程筛选")
+    .getByRole("button", { name: /结果与资产/ })
+    .click();
   await expect(
     page.getByRole("button", { name: "Agent 操作模式" }),
   ).toContainText("自动执行");
 });
 
-test("移动端新建主线可以访问会话历史和结果预览", async ({ page }) => {
+test("移动端新建主线可以访问创建进度和结果预览", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/new?type=position");
 
-  await page.getByRole("button", { name: "会话", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "业务主线草稿" }),
-  ).toBeVisible();
-  await expect(page.locator(".drawer").getByLabel("历史会话")).toBeVisible();
+  await page.getByRole("button", { name: "进度", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "创建进度" })).toBeVisible();
+  await expect(page.locator(".drawer").getByLabel("创建进度")).toBeVisible();
   await page
     .locator(".drawer")
     .getByRole("button", { name: "关闭", exact: true })
@@ -174,6 +174,26 @@ test("移动端新建主线可以访问会话历史和结果预览", async ({ pa
   await expect(
     page.getByRole("button", { name: "Agent 操作模式" }),
   ).toContainText("规划模式");
+});
+
+test("移动端业务主线详情可以通过导航定位任务", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./#/workstreams/position-vla/position");
+
+  await page.getByRole("button", { name: "导航", exact: true }).click();
+  const drawer = page.locator(".drawer");
+  await expect(drawer.getByLabel("主线导航")).toBeVisible();
+  await drawer.getByRole("button", { name: /任务与等待/ }).click();
+  await expect(drawer).toHaveCount(0);
+  await expect(
+    page
+      .locator(".mainline-conversation-main")
+      .getByText("5 个找人任务正在并行"),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "导航", exact: true }).click();
+  await drawer.getByRole("button", { name: /多渠道候选人寻访/ }).click();
+  await expect(page).toHaveURL(/tasks\/task-sourcing/);
 });
 
 test("任务暂停、恢复和技术详情均可操作", async ({ page }) => {
