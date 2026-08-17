@@ -34,11 +34,30 @@ test("截图 position-workstream-detail", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./#/workstreams/position-vla/position");
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await page.waitForTimeout(1000);
   await page.screenshot({
     path: "artifacts/position-workstream-detail-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 position-workstream-navigation-collapsed", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/position-vla/position");
+  await page.getByRole("button", { name: "收起业务主线" }).click();
+  await page.screenshot({
+    path: "artifacts/position-workstream-navigation-collapsed-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 client-workstream-inline-review", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/client-xinglan/client");
+  await page.screenshot({
+    path: "artifacts/client-workstream-inline-review-1440x900.png",
     fullPage: true,
   });
 });
@@ -73,7 +92,7 @@ test("截图 position-workstream-detail-mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/position-vla/position");
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await page.waitForTimeout(250);
   await page.screenshot({

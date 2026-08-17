@@ -68,8 +68,7 @@ export function NewWorkstreamPage() {
   const [messages, setMessages] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [configOpen, setConfigOpen] = useState(false);
-  const [configDetailOpen, setConfigDetailOpen] = useState(false);
-  const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const [listOpen, setListOpen] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [autoConfirm, setAutoConfirm] = useState(false);
@@ -112,7 +111,6 @@ export function NewWorkstreamPage() {
     setMessages([]);
     setMessage("");
     setAttachments([]);
-    setConfigDetailOpen(false);
     setProcessing(false);
   };
 
@@ -186,46 +184,29 @@ export function NewWorkstreamPage() {
     navigate(`/workstreams/${kind}-new/${kind}`);
   };
 
-  const configDetail = flow
-    ? {
-        eyebrow: `${kindMeta?.label}配置`,
-        title: flow.title,
-        detail:
-          "Hunter 已从对话和附件中整理出当前有效配置，创建前仍可继续补充或修改。",
-        status: "准备中",
-        tone: "info",
-        icon: kindMeta?.icon,
-        metrics: [
-          ["目标范围", flow.config.scope],
-          ["触发方式", flow.config.trigger],
-          ["确认方式", flow.config.approval],
-        ],
-        listTitle: "停止与联系规则",
-        items: [flow.config.stop, flow.config.contact],
-      }
-    : null;
-  const detailPanel =
-    configDetailOpen && configDetail ? (
-      <ConversationDetail
-        preview={configDetail}
-        onOpen={() => setConfigOpen(true)}
-        onCopy={() => {
-          navigator.clipboard
-            ?.writeText(`${flow.title}\n${flow.config.scope}`)
-            .catch(() => {});
-          toast("配置摘要已复制");
-        }}
-        onClose={() => {
-          setConfigDetailOpen(false);
-          setConfigDrawerOpen(false);
-        }}
-      />
-    ) : null;
   const conversationNav = (
     <WorkstreamConversationNav
       items={workstreams}
       currentId="new"
       onSelect={(item) => navigate(workstreamRoute(item))}
+      onCreate={() => {
+        setKind("");
+        setStep(0);
+        setMessages([]);
+        setListOpen(false);
+      }}
+      collapsed={navigationCollapsed}
+      onToggleCollapse={() => setNavigationCollapsed((current) => !current)}
+    />
+  );
+  const drawerNav = (
+    <WorkstreamConversationNav
+      items={workstreams}
+      currentId="new"
+      onSelect={(item) => {
+        navigate(workstreamRoute(item));
+        setListOpen(false);
+      }}
       onCreate={() => {
         setKind("");
         setStep(0);
@@ -251,7 +232,10 @@ export function NewWorkstreamPage() {
           </Button>
         }
       />
-      <ConversationWorkspace navigation={conversationNav} detail={detailPanel}>
+      <ConversationWorkspace
+        navigation={conversationNav}
+        navigationCollapsed={navigationCollapsed}
+      >
         <div className="conversation-thread creation-thread" ref={threadRef}>
           <ConversationEntry time="现在">
             <p>
@@ -299,12 +283,6 @@ export function NewWorkstreamPage() {
               title={flow.title}
               config={flow.config}
               onEdit={() => setConfigOpen(true)}
-              onOpen={() => {
-                setConfigDetailOpen(true);
-                if (window.matchMedia("(max-width: 1120px)").matches) {
-                  setConfigDrawerOpen(true);
-                }
-              }}
             />
           )}
           {flow && step >= 2 && !duplicate && (
@@ -395,15 +373,7 @@ export function NewWorkstreamPage() {
         title="切换业务主线"
         width="360px"
       >
-        {conversationNav}
-      </Drawer>
-      <Drawer
-        open={configDrawerOpen}
-        onClose={() => setConfigDrawerOpen(false)}
-        title="业务主线配置"
-        width="520px"
-      >
-        {detailPanel}
+        {drawerNav}
       </Drawer>
       <Modal
         open={configOpen}
@@ -494,7 +464,9 @@ function eventToDetail(event, config, kind) {
       ["更新时间", event.time],
     ],
     listTitle: event.scope ? "操作范围" : "关键信息",
-    items: scopedItems || event.chips || [config.next, config.assets],
+    items: event.detailItems ||
+      scopedItems ||
+      event.chips || [config.next, config.assets],
     evidence: kindEvidence[kind],
     route: event.route,
     confirmLabel: event.confirmLabel,
@@ -522,6 +494,7 @@ export function WorkstreamDetailPage({ kind }) {
   const [contextOpen, setContextOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const [terminate, setTerminate] = useState(false);
   const threadRef = useRef(null);
   const didInitialScrollRef = useRef(false);
@@ -814,6 +787,7 @@ export function WorkstreamDetailPage({ kind }) {
   };
 
   const selectEvent = (event) => {
+    if (!event.largeResult) return;
     setSelectedEvent(event);
     if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
   };
@@ -849,6 +823,19 @@ export function WorkstreamDetailPage({ kind }) {
     />
   ) : null;
   const conversationNav = (
+    <WorkstreamConversationNav
+      items={workstreams}
+      currentId={workstreamIdByKind[kind]}
+      onSelect={(item) => {
+        navigate(workstreamRoute(item));
+        setListOpen(false);
+      }}
+      onCreate={() => navigate("/workstreams/new")}
+      collapsed={navigationCollapsed}
+      onToggleCollapse={() => setNavigationCollapsed((current) => !current)}
+    />
+  );
+  const drawerNav = (
     <WorkstreamConversationNav
       items={workstreams}
       currentId={workstreamIdByKind[kind]}
@@ -895,7 +882,11 @@ export function WorkstreamDetailPage({ kind }) {
           </>
         }
       />
-      <ConversationWorkspace navigation={conversationNav} detail={cardDetail}>
+      <ConversationWorkspace
+        navigation={conversationNav}
+        navigationCollapsed={navigationCollapsed}
+        detail={cardDetail}
+      >
         <div className="conversation-toolbar">
           <span className="conversation-current-process">
             <small>与 Hunter 持续推进</small>
@@ -962,7 +953,7 @@ export function WorkstreamDetailPage({ kind }) {
         title="切换业务主线"
         width="360px"
       >
-        {conversationNav}
+        {drawerNav}
       </Drawer>
       <Drawer
         open={contextOpen}
@@ -987,7 +978,7 @@ export function WorkstreamDetailPage({ kind }) {
       <Drawer
         open={detailOpen}
         onClose={closeDetail}
-        title="卡片详情"
+        title="完整结果"
         width="520px"
       >
         {cardDetail}

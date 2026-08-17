@@ -97,30 +97,77 @@ test("业务主线入口直接打开会话并通过左侧加号新建", async ({
   await expect(page.getByText("你希望持续推进哪一类业务？")).toBeVisible();
 });
 
+test("桌面业务主线导航可收起且状态标签保持单行", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/position-vla/position");
+  const workspace = page.locator(".conversation-workspace");
+  const before = await page
+    .locator(".mainline-conversation-main")
+    .boundingBox();
+  const status = page
+    .getByRole("navigation", { name: "业务主线" })
+    .getByText("等待用户", { exact: true })
+    .first();
+  const statusBox = await status.boundingBox();
+  const statusLineHeight = Number.parseFloat(
+    await status.evaluate((element) => getComputedStyle(element).lineHeight),
+  );
+  expect(statusBox.height).toBeLessThanOrEqual(statusLineHeight + 8);
+
+  await page.getByRole("button", { name: "收起业务主线" }).click();
+  await expect(workspace).toHaveClass(/navigation-collapsed/);
+  await expect(
+    page.getByRole("button", { name: "展开业务主线" }),
+  ).toBeVisible();
+  const after = await page.locator(".mainline-conversation-main").boundingBox();
+  expect(after.width).toBeGreaterThan(before.width + 120);
+  await page.getByRole("button", { name: "展开业务主线" }).click();
+  await expect(workspace).not.toHaveClass(/navigation-collapsed/);
+});
+
+test("业务主线消息不显示头像并区分用户消息与 Agent Markdown", async ({
+  page,
+}) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  await expect(page.locator(".conversation-avatar")).toHaveCount(0);
+  await expect(
+    page.locator(".conversation-entry-user .conversation-bubble"),
+  ).toBeVisible();
+  await expect(
+    page.locator(".conversation-entry-agent .markdown-message").first(),
+  ).toBeVisible();
+});
+
 test("四类业务主线都在人工节点暂停并在反馈后继续", async ({ page }) => {
   const cases = [
     {
       route: "client-xinglan/client",
       current: "已形成公司与联系人草稿",
       hidden: "是否联系 HRD 周雅雯？",
-      open: /查看详情：已形成公司与联系人草稿/,
       confirm: "确认公司与联系人",
       next: "是否联系 HRD 周雅雯？",
+      large: false,
     },
     {
       route: "position-vla/position",
       current: "首批候选人已完成匹配",
       hidden: "新信息只影响 6 位候选人",
-      open: /查看详情：首批候选人已完成匹配/,
       confirm: "确认首批名单",
       next: "新信息只影响 6 位候选人",
+      large: true,
     },
   ];
   for (const item of cases) {
     await page.goto(`./#/workstreams/${item.route}`);
     await expect(page.getByText(item.current)).toBeVisible();
     await expect(page.getByText(item.hidden)).toHaveCount(0);
-    await page.getByRole("button", { name: item.open }).click();
+    if (item.large) {
+      await page
+        .getByRole("button", {
+          name: /查看大结果：首批候选人已完成匹配/,
+        })
+        .click();
+    }
     await page.getByRole("button", { name: item.confirm }).click();
     await expect(page.getByText(item.next)).toBeVisible();
   }
@@ -156,17 +203,21 @@ test("Agent 操作权限在主线对话中显示当前授权范围", async ({ pa
   ).toHaveCount(0);
 });
 
-test("业务主线默认只显示对话，点击卡片后按需显示详情", async ({ page }) => {
+test("业务主线小结果内嵌处理，大结果才按需显示详情", async ({ page }) => {
+  await page.goto("./#/workstreams/client-xinglan/client");
+  await expect(page.getByLabel("公司与联系人草稿")).toBeVisible();
+  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
+
   await page.goto("./#/workstreams/position-vla/position");
-  await expect(page.getByLabel("卡片详情")).toHaveCount(0);
+  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await expect(
-    page.getByLabel("卡片详情").getByText("首批候选人已完成匹配"),
+    page.getByLabel("大结果审核").getByText("首批候选人已完成匹配"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "关闭卡片详情" }).click();
-  await expect(page.getByLabel("卡片详情")).toHaveCount(0);
+  await page.getByRole("button", { name: "关闭大结果审核" }).click();
+  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
 
   await page.getByRole("button", { name: "查看任务运行" }).click();
   await expect(page).toHaveURL(/tasks\/task-sourcing/);
@@ -184,14 +235,14 @@ test("Agent 操作模式在当前业务主线中切换并保留记录", async ({
     page.getByText("当前业务主线已授权", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await expect(
     page.getByRole("button", { name: "Agent 操作模式" }),
   ).toContainText("自动执行");
 });
 
-test("移动端新建主线使用对话、计划列表和按需配置详情", async ({ page }) => {
+test("移动端新建主线使用对话、计划列表和原处配置编辑", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/new?type=position");
   await expect(page.getByText("主线创建计划", { exact: true })).toHaveCount(0);
@@ -202,14 +253,9 @@ test("移动端新建主线使用对话、计划列表和按需配置详情", as
   await page.locator(".plan-list-toggle").click();
   await expect(page.getByText("补齐找人范围与完成标准")).toBeVisible();
   await page.locator(".plan-list-toggle").click();
-  await page.getByRole("button", { name: "查看配置" }).click();
-  await expect(
-    page.locator(".drawer").getByRole("complementary", { name: "卡片详情" }),
-  ).toBeVisible();
-  await page
-    .locator(".drawer")
-    .getByRole("button", { name: "关闭", exact: true })
-    .click();
+  await page.getByRole("button", { name: "修改配置" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "取消", exact: true }).click();
 
   await page.getByRole("button", { name: "Agent 操作模式" }).click();
   await page.getByRole("button", { name: /规划模式/ }).click();
@@ -247,7 +293,7 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await expect(page.getByText("3 / 5 已完成")).toBeVisible();
   await page.locator(".plan-list-toggle").click();
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await page.getByRole("button", { name: "确认首批名单" }).click();
   await expect(page.getByText("新信息只影响 6 位候选人")).toBeVisible();
@@ -259,16 +305,16 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await expect(page.getByText(/地点范围已经更新为上海或杭州/)).toBeVisible();
 });
 
-test("移动端业务主线点击卡片后用 Drawer 查看详情", async ({ page }) => {
+test("移动端业务主线点击大结果后用 Drawer 查看详情", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/position-vla/position");
 
   await page
-    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   const drawer = page.locator(".drawer");
   await expect(
-    drawer.getByRole("complementary", { name: "卡片详情" }),
+    drawer.getByRole("complementary", { name: "大结果审核" }),
   ).toBeVisible();
   await drawer.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(drawer).toHaveCount(0);

@@ -430,8 +430,38 @@ const events = {
         "公司官网新增 6 个算法岗位，B+ 轮融资公告提到扩充机器人研发团队，两类证据时间一致。",
       status: "已确认",
       tone: "success",
-      action: "查看 5 条证据",
-      route: "/signals/signal-funding",
+      inlineData: {
+        title: "已核验的招聘证据",
+        summary: "5 条证据，展示关键 4 条",
+        columns: [
+          { key: "source", label: "来源" },
+          { key: "finding", label: "关键信息" },
+          { key: "date", label: "时间" },
+        ],
+        rows: [
+          {
+            source: "公司招聘官网",
+            finding: "新增 VLA、运动控制等 6 个岗位",
+            date: "08-12",
+          },
+          {
+            source: "B+ 轮融资公告",
+            finding: "融资将用于扩充机器人研发团队",
+            date: "08-11",
+          },
+          {
+            source: "创始人公开访谈",
+            finding: "上海团队年内扩充至 120 人",
+            date: "08-09",
+          },
+          {
+            source: "脉脉招聘动态",
+            finding: "算法与硬件岗位连续更新",
+            date: "08-12",
+          },
+        ],
+        note: "各来源时间和招聘方向一致，招聘需求可信度较高。",
+      },
     },
     {
       type: "agent",
@@ -447,9 +477,44 @@ const events = {
       status: "待确认",
       tone: "warning",
       action: "查看并审核",
-      route: "/companies/xinglan",
       blocking: "review",
       confirmLabel: "确认公司与联系人",
+      inlineData: {
+        title: "公司与联系人草稿",
+        summary: "1 家公司 · 4 位联系人",
+        columns: [
+          { key: "name", label: "姓名" },
+          { key: "role", label: "角色" },
+          { key: "path", label: "建议用途" },
+          { key: "confidence", label: "可信度" },
+        ],
+        rows: [
+          {
+            name: "周雅雯",
+            role: "HRD",
+            path: "优先确认 HC 与合作方式",
+            confidence: "高",
+          },
+          {
+            name: "陈树明",
+            role: "机器人研发 VP",
+            path: "核验团队与岗位方向",
+            confidence: "高",
+          },
+          {
+            name: "许晴",
+            role: "招聘负责人",
+            path: "确认招聘流程",
+            confidence: "中",
+          },
+          {
+            name: "郭宇航",
+            role: "创始人办公室",
+            path: "必要时补充关系路径",
+            confidence: "中",
+          },
+        ],
+      },
       afterResponse:
         "公司资料与 4 位联系人已确认，HRD 周雅雯被标记为首选需求确认人。下一步需要审核联系内容。",
     },
@@ -467,6 +532,25 @@ const events = {
       secondary: "暂不联系",
       blocking: "review",
       confirmLabel: "确认联系内容",
+      inlineData: {
+        title: "联系内容草稿",
+        columns: [
+          { key: "field", label: "项目" },
+          { key: "content", label: "内容" },
+        ],
+        rows: [
+          { field: "收件人", content: "周雅雯 · HRD" },
+          {
+            field: "主题",
+            content: "关于星澜机器人 VLA 团队招聘需求的合作沟通",
+          },
+          {
+            field: "正文",
+            content:
+              "希望确认团队近期 HC、目标职级，以及是否考虑外部猎头合作。",
+          },
+        ],
+      },
       afterResponse:
         "联系内容已确认。正式发送前还需要你授予一次性邮箱使用权限。",
     },
@@ -570,12 +654,21 @@ const events = {
       tone: "warning",
       action: "审核 18 位候选人",
       route: "/candidates",
+      largeResult: true,
+      largeResultHint: "18 位候选人包含分层、匹配证据和风险说明",
       blocking: "review",
       confirmLabel: "确认首批名单",
       metrics: [
         ["进入候选池", "46 位"],
         ["本批待审核", "18 位"],
         ["建议分层", "12 推荐 · 4 有条件 · 2 不建议"],
+      ],
+      detailItems: [
+        "赵星羽 · 86 分 · 推荐 · 端到端与多模态经验符合",
+        "林昊 · 84 分 · 推荐 · VLA 落地和机器人平台经验符合",
+        "顾晨阳 · 81 分 · 推荐 · 具身学习与团队协作经验符合",
+        "孙春雨 · 76 分 · 有条件匹配 · 管理范围需要进一步确认",
+        "另外 14 位候选人可在完整结果中按分层和风险筛选",
       ],
       afterResponse:
         "首批 18 位候选人的分层已确认。我会保留你的审核决定，并继续处理剩余 28 位候选人。",
@@ -669,7 +762,36 @@ const events = {
       status: "已确认",
       tone: "success",
       action: "打开人才摸排",
-      route: "/mappings/embodied",
+      inlineData: {
+        title: "本轮补齐结果",
+        summary: "3 个团队 · 24 位人物",
+        columns: [
+          { key: "team", label: "团队" },
+          { key: "confirmed", label: "已确认" },
+          { key: "pending", label: "待核验" },
+          { key: "gap", label: "主要缺口" },
+        ],
+        rows: [
+          {
+            team: "星澜机器人 VLA",
+            confirmed: "7 人",
+            pending: "2 人",
+            gap: "平台负责人",
+          },
+          {
+            team: "逐际动力灵巧手",
+            confirmed: "6 人",
+            pending: "1 人",
+            gap: "结构专家",
+          },
+          {
+            team: "智源具身平台",
+            confirmed: "5 人",
+            pending: "3 人",
+            gap: "当前汇报线",
+          },
+        ],
+      },
     },
     {
       type: "agent",
@@ -686,6 +808,60 @@ const events = {
       secondary: "稍后处理",
       blocking: "review",
       confirmLabel: "确认核验结果",
+      inlineData: {
+        title: "待核验人物关系",
+        summary: "7 条关系，当前展示全部",
+        columns: [
+          { key: "people", label: "人物" },
+          { key: "relation", label: "关系建议" },
+          { key: "evidence", label: "主要证据" },
+          { key: "decision", label: "建议" },
+        ],
+        rows: [
+          {
+            people: "陈树明 → 赵星羽",
+            relation: "曾直接汇报",
+            evidence: "共同项目与履历",
+            decision: "待确认",
+          },
+          {
+            people: "顾晨阳 ↔ 孙春雨",
+            relation: "长期合作",
+            evidence: "4 篇共同论文",
+            decision: "确认",
+          },
+          {
+            people: "许航 → 林昊",
+            relation: "前直属上级",
+            evidence: "候选人履历",
+            decision: "待确认",
+          },
+          {
+            people: "周峥 ↔ 王恺",
+            relation: "同团队协作",
+            evidence: "专利与项目",
+            decision: "确认",
+          },
+          {
+            people: "李原 → 郑骁",
+            relation: "疑似当前汇报",
+            evidence: "团队公开页面",
+            decision: "存疑",
+          },
+          {
+            people: "韩松 ↔ 郭迪",
+            relation: "创业伙伴",
+            evidence: "公司公告",
+            decision: "确认",
+          },
+          {
+            people: "宋琪 → 陆文",
+            relation: "前导师关系",
+            evidence: "论文主页",
+            decision: "待确认",
+          },
+        ],
+      },
       afterResponse:
         "7 条关系的核验决定已记录，已确认关系将写入摸排成果，存疑关系继续保留证据。",
     },
@@ -720,8 +896,54 @@ const events = {
         "从 18 个岗位中筛出 6 个；其中星澜机器人 VLA 负责人匹配度最高，地点和技术方向符合。",
       status: "已确认",
       tone: "success",
-      action: "查看岗位列表",
-      route: "/positions",
+      inlineData: {
+        title: "建议和候选人讨论的岗位",
+        summary: "6 个岗位",
+        columns: [
+          { key: "position", label: "岗位" },
+          { key: "company", label: "公司" },
+          { key: "score", label: "匹配" },
+          { key: "note", label: "主要判断" },
+        ],
+        rows: [
+          {
+            position: "VLA 算法负责人",
+            company: "星澜机器人",
+            score: "88",
+            note: "方向与地点均符合",
+          },
+          {
+            position: "端到端机器人学习专家",
+            company: "逐际动力",
+            score: "84",
+            note: "项目经历高度相关",
+          },
+          {
+            position: "具身多模态高级工程师",
+            company: "智源研究院",
+            score: "81",
+            note: "研究背景符合",
+          },
+          {
+            position: "机器人平台算法负责人",
+            company: "云脉智能",
+            score: "78",
+            note: "需确认管理意愿",
+          },
+          {
+            position: "强化学习专家",
+            company: "方舟智行",
+            score: "75",
+            note: "地点符合，业务略有偏差",
+          },
+          {
+            position: "具身智能研究员",
+            company: "上海 AI Lab",
+            score: "73",
+            note: "职级需要确认",
+          },
+        ],
+      },
     },
     {
       type: "agent",
@@ -737,7 +959,21 @@ const events = {
       status: "等待外部",
       tone: "neutral",
       action: "查看沟通记录",
-      route: "/communications/comm-linhao",
+      inlineData: {
+        title: "最近沟通",
+        columns: [
+          { key: "time", label: "时间" },
+          { key: "sender", label: "发送方" },
+          { key: "content", label: "内容" },
+        ],
+        rows: [
+          {
+            time: "昨天 17:42",
+            sender: "林昊",
+            content: "晚上发最新版简历，地点仍优先上海或杭州。",
+          },
+        ],
+      },
     },
     {
       type: "agent",
@@ -774,9 +1010,35 @@ const events = {
       status: "待确认",
       tone: "warning",
       action: "查看并审核资料更新",
-      route: "/candidates/lin-hao",
       blocking: "review",
       confirmLabel: "确认资料更新",
+      inlineData: {
+        title: "字段级更新建议",
+        summary: "4 项变化",
+        columns: [
+          { key: "field", label: "字段" },
+          { key: "before", label: "当前内容" },
+          { key: "after", label: "新简历内容" },
+        ],
+        rows: [
+          {
+            field: "项目经历",
+            before: "移动机器人导航平台",
+            after: "新增 VLA 端到端控制项目",
+          },
+          {
+            field: "技能",
+            before: "强化学习",
+            after: "追加 VLA、多模态策略学习",
+          },
+          { field: "工作地点", before: "上海", after: "上海、杭州" },
+          {
+            field: "管理意向",
+            before: "未填写",
+            after: "接受技术负责人，不考虑纯管理",
+          },
+        ],
+      },
       afterResponse:
         "资料更新建议已确认并写入候选人档案。下一步只需要重算受新项目经历影响的岗位。",
     },

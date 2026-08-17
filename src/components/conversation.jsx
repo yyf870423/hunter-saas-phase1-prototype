@@ -197,7 +197,7 @@ export function ConversationDetail({
   onReject,
 }) {
   return (
-    <aside className="conversation-detail" aria-label="卡片详情">
+    <aside className="conversation-detail" aria-label="大结果审核">
       <header>
         <span>
           <small>{preview.eyebrow}</small>
@@ -207,7 +207,7 @@ export function ConversationDetail({
           {onOpen && (
             <IconButton icon="maximize" label="打开完整内容" onClick={onOpen} />
           )}
-          <IconButton icon="close" label="关闭卡片详情" onClick={onClose} />
+          <IconButton icon="close" label="关闭大结果审核" onClick={onClose} />
         </div>
       </header>
       <div className="conversation-detail-scroll">
@@ -286,10 +286,12 @@ export function ConversationWorkspace({
   navigation,
   preview,
   detail,
+  navigationCollapsed = false,
 }) {
   const classes = [
     "conversation-workspace",
     navigation ? "has-navigation" : "",
+    navigationCollapsed ? "navigation-collapsed" : "",
     preview ? "has-preview" : "",
     detail ? "has-detail" : "",
   ]
@@ -321,36 +323,69 @@ export function WorkstreamConversationNav({
   currentId,
   onSelect,
   onCreate,
+  collapsed = false,
+  onToggleCollapse,
 }) {
   return (
-    <nav className="workstream-conversation-nav" aria-label="业务主线">
+    <nav
+      className={`workstream-conversation-nav ${collapsed ? "is-collapsed" : ""}`}
+      aria-label="业务主线"
+    >
       <header>
-        <span>
-          <b>业务主线</b>
-          <small>{items.length} 条持续业务</small>
-        </span>
-        <IconButton icon="plus" label="新建业务主线" onClick={onCreate} />
+        {!collapsed && (
+          <span>
+            <b>业务主线</b>
+            <small>{items.length} 条持续业务</small>
+          </span>
+        )}
+        <div>
+          {!collapsed && (
+            <IconButton icon="plus" label="新建业务主线" onClick={onCreate} />
+          )}
+          {onToggleCollapse && (
+            <IconButton
+              icon={collapsed ? "panelRight" : "panelLeft"}
+              label={collapsed ? "展开业务主线" : "收起业务主线"}
+              onClick={onToggleCollapse}
+            />
+          )}
+        </div>
       </header>
-      <div className="workstream-conversation-list">
-        {items.map((item) => (
-          <button
-            type="button"
-            className={item.id === currentId ? "is-active" : ""}
-            key={item.id}
-            onClick={() => onSelect(item)}
-          >
-            <span>
-              <b>{item.target}</b>
-              <time>{item.changed}</time>
-            </span>
-            <small>{item.type}</small>
-            <p>{item.waiting}</p>
-            <Status tone={workstreamTone[item.status] || "neutral"}>
-              {item.status}
-            </Status>
-          </button>
-        ))}
-      </div>
+      {!collapsed && (
+        <div className="workstream-conversation-list">
+          {items.map((item) => (
+            <button
+              type="button"
+              className={item.id === currentId ? "is-active" : ""}
+              key={item.id}
+              onClick={() => onSelect(item)}
+            >
+              <span>
+                <b>{item.target}</b>
+                <time>{item.changed}</time>
+              </span>
+              <small>{item.type}</small>
+              <p>{item.waiting}</p>
+              <Status tone={workstreamTone[item.status] || "neutral"}>
+                {item.status}
+              </Status>
+            </button>
+          ))}
+        </div>
+      )}
+      {collapsed && (
+        <button
+          type="button"
+          className="collapsed-workstream-context"
+          aria-label="展开当前业务主线"
+          onClick={onToggleCollapse}
+        >
+          <Icon name="route" />
+          <span>
+            {items.find((item) => item.id === currentId)?.target || "新主线"}
+          </span>
+        </button>
+      )}
     </nav>
   );
 }
@@ -430,9 +465,6 @@ export function ConversationComposer({
 export function ConversationEntry({ role = "agent", time, children }) {
   return (
     <article className={`conversation-entry conversation-entry-${role}`}>
-      <span className="conversation-avatar">
-        <Icon name={role === "user" ? "user" : "route"} />
-      </span>
       <div>
         <header>
           <b>{role === "user" ? "你" : "Hunter"}</b>
@@ -470,6 +502,41 @@ const eventAppearance = {
   impact: ["refresh", "影响分析"],
   permission: ["settings", "操作授权"],
 };
+
+export function InlineDataTable({ data }) {
+  if (!data?.columns?.length || !data?.rows?.length) return null;
+  return (
+    <section className="inline-data" aria-label={data.title || "结构化数据"}>
+      {data.title && (
+        <header>
+          <b>{data.title}</b>
+          {data.summary && <small>{data.summary}</small>}
+        </header>
+      )}
+      <div className="inline-data-scroll">
+        <table>
+          <thead>
+            <tr>
+              {data.columns.map((column) => (
+                <th key={column.key}>{column.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.rows.map((row, index) => (
+              <tr key={row.id || index}>
+                {data.columns.map((column) => (
+                  <td key={column.key}>{row[column.key]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {data.note && <p className="inline-data-note">{data.note}</p>}
+    </section>
+  );
+}
 
 export function BusinessEventCard({ event, onAction, onSelect }) {
   const [icon, label] = eventAppearance[event.type] || ["info", "运行记录"];
@@ -563,16 +630,29 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
   );
 }
 
-function MarkdownEvent({ event, onAction }) {
-  const [icon, label] = eventAppearance[event.type] || ["info", "进展更新"];
+function MarkdownEvent({ event, onAction, onSelect }) {
+  const [, label] = eventAppearance[event.type] || ["info", "进展更新"];
+  const hasDecision =
+    !event.resolved &&
+    (event.options?.length || event.secondary || event.primary || event.action);
   return (
     <ConversationEntry time={event.time}>
-      <div className="markdown-message">
-        <h3>
-          <Icon name={icon} />
-          {event.title || label}
-        </h3>
+      <div
+        className={`markdown-message ${event.blocking ? "has-decision" : ""}`}
+      >
+        <small className="markdown-eyebrow">{label}</small>
+        <h3>{event.title || label}</h3>
         <p>{event.detail || event.text}</p>
+        {event.metrics?.length ? (
+          <dl className="inline-metrics">
+            {event.metrics.map(([metricLabel, value]) => (
+              <div key={metricLabel}>
+                <dt>{metricLabel}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
         {event.chips?.length ? (
           <ul>
             {event.chips.map((item) => (
@@ -581,20 +661,38 @@ function MarkdownEvent({ event, onAction }) {
           </ul>
         ) : null}
         {event.scope?.length ? (
-          <ul>
+          <dl className="inline-scope">
             {event.scope.map(([scopeLabel, value]) => (
-              <li key={scopeLabel}>
-                <b>{scopeLabel}：</b>
-                {value}
-              </li>
+              <div key={scopeLabel}>
+                <dt>{scopeLabel}</dt>
+                <dd>{value}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         ) : null}
+        <InlineDataTable data={event.inlineData} />
+        {event.largeResult && !event.resolved && (
+          <button
+            type="button"
+            className="large-result-link"
+            onClick={() => onSelect(event)}
+            aria-label={`查看大结果：${event.title}`}
+          >
+            <span>
+              <b>{event.action || "查看完整结果"}</b>
+              <small>
+                {event.largeResultHint ||
+                  "在宽幅审核区查看、筛选并处理完整数据"}
+              </small>
+            </span>
+            <Icon name="panelRight" />
+          </button>
+        )}
         <footer>
           {event.status && (
             <Status tone={event.tone || "neutral"}>{event.status}</Status>
           )}
-          {event.route && (
+          {event.route && !event.largeResult && !event.blocking && (
             <Button
               size="sm"
               tone="ghost"
@@ -603,6 +701,34 @@ function MarkdownEvent({ event, onAction }) {
             >
               {event.action || "查看详情"}
             </Button>
+          )}
+          {hasDecision && !event.largeResult && (
+            <div className="inline-decision">
+              {event.options?.map((option) => (
+                <Button
+                  key={option.value}
+                  size="sm"
+                  tone={option.tone || "secondary"}
+                  onClick={() => onAction(event, option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+              {event.secondary && (
+                <Button size="sm" onClick={() => onAction(event, "secondary")}>
+                  {event.secondary}
+                </Button>
+              )}
+              {(event.primary || (event.action && event.blocking)) && (
+                <Button
+                  size="sm"
+                  tone="primary"
+                  onClick={() => onAction(event, "primary")}
+                >
+                  {event.confirmLabel || event.primary || event.action}
+                </Button>
+              )}
+            </div>
           )}
         </footer>
       </div>
@@ -629,15 +755,8 @@ export function ConversationEvent({ event, onAction, onSelect }) {
   if (event.type === "thinking") {
     return <AgentThinking label={event.text} />;
   }
-  if (!event.blocking) {
-    return <MarkdownEvent event={event} onAction={onAction} />;
-  }
   return (
-    <BusinessEventCard
-      event={event}
-      onAction={onAction}
-      onSelect={event.blocking === "review" ? onSelect : undefined}
-    />
+    <MarkdownEvent event={event} onAction={onAction} onSelect={onSelect} />
   );
 }
 

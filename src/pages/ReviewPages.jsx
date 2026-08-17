@@ -25,11 +25,10 @@ import {
 import { Icon } from "../components/Icon";
 import {
   AgentModeSelect,
-  BusinessEventCard,
   ConfigurationCard,
   ConversationDetail,
   ConversationEntry,
-  PermissionRequestCard,
+  ConversationEvent,
 } from "../components/conversation";
 
 export function ComponentsPage() {
@@ -225,10 +224,10 @@ export function ComponentsPage() {
           </div>
           <div className="surface">
             <header className="surface-header">
-              <h2>计划、结果与审批</h2>
+              <h2>Markdown、内嵌数据与决策</h2>
             </header>
             <div className="surface-body stack">
-              <BusinessEventCard
+              <ConversationEvent
                 event={{
                   type: "result",
                   title: "招聘信号已完成核验",
@@ -236,28 +235,35 @@ export function ComponentsPage() {
                   time: "10:06",
                   status: "已确认",
                   tone: "success",
-                  action: "查看证据",
+                  inlineData: {
+                    title: "关键证据",
+                    columns: [
+                      { key: "source", label: "来源" },
+                      { key: "finding", label: "关键信息" },
+                    ],
+                    rows: [
+                      {
+                        source: "公司招聘官网",
+                        finding: "新增 6 个机器人岗位",
+                      },
+                      {
+                        source: "B+ 轮融资公告",
+                        finding: "扩充机器人研发团队",
+                      },
+                    ],
+                  },
                 }}
                 onAction={() => toast("已打开结果证据", "info")}
               />
-              <BusinessEventCard
+              <ConversationEvent
                 event={{
-                  type: "approval",
-                  title: "是否联系招聘负责人？",
-                  detail: "邮件草稿已生成，不会自动发送。",
-                  time: "10:12",
-                  primary: "审核联系内容",
-                  secondary: "暂不联系",
-                }}
-                onAction={() => toast("处理结果已记录")}
-              />
-              <PermissionRequestCard
-                event={{
+                  type: "permission",
                   title: "允许使用已登录的人才平台？",
                   detail: "只执行搜索、翻页和详情读取，不会发送消息。",
-                  time: "10:14",
+                  time: "10:12",
                   status: "等待授权",
                   tone: "warning",
+                  blocking: "action",
                   scope: [
                     ["平台", "猎聘、脉脉"],
                     ["范围", "当前岗位，最多 40 个详情"],
@@ -301,7 +307,7 @@ export function ComponentsPage() {
           </div>
           <div className="surface span-2">
             <header className="surface-header">
-              <h2>按需卡片详情</h2>
+              <h2>大结果宽幅审核</h2>
             </header>
             <div className="surface-body component-conversation-detail">
               <ConversationDetail
@@ -328,7 +334,7 @@ export function ComponentsPage() {
                 }}
                 onOpen={() => toast("已打开完整结果", "info")}
                 onCopy={() => toast("详情摘要已复制")}
-                onClose={() => toast("卡片详情已关闭", "info")}
+                onClose={() => toast("大结果审核已关闭", "info")}
               />
             </div>
           </div>

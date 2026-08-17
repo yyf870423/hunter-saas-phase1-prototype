@@ -47,8 +47,9 @@ test("公共组件的选择、浮层、反馈和页面状态可交互", async ({
 
   await page.getByRole("button", { name: "对话与过程" }).click();
   await expect(page.getByText("招聘信号已完成核验")).toBeVisible();
-  await page.getByRole("button", { name: "查看证据" }).click();
-  await expect(page.getByText("已打开结果证据", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("关键证据")).toContainText("公司招聘官网");
+  await page.getByRole("button", { name: "仅允许本次" }).click();
+  await expect(page.getByText("授权已记录", { exact: true })).toBeVisible();
 });
 
 test("公共组件没有使用浏览器原生可见 select、checkbox 和 radio", async ({
