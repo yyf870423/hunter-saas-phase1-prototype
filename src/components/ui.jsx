@@ -610,10 +610,10 @@ export function Tooltip({ text, children }) {
   );
 }
 
-export function Pagination({ page, pages = 5, onChange }) {
+export function Pagination({ page, pages = 5, total = 46, onChange }) {
   return (
     <nav className="pagination" aria-label="分页">
-      <span>共 46 条</span>
+      <span>共 {total} 条</span>
       <div>
         <IconButton
           icon="chevronLeft"

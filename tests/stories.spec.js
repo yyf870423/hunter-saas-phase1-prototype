@@ -68,7 +68,7 @@ test("业务主线用文字对话和卡片共同推进补充信息", async ({ pa
       .locator(".mainline-conversation-main")
       .getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
   ).toBeVisible();
-  await expect(page.getByText("5 个找人任务正在并行")).toBeVisible();
+  await expect(page.getByText("2 个人才平台任务正在运行")).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill("杭州也可以接受，但每周至少三天到岗");
@@ -83,18 +83,20 @@ test("业务主线用文字对话和卡片共同推进补充信息", async ({ pa
   ).toBeVisible();
 });
 
-test("Agent 操作权限可以在主线对话中按范围授权", async ({ page }) => {
+test("Agent 操作权限在主线对话中显示当前授权范围", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
   await expect(
     page.getByText("允许使用已登录的人才平台查找候选人？"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
   await expect(
     page.getByText("当前业务主线已授权", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(/授权只在当前业务主线有效/).first(),
+    page.getByText(/已获准在当前业务主线中使用猎聘和脉脉/).first(),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "当前业务主线持续允许" }),
+  ).toHaveCount(0);
 });
 
 test("业务主线默认只显示对话，点击卡片后按需显示详情", async ({ page }) => {
@@ -132,24 +134,20 @@ test("Agent 操作模式在当前业务主线中切换并保留记录", async ({
   ).toContainText("自动执行");
 });
 
-test("移动端新建主线可以访问创建进度和结果预览", async ({ page }) => {
+test("移动端新建主线使用对话、计划列表和按需配置详情", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/new?type=position");
-
-  await page.getByRole("button", { name: "进度", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "创建进度" })).toBeVisible();
-  await expect(page.locator(".drawer").getByLabel("创建进度")).toBeVisible();
+  await expect(page.getByText("主线创建计划", { exact: true })).toHaveCount(0);
   await page
-    .locator(".drawer")
-    .getByRole("button", { name: "关闭", exact: true })
+    .getByRole("button", { name: /为星澜机器人招聘具身智能 VLA/ })
     .click();
-
-  await page.getByRole("button", { name: "结果", exact: true }).click();
+  await expect(page.getByText("2 / 4 已完成")).toBeVisible();
+  await page.locator(".plan-list-toggle").click();
+  await expect(page.getByText("补齐找人范围与完成标准")).toBeVisible();
+  await page.locator(".plan-list-toggle").click();
+  await page.getByRole("button", { name: "查看配置" }).click();
   await expect(
-    page.getByRole("heading", { name: "主线启动摘要" }),
-  ).toBeVisible();
-  await expect(
-    page.locator(".drawer").getByLabel("主线启动摘要"),
+    page.locator(".drawer").getByRole("complementary", { name: "卡片详情" }),
   ).toBeVisible();
   await page
     .locator(".drawer")
@@ -161,6 +159,44 @@ test("移动端新建主线可以访问创建进度和结果预览", async ({ pa
   await expect(
     page.getByRole("button", { name: "Agent 操作模式" }),
   ).toContainText("规划模式");
+});
+
+test("对话输入统一接收文件、截图、链接并随消息发送", async ({ page }) => {
+  await page.goto("./#/workstreams/new?type=position");
+  await page.getByRole("button", { name: "添加文件" }).click();
+  await page.getByRole("button", { name: "添加截图" }).click();
+  await expect(page.getByLabel("待发送附件")).toContainText(
+    "星澜机器人岗位补充.docx",
+  );
+  await expect(page.getByLabel("待发送附件")).toContainText("客户聊天截图.png");
+  await page.getByRole("button", { name: "添加链接" }).click();
+  await expect(page.getByLabel("发送给 Hunter")).toContainText(
+    "xinglan-robotics.cn",
+  );
+  await page.getByRole("button", { name: "发送", exact: true }).click();
+  await expect(page.getByLabel("待发送附件")).toHaveCount(0);
+  await expect(
+    page.getByText("星澜机器人岗位补充.docx", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("客户聊天截图.png", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("2 / 4 已完成")).toBeVisible();
+  await expect(page.getByText("补充说明", { exact: true })).toHaveCount(0);
+});
+
+test("新信息会更新唯一执行计划而不是创建第二份计划", async ({ page }) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  await expect(page.getByText("3 / 5 已完成")).toBeVisible();
+  await page.locator(".plan-list-toggle").click();
+  await page.getByRole("button", { name: "确认局部重匹配" }).click();
+  await expect(
+    page.getByText("重算 6 位候选人的地点适配", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/3 \/ 6 已完成 · v5/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "查看详情：执行计划已更新" }),
+  ).toBeVisible();
 });
 
 test("移动端业务主线点击卡片后用 Drawer 查看详情", async ({ page }) => {

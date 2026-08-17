@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
@@ -20,95 +20,17 @@ import {
   ConversationEntry,
   ConversationEvent,
   ConversationWorkspace,
-  CreationProgress,
   MainlineContextPanel,
+  MessageAttachments,
+  PlanListDock,
   WorkstreamTypeChooser,
 } from "../components/conversation";
 import {
+  creationPlans,
   creationFlows,
   workstreamDetails,
   workstreamKinds,
 } from "../data/workstreamConversations";
-
-function CreationSummary({ kind, flow, step, mode, onEdit, onCreate }) {
-  const selectedMode = agentModes.find((item) => item.value === mode);
-  return (
-    <aside
-      className="conversation-preview creation-summary"
-      aria-label="主线启动摘要"
-    >
-      <header>
-        <span>
-          <small>实时预览</small>
-          <b>主线启动摘要</b>
-        </span>
-        {kind && <Status tone="info">准备中</Status>}
-      </header>
-      <div className="conversation-preview-scroll">
-        {!kind ? (
-          <div className="summary-placeholder">
-            <Icon name="route" />
-            <b>尚未选择主线类型</b>
-            <p>在中间选择要持续推进的业务目标，Hunter 会逐步整理配置。</p>
-          </div>
-        ) : (
-          <>
-            <div className="summary-title">
-              <Icon
-                name={workstreamKinds.find((item) => item.value === kind)?.icon}
-              />
-              <span>
-                <small>
-                  {workstreamKinds.find((item) => item.value === kind)?.label}
-                </small>
-                <b>{flow.title}</b>
-              </span>
-            </div>
-            <dl className="creation-summary-list">
-              <div>
-                <dt>目标范围</dt>
-                <dd>{flow.config.scope}</dd>
-              </div>
-              <div>
-                <dt>触发方式</dt>
-                <dd>{flow.config.trigger}</dd>
-              </div>
-              <div>
-                <dt>确认方式</dt>
-                <dd>{flow.config.approval}</dd>
-              </div>
-              <div>
-                <dt>停止条件</dt>
-                <dd>{flow.config.stop}</dd>
-              </div>
-              <div>
-                <dt>Agent 模式</dt>
-                <dd>
-                  {selectedMode?.label} · {selectedMode?.description}
-                </dd>
-              </div>
-            </dl>
-            <Button icon="edit" onClick={onEdit}>
-              检查结构化配置
-            </Button>
-            <Button tone="primary" disabled={step < 2} onClick={onCreate}>
-              确认并创建主线
-            </Button>
-            {step < 2 && (
-              <small className="summary-help">再回答一个问题后即可创建</small>
-            )}
-          </>
-        )}
-        <div className="privacy-note">
-          <Icon name="info" />
-          <span>
-            主线本身不持续消耗用量；只有搜索、浏览、解析和联系等实际任务会计费用量。
-          </span>
-        </div>
-      </div>
-    </aside>
-  );
-}
 
 export function NewWorkstreamPage() {
   const navigate = useNavigate();
@@ -119,39 +41,95 @@ export function NewWorkstreamPage() {
   const [step, setStep] = useState(initialKind ? 1 : 0);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [configOpen, setConfigOpen] = useState(false);
+  const [configDetailOpen, setConfigDetailOpen] = useState(false);
+  const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [autoConfirm, setAutoConfirm] = useState(false);
   const [contact, setContact] = useState(false);
   const [mode, setMode] = useState("edit");
-  const [navigationOpen, setNavigationOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const threadRef = useRef(null);
   const flow = kind ? creationFlows[kind] : null;
+  const kindMeta = workstreamKinds.find((item) => item.value === kind);
+  const plan = kind
+    ? creationPlans[kind].map((item, index) => ({
+        ...item,
+        status:
+          step >= 2 && index < 2
+            ? "completed"
+            : step >= 2 && index === 2
+              ? "waiting"
+              : "pending",
+      }))
+    : [];
+
+  useEffect(() => {
+    if (!messages.length) return;
+    const frame = window.requestAnimationFrame(() => {
+      threadRef.current?.scrollTo({
+        top: threadRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [messages.length, step]);
 
   const chooseKind = (value) => {
     setKind(value);
     setStep(1);
     setMessages([]);
     setMessage("");
+    setAttachments([]);
+    setConfigDetailOpen(false);
   };
 
   const send = (preset) => {
     const text = (preset || message).trim();
-    if (!text || !flow) return;
+    if ((!text && !attachments.length) || !flow) return;
+    const sentAttachments = [...attachments];
+    const attachmentText = sentAttachments.length
+      ? `我还会读取你附上的 ${sentAttachments.map((item) => item.name).join("、")}，并把有效信息合并到当前计划。`
+      : "";
     setMessages((current) => [
       ...current,
-      { role: "user", text, time: "刚刚" },
+      {
+        role: "user",
+        text: text || "请结合这些资料继续完善业务主线。",
+        attachments: sentAttachments,
+        time: "刚刚",
+      },
       {
         role: "agent",
         text:
           step === 1
-            ? flow.followup
-            : `已把这条信息加入${workstreamKinds.find((item) => item.value === kind)?.label}范围，并同步更新右侧配置。你可以继续补充，或确认创建主线。`,
+            ? `${attachmentText}${flow.followup}`
+            : `${attachmentText}已把新信息加入${kindMeta?.label}范围，并更新执行计划和结构化配置。你可以继续补充，或确认创建主线。`,
         time: "刚刚",
       },
     ]);
     setStep((current) => Math.min(current + 1, 3));
     setMessage("");
+    setAttachments([]);
+  };
+
+  const addAttachment = (type) => {
+    const attachment =
+      type === "image"
+        ? {
+            id: `image-${Date.now()}`,
+            type: "image",
+            name: "客户聊天截图.png",
+            meta: "PNG · 842 KB",
+          }
+        : {
+            id: `file-${Date.now()}`,
+            type: "file",
+            name: "星澜机器人岗位补充.docx",
+            meta: "DOCX · 128 KB",
+          };
+    setAttachments((current) => [...current, attachment]);
+    toast(`${attachment.name} 已加入待发送内容`, "info");
   };
 
   const create = () => {
@@ -163,19 +141,41 @@ export function NewWorkstreamPage() {
     navigate(`/workstreams/${kind}-new/${kind}`);
   };
 
-  const creationNavigation = (
-    <CreationProgress kind={kind} step={step} mode={mode} />
-  );
-  const creationPreview = (
-    <CreationSummary
-      kind={kind}
-      flow={flow}
-      step={step}
-      mode={mode}
-      onEdit={() => setConfigOpen(true)}
-      onCreate={create}
-    />
-  );
+  const configDetail = flow
+    ? {
+        eyebrow: `${kindMeta?.label}配置`,
+        title: flow.title,
+        detail:
+          "Hunter 已从对话和附件中整理出当前有效配置，创建前仍可继续补充或修改。",
+        status: "准备中",
+        tone: "info",
+        icon: kindMeta?.icon,
+        metrics: [
+          ["目标范围", flow.config.scope],
+          ["触发方式", flow.config.trigger],
+          ["确认方式", flow.config.approval],
+        ],
+        listTitle: "停止与联系规则",
+        items: [flow.config.stop, flow.config.contact],
+      }
+    : null;
+  const detailPanel =
+    configDetailOpen && configDetail ? (
+      <ConversationDetail
+        preview={configDetail}
+        onOpen={() => setConfigOpen(true)}
+        onCopy={() => {
+          navigator.clipboard
+            ?.writeText(`${flow.title}\n${flow.config.scope}`)
+            .catch(() => {});
+          toast("配置摘要已复制");
+        }}
+        onClose={() => {
+          setConfigDetailOpen(false);
+          setConfigDrawerOpen(false);
+        }}
+      />
+    ) : null;
 
   return (
     <div className="page-content workstream-conversation-page">
@@ -184,30 +184,9 @@ export function NewWorkstreamPage() {
         title="告诉 Hunter 你要持续完成什么"
         description="Hunter 会通过对话补齐范围、授权、停止条件和完成标准，再建立可持续推进的业务主线。"
         back={() => navigate("/workstreams")}
-        actions={
-          <>
-            <Button
-              className="chat-mobile-button"
-              icon="panelLeft"
-              onClick={() => setNavigationOpen(true)}
-            >
-              进度
-            </Button>
-            <Button
-              className="chat-mobile-button"
-              icon="panelRight"
-              onClick={() => setPreviewOpen(true)}
-            >
-              结果
-            </Button>
-          </>
-        }
       />
-      <ConversationWorkspace
-        navigation={creationNavigation}
-        preview={creationPreview}
-      >
-        <div className="conversation-thread creation-thread">
+      <ConversationWorkspace detail={detailPanel}>
+        <div className="conversation-thread creation-thread" ref={threadRef}>
           <ConversationEntry time="现在">
             <p>
               你希望持续推进哪一类业务？选择类型后，可以直接用几句话描述当前目标和已知信息。
@@ -239,6 +218,7 @@ export function NewWorkstreamPage() {
               key={`${item.role}-${index}`}
             >
               <p>{item.text}</p>
+              <MessageAttachments items={item.attachments} />
             </ConversationEntry>
           ))}
           {flow && step >= 2 && (
@@ -246,7 +226,24 @@ export function NewWorkstreamPage() {
               title={flow.title}
               config={flow.config}
               onEdit={() => setConfigOpen(true)}
+              onOpen={() => {
+                setConfigDetailOpen(true);
+                if (window.matchMedia("(max-width: 1120px)").matches) {
+                  setConfigDrawerOpen(true);
+                }
+              }}
             />
+          )}
+          {flow && step >= 2 && !duplicate && (
+            <div className="creation-ready-actions">
+              <span>
+                <Icon name="check" />
+                目标和范围已整理完成；确认授权与停止条件后即可创建。
+              </span>
+              <Button tone="primary" onClick={create}>
+                确认并创建主线
+              </Button>
+            </div>
           )}
           {duplicate && (
             <article className="duplicate-inline">
@@ -275,12 +272,34 @@ export function NewWorkstreamPage() {
             </article>
           )}
         </div>
+        {flow && step >= 2 && (
+          <PlanListDock
+            items={plan}
+            title="主线创建计划"
+            version={Math.max(1, step)}
+            updatedAt="刚刚更新"
+            defaultOpen={false}
+          />
+        )}
         <ConversationComposer
           value={message}
           onChange={setMessage}
+          attachments={attachments}
           disabled={!flow}
           onSend={() => send()}
-          onAttach={() => toast("已打开文件和链接选择", "info")}
+          onAddFile={() => addAttachment("file")}
+          onAddScreenshot={() => addAttachment("image")}
+          onAddLink={() =>
+            setMessage(
+              (current) =>
+                `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
+            )
+          }
+          onRemoveAttachment={(id) =>
+            setAttachments((current) =>
+              current.filter((item) => item.id !== id),
+            )
+          }
           mode={mode}
           onModeChange={(value) => {
             setMode(value);
@@ -291,26 +310,18 @@ export function NewWorkstreamPage() {
           }}
           placeholder={
             flow
-              ? `补充${workstreamKinds.find((item) => item.value === kind)?.label}目标和已知信息`
+              ? `继续补充${kindMeta?.label}目标，或添加文件、截图和链接`
               : "请先选择业务主线类型"
           }
         />
       </ConversationWorkspace>
       <Drawer
-        open={navigationOpen}
-        onClose={() => setNavigationOpen(false)}
-        title="创建进度"
-        width="360px"
-      >
-        {creationNavigation}
-      </Drawer>
-      <Drawer
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="主线启动摘要"
+        open={configDrawerOpen}
+        onClose={() => setConfigDrawerOpen(false)}
+        title="业务主线配置"
         width="520px"
       >
-        {creationPreview}
+        {detailPanel}
       </Drawer>
       <Modal
         open={configOpen}
@@ -413,13 +424,28 @@ export function WorkstreamDetailPage({ kind }) {
   const config = workstreamDetails[kind];
   const [message, setMessage] = useState("");
   const [events, setEvents] = useState(config.events);
+  const [attachments, setAttachments] = useState([]);
+  const [plan, setPlan] = useState(config.plan);
+  const [planVersion, setPlanVersion] = useState(config.planVersion);
+  const [planUpdatedAt, setPlanUpdatedAt] = useState(config.planUpdatedAt);
   const [mode, setMode] = useState("edit");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [paused, setPaused] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [terminate, setTerminate] = useState(false);
-  const [attachment, setAttachment] = useState(false);
+  const threadRef = useRef(null);
+
+  useEffect(() => {
+    if (events.length <= config.events.length) return;
+    const frame = window.requestAnimationFrame(() => {
+      threadRef.current?.scrollTo({
+        top: threadRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [config.events.length, events.length]);
 
   const detail = selectedEvent
     ? eventToDetail(selectedEvent, config, kind)
@@ -500,6 +526,51 @@ export function WorkstreamDetailPage({ kind }) {
       );
       return;
     }
+    if (event.planUpdate) {
+      const { item, before, summary } = event.planUpdate;
+      setPlan((current) => {
+        const existing = current.findIndex((entry) => entry.id === item.id);
+        if (existing >= 0) {
+          return current.map((entry, index) =>
+            index === existing ? { ...entry, ...item } : entry,
+          );
+        }
+        const beforeIndex = current.findIndex((entry) => entry.id === before);
+        const next = [...current];
+        next.splice(beforeIndex >= 0 ? beforeIndex : next.length, 0, item);
+        return next;
+      });
+      setPlanVersion((current) => current + 1);
+      setPlanUpdatedAt("刚刚");
+      setEvents((current) => [
+        ...current.map((itemEntry) =>
+          itemEntry === event
+            ? {
+                ...itemEntry,
+                status: "已确认",
+                tone: "success",
+                primary: undefined,
+                secondary: undefined,
+              }
+            : itemEntry,
+        ),
+        {
+          type: "agent",
+          time: "刚刚",
+          text: `${summary}。我已更新下方执行计划，只处理受影响的范围。`,
+        },
+        {
+          type: "plan",
+          time: "刚刚",
+          title: "执行计划已更新",
+          detail: `${item.title}已加入当前计划；完整计划和实时状态以下方计划列表为准。`,
+          status: "已更新",
+          tone: "info",
+        },
+      ]);
+      toast("执行计划已更新");
+      return;
+    }
     if (event.route) {
       navigate(event.route);
       return;
@@ -510,18 +581,26 @@ export function WorkstreamDetailPage({ kind }) {
 
   const send = () => {
     const text = message.trim();
-    if (!text) return;
+    if (!text && !attachments.length) return;
+    const sentAttachments = [...attachments];
+    const inputSummary =
+      text || sentAttachments.map((item) => item.name).join("、");
     const impact = {
       type: "impact",
       time: "刚刚",
       title: "补充信息已完成影响分析",
-      detail: `Hunter 判断这条信息会影响当前阶段，将只调整相关任务和结果，不会重跑整条主线：${text}`,
+      detail: `Hunter 判断这条信息会影响当前阶段，将只调整相关任务和结果，不会重跑整条主线：${inputSummary}`,
       primary: "确认局部更新",
       secondary: "先不处理",
     };
     setEvents((current) => [
       ...current,
-      { type: "user", time: "刚刚", text },
+      {
+        type: "user",
+        time: "刚刚",
+        text: text || "请结合这些资料继续推进。",
+        attachments: sentAttachments,
+      },
       {
         type: "agent",
         time: "刚刚",
@@ -530,7 +609,27 @@ export function WorkstreamDetailPage({ kind }) {
       impact,
     ]);
     setMessage("");
+    setAttachments([]);
     toast("补充信息已加入当前业务主线", "info");
+  };
+
+  const addAttachment = (type) => {
+    const attachment =
+      type === "image"
+        ? {
+            id: `image-${Date.now()}`,
+            type: "image",
+            name: "客户补充截图.png",
+            meta: "PNG · 612 KB",
+          }
+        : {
+            id: `file-${Date.now()}`,
+            type: "file",
+            name: "岗位补充说明.docx",
+            meta: "DOCX · 96 KB",
+          };
+    setAttachments((current) => [...current, attachment]);
+    toast(`${attachment.name} 已加入待发送内容`, "info");
   };
 
   const selectEvent = (event) => {
@@ -585,13 +684,6 @@ export function WorkstreamDetailPage({ kind }) {
             >
               {paused ? "继续" : "暂停"}
             </Button>
-            <Button
-              tone="primary"
-              icon="plus"
-              onClick={() => setAttachment(true)}
-            >
-              补充信息
-            </Button>
           </>
         }
       />
@@ -605,7 +697,7 @@ export function WorkstreamDetailPage({ kind }) {
             {paused ? "已暂停" : config.status}
           </Status>
         </div>
-        <div className="conversation-thread detail-thread">
+        <div className="conversation-thread detail-thread" ref={threadRef}>
           {events.map((event, index) => (
             <ConversationEvent
               event={event}
@@ -615,60 +707,34 @@ export function WorkstreamDetailPage({ kind }) {
             />
           ))}
         </div>
+        <PlanListDock
+          items={plan}
+          version={planVersion}
+          updatedAt={planUpdatedAt}
+          defaultOpen={false}
+        />
         <ConversationComposer
           value={message}
           onChange={setMessage}
+          attachments={attachments}
           onSend={send}
-          onAttach={() => setAttachment(true)}
+          onAddFile={() => addAttachment("file")}
+          onAddScreenshot={() => addAttachment("image")}
+          onAddLink={() =>
+            setMessage(
+              (current) =>
+                `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
+            )
+          }
+          onRemoveAttachment={(id) =>
+            setAttachments((current) =>
+              current.filter((item) => item.id !== id),
+            )
+          }
           mode={mode}
           onModeChange={changeMode}
         />
       </ConversationWorkspace>
-      <Modal
-        open={attachment}
-        onClose={() => setAttachment(false)}
-        title="补充业务信息"
-        description="支持文字、链接和文件；提交后先分析影响范围"
-        footer={
-          <>
-            <Button onClick={() => setAttachment(false)}>取消</Button>
-            <Button
-              tone="primary"
-              onClick={() => {
-                setAttachment(false);
-                setMessage(
-                  "客户补充：杭州也可以接受，但需要候选人每周至少三天到岗。",
-                );
-                toast("信息已放入输入区，请确认后发送", "info");
-              }}
-            >
-              加入对话
-            </Button>
-          </>
-        }
-      >
-        <div className="stack">
-          <Textarea
-            label="补充说明"
-            defaultValue="客户补充：杭州也可以接受，但需要候选人每周至少三天到岗。"
-          />
-          <Input
-            label="链接"
-            placeholder="粘贴公开资料或平台页面"
-            prefix="link"
-          />
-          <button
-            className="conversation-upload"
-            onClick={() => toast("已选择 岗位补充说明.docx")}
-          >
-            <Icon name="upload" />
-            <span>
-              <b>添加文件</b>
-              <small>PDF、DOCX、XLSX；提交前检查格式和内容。</small>
-            </span>
-          </button>
-        </div>
-      </Modal>
       <Drawer
         open={contextOpen}
         onClose={() => setContextOpen(false)}

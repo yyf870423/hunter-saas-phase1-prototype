@@ -725,7 +725,12 @@ export function EntityListPage({ kind }) {
           </>
         )}
       />
-      <Pagination page={page} pages={5} onChange={setPage} />
+      <Pagination
+        page={page}
+        pages={kind === "tasks" ? 1 : 5}
+        total={kind === "tasks" ? rows.length : 46}
+        onChange={setPage}
+      />
       <CreateModal
         kind={kind}
         open={createOpen}

@@ -4,9 +4,16 @@ const pages = [
   ["review", "/review", 1440, 900],
   ["dashboard", "/home", 1440, 900],
   ["independent-tasks", "/tasks", 1440, 900],
+  ["new-position-workstream", "/workstreams/new?type=position", 1440, 900],
   ["position-workstream", "/workstreams/position-vla/position", 1440, 900],
   ["task-detail", "/tasks/task-sourcing", 1440, 900],
   ["candidate-mobile", "/candidates/lin-hao", 390, 844],
+  [
+    "new-position-workstream-mobile",
+    "/workstreams/new?type=position",
+    390,
+    844,
+  ],
   ["communication-tablet", "/communications/comm-linhao", 820, 1180],
   ["ops-dashboard", "/ops", 1440, 900],
   ["ops-task", "/ops/tasks/RUN-2B43", 1180, 820],
@@ -32,6 +39,32 @@ test("截图 position-workstream-detail", async ({ page }) => {
   await page.waitForTimeout(250);
   await page.screenshot({
     path: "artifacts/position-workstream-detail-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 new-position-workstream-generated-plan", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/new?type=position");
+  await page
+    .getByRole("button", { name: /为星澜机器人招聘具身智能 VLA/ })
+    .click();
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: "artifacts/new-position-workstream-generated-plan-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 new-position-workstream-generated-plan-mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./#/workstreams/new?type=position");
+  await page
+    .getByRole("button", { name: /为星澜机器人招聘具身智能 VLA/ })
+    .click();
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: "artifacts/new-position-workstream-generated-plan-mobile-390x844.png",
     fullPage: true,
   });
 });

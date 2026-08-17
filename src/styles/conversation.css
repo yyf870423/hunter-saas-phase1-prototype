@@ -542,6 +542,146 @@
 .conversation-config-card dd {
   color: var(--ink-secondary);
 }
+.creation-ready-actions {
+  width: min(calc(100% - 44px), 760px);
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-left: 44px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--success) 28%, var(--line));
+  border-radius: 8px;
+  background: var(--success-soft);
+}
+.creation-ready-actions > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-secondary);
+  font-size: 10px;
+}
+.creation-ready-actions > span svg {
+  flex: 0 0 auto;
+  color: var(--success);
+}
+.plan-list-dock {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.plan-list-toggle {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  color: var(--ink);
+  text-align: left;
+}
+.plan-list-toggle:hover {
+  background: var(--surface-subtle);
+}
+.plan-list-toggle > i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--blue-strong);
+  background: var(--blue-soft);
+}
+.plan-list-toggle > i svg {
+  width: 14px;
+}
+.plan-list-toggle > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.plan-list-toggle b {
+  font-size: 11px;
+}
+.plan-list-toggle small {
+  overflow: hidden;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-list-toggle > svg {
+  color: var(--ink-tertiary);
+  transition: transform 0.16s ease;
+}
+.plan-list-dock.is-open .plan-list-toggle > svg {
+  transform: rotate(180deg);
+}
+.plan-list-dock > ol {
+  max-height: 220px;
+  margin: 0;
+  padding: 4px 14px 10px;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  overscroll-behavior: contain;
+}
+.plan-list-dock li {
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.plan-list-dock li:last-child {
+  border-bottom: 0;
+}
+.plan-list-dock li > i {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-tertiary);
+  background: var(--surface);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.plan-list-dock li > i svg {
+  width: 12px;
+}
+.plan-list-dock li.is-completed > i {
+  border-color: var(--success);
+  color: var(--ink-on-accent);
+  background: var(--success);
+}
+.plan-list-dock li.is-running > i {
+  border-color: var(--blue);
+  color: var(--ink-on-accent);
+  background: var(--blue);
+}
+.plan-list-dock li > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.plan-list-dock li b {
+  font-size: 10px;
+}
+.plan-list-dock li small {
+  overflow: hidden;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .conversation-composer {
   position: relative;
   z-index: 8;
@@ -550,6 +690,78 @@
   border-top: 1px solid var(--line);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(12px);
+}
+.composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.composer-attachments > span {
+  max-width: 280px;
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 3px 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-secondary);
+  background: var(--surface-subtle);
+}
+.composer-attachments > span > svg {
+  width: 13px;
+  color: var(--blue-strong);
+}
+.composer-attachments b {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.composer-attachments .icon-button {
+  width: 24px;
+  height: 24px;
+}
+.message-attachments {
+  display: grid;
+  gap: 6px;
+  margin-top: 9px;
+}
+.message-attachments > span {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+.message-attachments > span > svg {
+  width: 15px;
+  color: var(--blue-strong);
+}
+.message-attachments i {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  font-style: normal;
+}
+.message-attachments b,
+.message-attachments small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.message-attachments b {
+  font-size: 9px;
+}
+.message-attachments small {
+  color: var(--ink-tertiary);
+  font-size: 8px;
 }
 .conversation-composer > textarea {
   width: 100%;
@@ -1091,9 +1303,24 @@
   }
   .conversation-config-card,
   .business-event,
-  .duplicate-inline {
+  .duplicate-inline,
+  .creation-ready-actions {
     width: 100%;
     margin-left: 0;
+  }
+  .creation-ready-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .plan-list-dock > ol {
+    max-height: 180px;
+  }
+  .plan-list-dock li {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .plan-list-dock li > .status {
+    grid-column: 2;
+    justify-self: start;
   }
   .conversation-toolbar {
     align-items: stretch;

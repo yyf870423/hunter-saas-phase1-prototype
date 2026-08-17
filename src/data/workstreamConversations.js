@@ -104,6 +104,97 @@ export const creationFlows = {
   },
 };
 
+export const creationPlans = {
+  client: [
+    {
+      id: "client-goal",
+      title: "明确客户开发目标",
+      detail: "确认目标公司、招聘方向和已有招聘信号。",
+    },
+    {
+      id: "client-scope",
+      title: "补齐核验范围与完成标准",
+      detail: "定义要核验的信号、负责人和有效招聘机会标准。",
+    },
+    {
+      id: "client-policy",
+      title: "确认联系授权与停止条件",
+      detail: "明确联系前审批、周期复查和停止规则。",
+    },
+    {
+      id: "client-create",
+      title: "创建客户开发主线",
+      detail: "保存配置并开始核验招聘机会。",
+    },
+  ],
+  position: [
+    {
+      id: "position-goal",
+      title: "明确岗位招聘目标",
+      detail: "关联岗位、客户公司、入职人数和时间目标。",
+    },
+    {
+      id: "position-scope",
+      title: "补齐找人范围与完成标准",
+      detail: "确认硬门槛、可放宽条件和首批交付时间。",
+    },
+    {
+      id: "position-policy",
+      title: "确认推荐授权与停止条件",
+      detail: "明确候选人审核、联系和停止规则。",
+    },
+    {
+      id: "position-create",
+      title: "创建岗位招聘主线",
+      detail: "保存配置并开始多渠道找人与匹配。",
+    },
+  ],
+  mapping: [
+    {
+      id: "mapping-goal",
+      title: "明确人才摸排目标",
+      detail: "确认行业方向、公司范围和需要回答的问题。",
+    },
+    {
+      id: "mapping-scope",
+      title: "补齐摸排深度与完成标准",
+      detail: "确认组织、关键人物、关系和联系路径的覆盖要求。",
+    },
+    {
+      id: "mapping-policy",
+      title: "确认写入授权与停止条件",
+      detail: "明确关系核验、人工确认和覆盖率停止规则。",
+    },
+    {
+      id: "mapping-create",
+      title: "创建人才摸排主线",
+      detail: "保存配置并开始建立目标人才池。",
+    },
+  ],
+  career: [
+    {
+      id: "career-goal",
+      title: "明确候选人求职目标",
+      detail: "关联候选人并确认地点、岗位方向和限制条件。",
+    },
+    {
+      id: "career-scope",
+      title: "补齐找岗位范围与完成标准",
+      detail: "确认薪酬、职级、岗位偏好和机会筛选标准。",
+    },
+    {
+      id: "career-policy",
+      title: "确认资料与推荐规则",
+      detail: "明确新资料审核、岗位沟通和停止条件。",
+    },
+    {
+      id: "career-create",
+      title: "创建候选人求职主线",
+      detail: "保存配置并开始持续找岗位和匹配。",
+    },
+  ],
+};
+
 const commonMeta = {
   client: {
     title: "星澜机器人招聘机会",
@@ -116,7 +207,7 @@ const commonMeta = {
     next: "确认是否向 HRD 周雅雯发送联系邮件",
     running: "1 个 Agent 任务",
     wait: "1 项人工确认",
-    assets: "1 家公司 · 4 位联系人 · 2 个机会",
+    assets: "1 家公司 · 4 位联系人 · 1 个招聘机会",
   },
   position: {
     title: "具身智能 VLA 算法负责人",
@@ -183,6 +274,131 @@ const phases = {
     ["找岗位与匹配", "完成", "18 个岗位中筛出 6 个推荐岗位"],
     ["候选人确认与沟通", "等待外部", "等待候选人反馈岗位意向"],
     ["推荐、面试与入职", "进行中", "2 个岗位已进入面试"],
+  ],
+};
+
+const workstreamPlans = {
+  client: [
+    {
+      id: "verify-signal",
+      title: "核验招聘信号",
+      detail: "官网 6 个岗位与 B+ 轮融资扩招说明已交叉验证。",
+      status: "completed",
+    },
+    {
+      id: "find-contacts",
+      title: "补齐公司与负责人",
+      detail: "已确认公司资料和 4 位可能影响招聘决策的联系人。",
+      status: "completed",
+    },
+    {
+      id: "review-contact",
+      title: "确认联系内容并联系 HRD",
+      detail: "联系草稿等待猎头审核和一次性发送授权。",
+      status: "waiting",
+    },
+    {
+      id: "confirm-opportunity",
+      title: "确认正式招聘机会",
+      detail: "收到回复后确认 HC、地点、职级和合作方式。",
+      status: "pending",
+    },
+  ],
+  position: [
+    {
+      id: "position-plan",
+      title: "确认岗位理解和找人计划",
+      detail: "岗位画像、硬门槛和 5 组寻访关键词已确认。",
+      status: "completed",
+    },
+    {
+      id: "public-recall",
+      title: "完成内部与公开来源召回",
+      detail: "内部人才池、论文作者和专利发明人召回已完成。",
+      status: "completed",
+    },
+    {
+      id: "platform-recall",
+      title: "读取猎聘和脉脉候选人",
+      detail: "已扫描 68 张卡片；猎聘读取第 2 页，脉脉等待平台返回。",
+      status: "running",
+    },
+    {
+      id: "first-match",
+      title: "完成首批 18 位候选人匹配",
+      detail: "12 位推荐、4 位有条件匹配、2 位不建议。",
+      status: "completed",
+    },
+    {
+      id: "candidate-review",
+      title: "审核首批候选人并确认联系名单",
+      detail: "18 位候选人等待猎头审核。",
+      status: "waiting",
+    },
+  ],
+  mapping: [
+    {
+      id: "mapping-plan",
+      title: "确认 12 家公司和 3 个方向",
+      detail: "VLA、灵巧手和机器人平台的摸排范围已确认。",
+      status: "completed",
+    },
+    {
+      id: "mapping-org",
+      title: "补齐 3 个团队组织结构",
+      detail: "新增 18 位确认人物和 6 位待核验人物。",
+      status: "completed",
+    },
+    {
+      id: "mapping-relations",
+      title: "核验 7 条人物关系",
+      detail: "需要结合猎头已有关系判断当前汇报与合作关系。",
+      status: "waiting",
+    },
+    {
+      id: "mapping-branch",
+      title: "处理云脉芯能支线建议",
+      detail: "决定建立客户开发支线，或仅纳入当前摸排。",
+      status: "pending",
+    },
+    {
+      id: "mapping-coverage",
+      title: "将关键角色覆盖率提升至 85%",
+      detail: "补齐剩余组织和关键人物后转入低频维护。",
+      status: "pending",
+    },
+  ],
+  career: [
+    {
+      id: "career-intent",
+      title: "确认候选人最新意向",
+      detail: "等待林昊确认地点范围和新版简历。",
+      status: "waiting",
+    },
+    {
+      id: "career-match",
+      title: "完成 18 个岗位匹配",
+      detail: "已筛出 6 个建议岗位。",
+      status: "completed",
+    },
+    {
+      id: "career-discuss",
+      title: "与候选人确认 6 个岗位意向",
+      detail: "候选人回复后由猎头决定是否推荐。",
+      status: "waiting",
+    },
+    {
+      id: "career-resume",
+      title: "审核并更新最新简历",
+      detail: "新简历解析后形成字段级更新建议。",
+      status: "waiting",
+    },
+    {
+      id: "career-rematch",
+      title: "重算受影响的岗位匹配",
+      detail: "资料确认后只重算相关岗位。",
+      status: "pending",
+    },
   ],
 };
 
@@ -304,25 +520,20 @@ const events = {
       time: "今天 08:20",
       title: "允许使用已登录的人才平台查找候选人？",
       detail:
-        "Hunter 将在猎聘和脉脉执行当前岗位的搜索与详情读取，不会自动打招呼、申请好友或发送消息。",
-      status: "等待授权",
-      tone: "warning",
+        "Hunter 已获准在当前业务主线中使用猎聘和脉脉执行搜索、翻页和详情读取，不会自动打招呼、申请好友或发送消息。",
+      status: "当前业务主线已授权",
+      tone: "success",
       scope: [
         ["平台", "猎聘、脉脉"],
         ["操作", "搜索、翻页、读取候选人详情"],
         ["数据范围", "当前岗位关键词和筛选条件"],
         ["预计用量", "最多读取 40 个详情"],
       ],
-      options: [
-        { value: "deny", label: "拒绝" },
-        { value: "once", label: "仅允许本次" },
-        { value: "mainline", label: "当前业务主线持续允许", tone: "primary" },
-      ],
     },
     {
       type: "task",
       time: "今天 08:24",
-      title: "5 个找人任务正在并行",
+      title: "2 个人才平台任务正在运行",
       detail:
         "内部人才池和论文作者召回已完成；猎聘正在读取第 2 页；脉脉等待平台回复。",
       status: "运行中",
@@ -340,7 +551,7 @@ const events = {
       time: "今天 09:06",
       title: "首批候选人已完成匹配",
       detail:
-        "46 人进入候选池；12 人推荐、4 人有条件匹配、2 人不建议，其余留作储备。",
+        "46 位唯一候选人进入候选池；首批 18 位已完成匹配，其中 12 位推荐、4 位有条件匹配、2 位不建议；其余 28 位等待后续评估。",
       status: "待审核",
       tone: "warning",
       action: "审核 18 位候选人",
@@ -369,6 +580,16 @@ const events = {
         "岗位地点从上海扩展到杭州。无需重跑全部召回，只需重算 6 位因地点受限的候选人。",
       primary: "确认局部重匹配",
       secondary: "保留原条件",
+      planUpdate: {
+        summary: "新增地点适配的局部重匹配步骤",
+        before: "candidate-review",
+        item: {
+          id: "location-rematch",
+          title: "重算 6 位候选人的地点适配",
+          detail: "岗位地点扩展到杭州，只重算因地点受限的候选人。",
+          status: "running",
+        },
+      },
     },
   ],
   mapping: [
@@ -523,6 +744,16 @@ const events = {
       detail: "确认更新后只重新计算相关岗位，不重新搜索已经完成的来源。",
       primary: "确认更新并重匹配",
       secondary: "仅保存资料",
+      planUpdate: {
+        summary: "开始处理新简历并局部重匹配",
+        before: "career-rematch",
+        item: {
+          id: "career-resume",
+          title: "审核并更新最新简历",
+          detail: "读取附件、查重并生成字段级更新建议。",
+          status: "running",
+        },
+      },
     },
   ],
 };
@@ -533,6 +764,9 @@ export const workstreamDetails = Object.fromEntries(
     {
       ...meta,
       phases: phases[kind],
+      plan: workstreamPlans[kind],
+      planVersion: kind === "position" ? 4 : 3,
+      planUpdatedAt: kind === "career" ? "今天 09:04" : "今天 09:28",
       events: events[kind],
     },
   ]),

@@ -91,48 +91,100 @@ export function AgentModeSelect({ value, onChange, disabled = false }) {
   );
 }
 
-export function CreationProgress({ kind, step, mode }) {
-  const selectedMode = agentModes.find((item) => item.value === mode);
-  const steps = [
-    ["选择业务目标", Boolean(kind)],
-    ["补齐范围和完成标准", step >= 2],
-    ["检查授权和停止条件", step >= 2],
-    ["确认创建业务主线", step >= 3],
-  ];
+const planStatus = {
+  completed: ["已完成", "success", "check"],
+  running: ["进行中", "info", "play"],
+  waiting: ["等待", "warning", "clock"],
+  pending: ["未开始", "neutral", "more"],
+};
+
+export function PlanListDock({
+  items,
+  title = "执行计划",
+  updatedAt = "刚刚更新",
+  version = 1,
+  defaultOpen = true,
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const completed = items.filter((item) => item.status === "completed").length;
   return (
-    <aside className="creation-progress" aria-label="创建进度">
-      <header>
+    <section className={`plan-list-dock ${open ? "is-open" : ""}`}>
+      <button
+        type="button"
+        className="plan-list-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <i>
+          <Icon name="task" />
+        </i>
         <span>
-          <small>新建业务主线</small>
-          <b>创建进度</b>
+          <b>{title}</b>
+          <small>
+            {completed} / {items.length} 已完成 · v{version} · {updatedAt}
+          </small>
         </span>
-        <Status tone={step >= 3 ? "success" : "info"}>
-          {step >= 3 ? "可创建" : "准备中"}
-        </Status>
-      </header>
-      <div className="creation-progress-scroll">
+        <Icon name="chevronDown" />
+      </button>
+      {open && (
         <ol>
-          {steps.map(([label, complete], index) => (
-            <li className={complete ? "is-complete" : ""} key={label}>
-              <i>{complete ? <Icon name="check" /> : index + 1}</i>
-              <span>
-                <b>{label}</b>
-                <small>{complete ? "已完成" : "等待补充"}</small>
-              </span>
-            </li>
-          ))}
+          {items.map((item, index) => {
+            const [label, tone, icon] =
+              planStatus[item.status] || planStatus.pending;
+            return (
+              <li className={`is-${item.status}`} key={item.id || item.title}>
+                <i>
+                  {item.status === "pending" ? index + 1 : <Icon name={icon} />}
+                </i>
+                <span>
+                  <b>{item.title}</b>
+                  <small>{item.detail}</small>
+                </span>
+                <Status tone={tone} dot={false}>
+                  {label}
+                </Status>
+              </li>
+            );
+          })}
         </ol>
-        <section>
-          <small>Agent 操作模式</small>
-          <b>{selectedMode?.label}</b>
-          <p>{selectedMode?.description}</p>
-        </section>
-        <div className="draft-save-note">
-          <Icon name="check" />
-          <span>当前内容自动保存；返回业务主线列表后可以继续。</span>
-        </div>
-      </div>
-    </aside>
+      )}
+    </section>
+  );
+}
+
+export function MessageAttachments({ items = [] }) {
+  if (!items.length) return null;
+  return (
+    <div className="message-attachments">
+      {items.map((item) => (
+        <span key={item.id || item.name}>
+          <Icon name={item.type === "image" ? "image" : "file"} />
+          <i>
+            <b>{item.name}</b>
+            <small>{item.meta}</small>
+          </i>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ComposerAttachments({ items = [], onRemove }) {
+  if (!items.length) return null;
+  return (
+    <div className="composer-attachments" aria-label="待发送附件">
+      {items.map((item) => (
+        <span key={item.id || item.name}>
+          <Icon name={item.type === "image" ? "image" : "file"} />
+          <b>{item.name}</b>
+          <IconButton
+            icon="close"
+            label={`移除 ${item.name}`}
+            onClick={() => onRemove(item.id)}
+          />
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -244,7 +296,11 @@ export function ConversationComposer({
   value,
   onChange,
   onSend,
-  onAttach,
+  attachments = [],
+  onAddFile,
+  onAddScreenshot,
+  onAddLink,
+  onRemoveAttachment,
   disabled = false,
   processing = false,
   placeholder = "补充目标、要求、链接或新的业务信息",
@@ -253,6 +309,7 @@ export function ConversationComposer({
 }) {
   return (
     <div className="conversation-composer">
+      <ComposerAttachments items={attachments} onRemove={onRemoveAttachment} />
       <textarea
         aria-label="发送给 Hunter"
         value={value}
@@ -262,7 +319,7 @@ export function ConversationComposer({
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
-            if (value.trim() && !disabled) onSend();
+            if ((value.trim() || attachments.length) && !disabled) onSend();
           }
         }}
       />
@@ -277,20 +334,26 @@ export function ConversationComposer({
             icon="file"
             label="添加文件"
             disabled={disabled}
-            onClick={onAttach}
+            onClick={onAddFile}
+          />
+          <IconButton
+            icon="image"
+            label="添加截图"
+            disabled={disabled}
+            onClick={onAddScreenshot}
           />
           <IconButton
             icon="link"
             label="添加链接"
             disabled={disabled}
-            onClick={onAttach}
+            onClick={onAddLink}
           />
           <span>Enter 发送 · Shift + Enter 换行</span>
         </div>
         <Button
           tone="primary"
           icon="send"
-          disabled={disabled || !value.trim()}
+          disabled={disabled || (!value.trim() && !attachments.length)}
           loading={processing}
           onClick={onSend}
         >
@@ -411,6 +474,7 @@ export function ConversationEvent({ event, onAction, onSelect }) {
     return (
       <ConversationEntry role="user" time={event.time}>
         <p>{event.text}</p>
+        <MessageAttachments items={event.attachments} />
       </ConversationEntry>
     );
   }
@@ -459,7 +523,7 @@ export function WorkstreamTypeChooser({ items, value, onChange }) {
   );
 }
 
-export function ConfigurationCard({ title, config, onEdit }) {
+export function ConfigurationCard({ title, config, onEdit, onOpen }) {
   const rows = [
     ["范围", config.scope],
     ["触发", config.trigger],
@@ -474,8 +538,12 @@ export function ConfigurationCard({ title, config, onEdit }) {
           <small>结构化配置</small>
           <b>{title}</b>
         </span>
-        <Button size="sm" icon="edit" onClick={onEdit}>
-          修改配置
+        <Button
+          size="sm"
+          icon={onOpen ? "panelRight" : "edit"}
+          onClick={onOpen || onEdit}
+        >
+          {onOpen ? "查看配置" : "修改配置"}
         </Button>
       </header>
       <dl>
