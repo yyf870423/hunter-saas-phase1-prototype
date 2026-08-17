@@ -31,8 +31,7 @@ const runEvents = [
       "已确认目标岗位、地点、职级和停止条件；本次只处理尚未读取的候选人。",
     tone: "success",
     icon: "briefcase",
-    detail:
-      "输入版本：岗位 v3；候选人范围：猎聘、脉脉和公开网络；检查点：scope-confirmed。",
+    detail: "候选人范围：猎聘、脉脉和公开网络；停止条件与门禁规则已经确认。",
   },
   {
     time: "10:05:46",
@@ -167,7 +166,7 @@ export function TaskDetailPage() {
         eyebrow={`${task.type} · ${status}`}
         title={task.title}
         description={task.mainline}
-        back={() => navigate("/tasks")}
+        back={() => navigate(task.mainlineRoute || "/tasks")}
         actions={
           <>
             {status === "运行中" ? (
@@ -198,45 +197,27 @@ export function TaskDetailPage() {
           </>
         }
       />
-      <div className="thread-layout">
-        <aside className="thread-sidebar">
-          <header>
-            <b>任务上下文</b>
-            <Status tone={toneForStatus(status)}>{status}</Status>
-          </header>
-          <nav>
-            <button className="is-active">
-              <i />
-              <span>
-                <b>当前运行</b>
-                <small>{task.action}</small>
-              </span>
-            </button>
-            <button
-              onClick={() => navigate("/workstreams/position-vla/position")}
+      <div className="task-run-layout">
+        <div className="task-context-strip">
+          <span>
+            <small>当前任务</small>
+            <b>{task.action}</b>
+          </span>
+          <span>
+            <small>{task.mainlineRoute ? "所属业务主线" : "任务来源"}</small>
+            <b>{task.mainline}</b>
+          </span>
+          <Status tone={toneForStatus(status)}>{status}</Status>
+          {task.mainlineRoute && (
+            <Button
+              size="sm"
+              icon="route"
+              onClick={() => navigate(task.mainlineRoute)}
             >
-              <i />
-              <span>
-                <b>所属业务主线</b>
-                <small>岗位招聘 · VLA 算法负责人</small>
-              </span>
-            </button>
-            <button onClick={() => toast("已打开输入版本历史", "info")}>
-              <i />
-              <span>
-                <b>输入版本</b>
-                <small>岗位 v3 · 候选池 v2</small>
-              </span>
-            </button>
-            <button onClick={() => navigate("/account/usage")}>
-              <i />
-              <span>
-                <b>用量与预算</b>
-                <small>{task.usage} · 上限 ￥20</small>
-              </span>
-            </button>
-          </nav>
-        </aside>
+              返回业务主线
+            </Button>
+          )}
+        </div>
         <main className="thread-main">
           <header>
             <div>
@@ -355,40 +336,6 @@ export function TaskDetailPage() {
             </footer>
           </div>
         </main>
-        <aside className="thread-output">
-          <header>
-            <b>任务结果</b>
-            <Status tone={progress >= 100 ? "success" : "info"}>
-              {progress >= 100 ? "可查看" : "生成中"}
-            </Status>
-          </header>
-          <div className="stack">
-            <InfoGrid
-              columns={1}
-              items={[
-                ["已扫描", "40 张候选人卡片"],
-                ["已打开详情", "19 位"],
-                ["推荐", "12 位"],
-                ["有条件匹配", "4 位"],
-                ["门禁拒绝", "2 位"],
-              ]}
-            />
-            <Button
-              tone="primary"
-              disabled={progress < 88}
-              onClick={() => navigate("/workstreams/position-vla/position")}
-            >
-              {progress < 88 ? "结果仍在生成" : "查看当前结果"}
-            </Button>
-            <Button onClick={() => navigate("/positions/vla-lead")}>
-              查看岗位
-            </Button>
-            <div className="privacy-note">
-              <Icon name="info" />
-              <span>当前结果可以查看，但任务完成前仍可能增加候选人。</span>
-            </div>
-          </div>
-        </aside>
       </div>
       <Drawer
         open={Boolean(selectedEvent)}

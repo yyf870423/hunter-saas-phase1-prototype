@@ -194,6 +194,11 @@ const events = {
       text: "优先确认星澜机器人融资后是不是在扩招算法和机器人团队；没有明确需求前不要直接联系。",
     },
     {
+      type: "agent",
+      time: "今天 09:03",
+      text: "明白。我会先判断招聘需求是否真实存在，再找能够确认需求的人；没有足够证据前不会联系任何人。",
+    },
+    {
       type: "plan",
       time: "今天 09:03",
       title: "客户开发计划已更新",
@@ -213,6 +218,11 @@ const events = {
       route: "/signals/signal-funding",
     },
     {
+      type: "agent",
+      time: "今天 09:19",
+      text: "招聘信号已经由官网岗位和融资公告相互印证。下一步需要确认谁负责这批岗位，以及公司是否接受外部猎头合作。",
+    },
+    {
       type: "object",
       time: "今天 09:24",
       title: "已形成公司与联系人草稿",
@@ -222,6 +232,11 @@ const events = {
       tone: "warning",
       action: "查看公司资料",
       route: "/companies/xinglan",
+    },
+    {
+      type: "agent",
+      time: "今天 09:27",
+      text: "周雅雯最可能直接确认招聘需求。我已经准备好一封只询问 HC 和合作方式的邮件，但发送前需要你的明确授权。",
     },
     {
       type: "permission",
@@ -267,12 +282,22 @@ const events = {
       text: "管理经验可以适当放宽，但必须有 VLA 或端到端机器人学习落地经验。今天给我首批候选人。",
     },
     {
+      type: "agent",
+      time: "今天 08:17",
+      text: "我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛，管理经验只影响排序，不作为直接淘汰条件。先调整找人和匹配计划。",
+    },
+    {
       type: "plan",
       time: "今天 08:18",
       title: "找人和匹配计划已调整",
       detail:
         "并行使用内部人才池、论文作者、专利发明人、人才平台和人才摸排成果；先做角色适配门禁，再分层展示。",
       chips: ["内部人才池", "学术作者", "猎聘", "脉脉"],
+    },
+    {
+      type: "agent",
+      time: "今天 08:19",
+      text: "内部人才池和公开学术来源可以直接开始。猎聘和脉脉需要使用你的登录状态，我会先向你确认读取范围。",
     },
     {
       type: "permission",
@@ -306,6 +331,11 @@ const events = {
       route: "/tasks/task-sourcing",
     },
     {
+      type: "agent",
+      time: "今天 08:25",
+      text: "找人工作已经开始。普通执行过程会留在这条业务主线中；你只需要在异常或需要补充信息时进入任务详情。",
+    },
+    {
       type: "result",
       time: "今天 09:06",
       title: "首批候选人已完成匹配",
@@ -315,6 +345,11 @@ const events = {
       tone: "warning",
       action: "审核 18 位候选人",
       route: "/candidates",
+    },
+    {
+      type: "agent",
+      time: "今天 09:07",
+      text: "首批结果已经准备好。建议先审核 12 位推荐候选人，再决定是否扩大来源；有条件匹配的人选都保留了减分原因。",
     },
     {
       type: "object",
@@ -341,6 +376,11 @@ const events = {
       type: "user",
       time: "今天 08:42",
       text: "除公司和关键人外，继续补齐组织层级、研究方向、人物关系和可以利用的联系路径。",
+    },
+    {
+      type: "agent",
+      time: "今天 08:43",
+      text: "我会把组织、方向、关键人物和关系放在同一份摸排成果中，并区分已确认关系和仍需核验的推断。",
     },
     {
       type: "plan",
@@ -382,6 +422,11 @@ const events = {
       route: "/mappings/embodied",
     },
     {
+      type: "agent",
+      time: "今天 09:13",
+      text: "三个核心团队已经可以查看。当前最大缺口不是人物数量，而是 7 条关系无法确认是否仍然有效，需要你结合已有关系人工判断。",
+    },
+    {
       type: "approval",
       time: "今天 09:20",
       title: "7 条人物关系需要人工核验",
@@ -406,6 +451,11 @@ const events = {
       text: "林昊只考虑上海或杭州，不接受纯管理岗位。拿到新简历后先更新资料，再重新匹配。",
     },
     {
+      type: "agent",
+      time: "昨天 16:19",
+      text: "我会先按地点和岗位性质筛选，资料发生变化时只重算受影响岗位。正式推荐仍由你和候选人确认。",
+    },
+    {
       type: "result",
       time: "昨天 16:36",
       title: "已筛出 6 个建议岗位",
@@ -415,6 +465,11 @@ const events = {
       tone: "success",
       action: "查看岗位列表",
       route: "/positions",
+    },
+    {
+      type: "agent",
+      time: "昨天 16:38",
+      text: "目前有 6 个岗位值得和林昊讨论，其中星澜机器人的方向最接近。候选人还没有确认新版简历，因此先不发起正式推荐。",
     },
     {
       type: "wait",
@@ -436,6 +491,11 @@ const events = {
       tone: "warning",
       action: "审核资料更新",
       route: "/candidates/lin-hao",
+    },
+    {
+      type: "agent",
+      time: "今天 09:02",
+      text: "新简历已收到。解析前需要你允许读取附件；解析结果只形成字段级建议，不会直接覆盖候选人资料。",
     },
     {
       type: "permission",

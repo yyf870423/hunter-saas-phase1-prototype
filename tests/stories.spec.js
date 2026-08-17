@@ -61,22 +61,21 @@ test("四类业务主线使用不同问题和配置", async ({ page }) => {
   }
 });
 
-test("业务主线对话可以筛选过程并分析补充信息", async ({ page }) => {
+test("业务主线用文字对话和卡片共同推进补充信息", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  await page
-    .getByLabel("业务过程筛选")
-    .getByRole("button", { name: /等待处理/ })
-    .click();
   await expect(
     page
       .locator(".mainline-conversation-main")
-      .getByText("新信息只影响 6 位候选人"),
+      .getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
   ).toBeVisible();
-  await expect(page.getByText("5 个找人任务正在并行")).toHaveCount(0);
+  await expect(page.getByText("5 个找人任务正在并行")).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill("杭州也可以接受，但每周至少三天到岗");
   await page.getByRole("button", { name: "发送", exact: true }).click();
+  await expect(
+    page.getByText(/先判断它会影响哪些正在运行的工作和已有结果/),
+  ).toBeVisible();
   await expect(
     page
       .locator(".mainline-conversation-main")
@@ -98,30 +97,19 @@ test("Agent 操作权限可以在主线对话中按范围授权", async ({ page 
   ).toBeVisible();
 });
 
-test("业务主线导航可以定位过程、任务和结果预览", async ({ page }) => {
+test("业务主线默认只显示对话，点击卡片后按需显示详情", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  await expect(page.getByLabel("主线导航")).toBeVisible();
+  await expect(page.getByLabel("卡片详情")).toHaveCount(0);
   await page
-    .getByLabel("业务过程筛选")
-    .getByRole("button", { name: /等待处理/ })
+    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
     .click();
   await expect(
-    page
-      .locator(".mainline-conversation-main")
-      .getByText("新信息只影响 6 位候选人"),
+    page.getByLabel("卡片详情").getByText("首批候选人已完成匹配"),
   ).toBeVisible();
-  await page
-    .getByLabel("业务过程筛选")
-    .getByRole("button", { name: /全部过程/ })
-    .click();
-  await page
-    .getByRole("button", { name: /在右侧预览：首批候选人已完成匹配/ })
-    .click();
-  await expect(
-    page.getByLabel("结果预览").getByText("首批候选人已完成匹配"),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "关闭卡片详情" }).click();
+  await expect(page.getByLabel("卡片详情")).toHaveCount(0);
 
-  await page.getByRole("button", { name: /多渠道候选人寻访/ }).click();
+  await page.getByRole("button", { name: "查看任务运行" }).click();
   await expect(page).toHaveURL(/tasks\/task-sourcing/);
 });
 
@@ -137,8 +125,7 @@ test("Agent 操作模式在当前业务主线中切换并保留记录", async ({
     page.getByText("当前业务主线已授权", { exact: true }),
   ).toBeVisible();
   await page
-    .getByLabel("业务过程筛选")
-    .getByRole("button", { name: /结果与资产/ })
+    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
     .click();
   await expect(
     page.getByRole("button", { name: "Agent 操作模式" }),
@@ -176,28 +163,37 @@ test("移动端新建主线可以访问创建进度和结果预览", async ({ pa
   ).toContainText("规划模式");
 });
 
-test("移动端业务主线详情可以通过导航定位任务", async ({ page }) => {
+test("移动端业务主线点击卡片后用 Drawer 查看详情", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/position-vla/position");
 
-  await page.getByRole("button", { name: "导航", exact: true }).click();
+  await page
+    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .click();
   const drawer = page.locator(".drawer");
-  await expect(drawer.getByLabel("主线导航")).toBeVisible();
-  await drawer.getByRole("button", { name: /任务与等待/ }).click();
-  await expect(drawer).toHaveCount(0);
   await expect(
-    page
-      .locator(".mainline-conversation-main")
-      .getByText("5 个找人任务正在并行"),
+    drawer.getByRole("complementary", { name: "卡片详情" }),
   ).toBeVisible();
+  await drawer.getByRole("button", { name: "关闭", exact: true }).click();
+  await expect(drawer).toHaveCount(0);
+});
 
-  await page.getByRole("button", { name: "导航", exact: true }).click();
-  await drawer.getByRole("button", { name: /多渠道候选人寻访/ }).click();
-  await expect(page).toHaveURL(/tasks\/task-sourcing/);
+test("全局任务列表只显示独立支线任务", async ({ page }) => {
+  await page.goto("./#/tasks");
+  await expect(page.getByRole("heading", { name: "独立任务" })).toBeVisible();
+  await expect(page.getByText("核验灵巧手团队招聘机会")).toBeVisible();
+  await expect(page.getByText("核验云脉芯能机器人芯片团队")).toBeVisible();
+  await expect(page.getByText("召回 VLA 岗位候选人")).toHaveCount(0);
 });
 
 test("任务暂停、恢复和技术详情均可操作", async ({ page }) => {
   await page.goto("./#/tasks/task-sourcing");
+  await expect(page.getByText("输入版本", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("用量与预算", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("任务结果", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "返回业务主线" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "暂停", exact: true }).click();
   await expect(page.getByText("任务已暂停，检查点已保留")).toBeVisible();
   await page.getByRole("button", { name: "继续任务" }).click();

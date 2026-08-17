@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
@@ -16,14 +16,12 @@ import {
   agentModes,
   ConfigurationCard,
   ConversationComposer,
+  ConversationDetail,
   ConversationEntry,
   ConversationEvent,
-  ConversationPreview,
   ConversationWorkspace,
   CreationProgress,
   MainlineContextPanel,
-  PhaseList,
-  WorkstreamNavigator,
   WorkstreamTypeChooser,
 } from "../components/conversation";
 import {
@@ -363,82 +361,7 @@ export function NewWorkstreamPage() {
   );
 }
 
-const navigatorTasks = {
-  client: [
-    {
-      id: "client-research",
-      title: "负责人公开信息核验",
-      meta: "3 个来源正在交叉核验",
-      status: "运行中",
-      tone: "info",
-      route: "/tasks",
-    },
-    {
-      id: "client-contact-review",
-      title: "首次联系内容审核",
-      meta: "等待猎头确认发送对象和内容",
-      status: "待处理",
-      tone: "warning",
-      route: "/tasks",
-    },
-  ],
-  position: [
-    {
-      id: "position-sourcing",
-      title: "多渠道候选人寻访",
-      meta: "猎聘第 2 页 · 脉脉等待回复",
-      status: "运行中",
-      tone: "info",
-      route: "/tasks/task-sourcing",
-    },
-    {
-      id: "position-review",
-      title: "首批候选人审核",
-      meta: "18 位候选人等待审核",
-      status: "待处理",
-      tone: "warning",
-      route: "/candidates",
-    },
-  ],
-  mapping: [
-    {
-      id: "mapping-org",
-      title: "目标公司组织结构补全",
-      meta: "3 个团队正在补充",
-      status: "运行中",
-      tone: "info",
-      route: "/tasks",
-    },
-    {
-      id: "mapping-relation",
-      title: "人物关系核验",
-      meta: "7 条关系等待人工核验",
-      status: "待处理",
-      tone: "warning",
-      route: "/mappings/embodied",
-    },
-  ],
-  career: [
-    {
-      id: "career-resume",
-      title: "候选人新简历解析",
-      meta: "等待允许读取附件",
-      status: "等待授权",
-      tone: "warning",
-      route: "/tasks/task-enrich",
-    },
-    {
-      id: "career-rematch",
-      title: "相关岗位局部重匹配",
-      meta: "确认资料更新后自动开始",
-      status: "未开始",
-      tone: "neutral",
-      route: "/tasks",
-    },
-  ],
-};
-
-function eventToPreview(event, config, kind) {
+function eventToDetail(event, config, kind) {
   if (!event) return null;
   const kindEvidence = {
     client: ["星澜机器人官网招聘页", "B+ 轮融资公告", "负责人公开履历"],
@@ -459,7 +382,7 @@ function eventToPreview(event, config, kind) {
             ? "业务对象"
             : event.type === "permission"
               ? "权限请求"
-              : "结果预览",
+              : "过程详情",
     title: event.title || config.title,
     detail: event.detail || event.text,
     status: event.status || (event.type === "plan" ? "已更新" : "当前业务主线"),
@@ -488,73 +411,19 @@ export function WorkstreamDetailPage({ kind }) {
   const navigate = useNavigate();
   const toast = useToast();
   const config = workstreamDetails[kind];
-  const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState("");
   const [events, setEvents] = useState(config.events);
   const [mode, setMode] = useState("edit");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [paused, setPaused] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
-  const [navigationOpen, setNavigationOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [terminate, setTerminate] = useState(false);
   const [attachment, setAttachment] = useState(false);
 
-  const visibleEvents = useMemo(() => {
-    if (filter === "all") return events;
-    if (filter === "decisions")
-      return events.filter((item) =>
-        ["approval", "impact", "branch", "permission"].includes(item.type),
-      );
-    if (filter === "tasks")
-      return events.filter((item) =>
-        ["plan", "task", "wait"].includes(item.type),
-      );
-    return events.filter((item) => ["result", "object"].includes(item.type));
-  }, [events, filter]);
-
-  const previewEvent =
-    selectedEvent ||
-    [...events]
-      .reverse()
-      .find((item) => !["user", "agent"].includes(item.type));
-  const preview = eventToPreview(previewEvent, config, kind);
-
-  const filterItems = [
-    {
-      value: "all",
-      label: "全部过程",
-      description: "交互、任务和结果",
-      icon: "route",
-      count: events.length,
-    },
-    {
-      value: "decisions",
-      label: "等待处理",
-      description: "授权、审核和支线",
-      icon: "user",
-      count: events.filter((item) =>
-        ["approval", "impact", "branch", "permission"].includes(item.type),
-      ).length,
-    },
-    {
-      value: "tasks",
-      label: "任务与等待",
-      description: "运行任务和外部等待",
-      icon: "task",
-      count: events.filter((item) =>
-        ["plan", "task", "wait"].includes(item.type),
-      ).length,
-    },
-    {
-      value: "results",
-      label: "结果与资产",
-      description: "阶段结果和正式对象",
-      icon: "database",
-      count: events.filter((item) => ["result", "object"].includes(item.type))
-        .length,
-    },
-  ];
+  const detail = selectedEvent
+    ? eventToDetail(selectedEvent, config, kind)
+    : null;
 
   const changeMode = (value) => {
     const selected = agentModes.find((item) => item.value === value);
@@ -653,53 +522,42 @@ export function WorkstreamDetailPage({ kind }) {
     setEvents((current) => [
       ...current,
       { type: "user", time: "刚刚", text },
+      {
+        type: "agent",
+        time: "刚刚",
+        text: "我已经收到这条补充信息。先判断它会影响哪些正在运行的工作和已有结果，再决定是否需要局部重做。",
+      },
       impact,
     ]);
-    setSelectedEvent(impact);
     setMessage("");
     toast("补充信息已加入当前业务主线", "info");
   };
 
-  const navigation = (
-    <WorkstreamNavigator
-      config={{ ...config, status: paused ? "已暂停" : config.status }}
-      phases={config.phases}
-      filters={filterItems}
-      filter={filter}
-      tasks={navigatorTasks[kind]}
-      onFilter={(value) => {
-        setFilter(value);
-        setNavigationOpen(false);
-      }}
-      onPhase={(phase) => {
-        setFilter("all");
-        setNavigationOpen(false);
-        toast(`已定位到“${phase}”相关过程`, "info");
-      }}
-      onTask={(task) => navigate(task.route)}
-      onOpenContext={() => setContextOpen(true)}
-      onOpenTasks={() => navigate("/tasks")}
-    />
-  );
-
-  const openPreview = () => {
-    if (preview?.route) navigate(preview.route);
-    else setPreviewOpen(true);
+  const selectEvent = (event) => {
+    setSelectedEvent(event);
+    if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
   };
-  const resultPreview = (
-    <ConversationPreview
-      preview={preview}
-      context={{ ...config, status: paused ? "已暂停" : config.status }}
-      onOpen={openPreview}
+
+  const openDetail = () => {
+    if (detail?.route) navigate(detail.route);
+  };
+  const closeDetail = () => {
+    setSelectedEvent(null);
+    setDetailOpen(false);
+  };
+  const cardDetail = detail ? (
+    <ConversationDetail
+      preview={detail}
+      onOpen={detail.route ? openDetail : undefined}
       onCopy={() => {
         navigator.clipboard
-          ?.writeText(`${preview?.title}\n${preview?.detail}`)
+          ?.writeText(`${detail.title}\n${detail.detail}`)
           .catch(() => {});
-        toast("结果摘要已复制");
+        toast("详情摘要已复制");
       }}
-      onOpenContext={() => setContextOpen(true)}
+      onClose={closeDetail}
     />
-  );
+  ) : null;
 
   return (
     <div className="page-content workstream-conversation-page">
@@ -715,19 +573,8 @@ export function WorkstreamDetailPage({ kind }) {
         back={() => navigate("/workstreams")}
         actions={
           <>
-            <Button
-              className="chat-mobile-button"
-              icon="panelLeft"
-              onClick={() => setNavigationOpen(true)}
-            >
-              导航
-            </Button>
-            <Button
-              className="chat-mobile-button"
-              icon="panelRight"
-              onClick={() => setPreviewOpen(true)}
-            >
-              结果
+            <Button icon="info" onClick={() => setContextOpen(true)}>
+              主线信息
             </Button>
             <Button
               icon={paused ? "play" : "pause"}
@@ -748,33 +595,25 @@ export function WorkstreamDetailPage({ kind }) {
           </>
         }
       />
-      <ConversationWorkspace navigation={navigation} preview={resultPreview}>
+      <ConversationWorkspace detail={cardDetail}>
         <div className="conversation-toolbar">
           <span className="conversation-current-process">
-            <small>连续业务过程</small>
-            <b>交互、任务、结果和人工处理统一保留在当前业务主线</b>
+            <small>与 Hunter 持续推进</small>
+            <b>{config.next}</b>
           </span>
-          <Status tone="info" dot={false}>
-            {filterItems.find((item) => item.value === filter)?.label}
+          <Status tone={paused ? "neutral" : config.tone} dot={false}>
+            {paused ? "已暂停" : config.status}
           </Status>
         </div>
         <div className="conversation-thread detail-thread">
-          {visibleEvents.length ? (
-            visibleEvents.map((event, index) => (
-              <ConversationEvent
-                event={event}
-                onAction={act}
-                onSelect={setSelectedEvent}
-                key={`${event.type}-${index}`}
-              />
-            ))
-          ) : (
-            <div className="conversation-empty">
-              <Icon name="database" />
-              <b>当前筛选下没有记录</b>
-              <p>切换筛选查看其他业务过程。</p>
-            </div>
-          )}
+          {events.map((event, index) => (
+            <ConversationEvent
+              event={event}
+              onAction={act}
+              onSelect={selectEvent}
+              key={`${event.type}-${index}`}
+            />
+          ))}
         </div>
         <ConversationComposer
           value={message}
@@ -841,7 +680,6 @@ export function WorkstreamDetailPage({ kind }) {
             config={config}
             onOpenContext={() => toast("目标编辑已打开", "info")}
           />
-          <PhaseList phases={config.phases} />
           <Button
             tone="dangerGhost"
             icon="trash"
@@ -852,20 +690,12 @@ export function WorkstreamDetailPage({ kind }) {
         </div>
       </Drawer>
       <Drawer
-        open={navigationOpen}
-        onClose={() => setNavigationOpen(false)}
-        title="业务主线导航"
-        width="360px"
-      >
-        {navigation}
-      </Drawer>
-      <Drawer
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title="结果预览"
+        open={detailOpen}
+        onClose={closeDetail}
+        title="卡片详情"
         width="520px"
       >
-        {resultPreview}
+        {cardDetail}
       </Drawer>
       <Modal
         danger

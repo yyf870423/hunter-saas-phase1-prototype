@@ -295,7 +295,7 @@ export function Dashboard() {
           <header className="surface-header">
             <h2>Agent 与外部等待</h2>
             <button className="link" onClick={() => navigate("/tasks")}>
-              任务中心
+              独立任务
             </button>
           </header>
           <div className="dashboard-task-tabs">

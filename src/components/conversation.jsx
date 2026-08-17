@@ -91,97 +91,6 @@ export function AgentModeSelect({ value, onChange, disabled = false }) {
   );
 }
 
-export function WorkstreamNavigator({
-  config,
-  phases,
-  filters,
-  filter,
-  tasks,
-  onFilter,
-  onPhase,
-  onTask,
-  onOpenContext,
-  onOpenTasks,
-}) {
-  return (
-    <aside className="workstream-navigator" aria-label="主线导航">
-      <header>
-        <span>
-          <small>当前业务主线</small>
-          <b>主线导航</b>
-        </span>
-        <IconButton
-          icon="settings"
-          label="查看业务主线信息"
-          onClick={onOpenContext}
-        />
-      </header>
-      <div className="workstream-navigator-scroll">
-        <section className="navigator-summary">
-          <Status tone={config.tone}>{config.status}</Status>
-          <p>{config.next}</p>
-        </section>
-        <section className="navigator-section">
-          <h3>过程定位</h3>
-          <nav aria-label="业务过程筛选">
-            {filters.map((item) => (
-              <button
-                type="button"
-                className={filter === item.value ? "is-active" : ""}
-                key={item.value}
-                onClick={() => onFilter(item.value)}
-              >
-                <Icon name={item.icon} />
-                <span>
-                  <b>{item.label}</b>
-                  <small>{item.description}</small>
-                </span>
-                <strong>{item.count}</strong>
-              </button>
-            ))}
-          </nav>
-        </section>
-        <section className="navigator-section navigator-phases">
-          <h3>业务阶段</h3>
-          <ol>
-            {phases.map(([title, status], index) => (
-              <li key={title}>
-                <button type="button" onClick={() => onPhase(title)}>
-                  <i>{index + 1}</i>
-                  <span>
-                    <b>{title}</b>
-                    <small>{status}</small>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </section>
-        <section className="navigator-section navigator-tasks">
-          <h3>当前任务</h3>
-          <div>
-            {tasks.map((task) => (
-              <button type="button" key={task.id} onClick={() => onTask(task)}>
-                <Icon name={task.icon || "task"} />
-                <span>
-                  <b>{task.title}</b>
-                  <small>{task.meta}</small>
-                </span>
-                <Status tone={task.tone} dot={false}>
-                  {task.status}
-                </Status>
-              </button>
-            ))}
-          </div>
-          <Button size="sm" icon="task" onClick={onOpenTasks}>
-            查看全部任务
-          </Button>
-        </section>
-      </div>
-    </aside>
-  );
-}
-
 export function CreationProgress({ kind, step, mode }) {
   const selectedMode = agentModes.find((item) => item.value === mode);
   const steps = [
@@ -227,127 +136,106 @@ export function CreationProgress({ kind, step, mode }) {
   );
 }
 
-export function ConversationPreview({
-  preview,
-  context,
-  onOpen,
-  onCopy,
-  onOpenContext,
-}) {
+export function ConversationDetail({ preview, onOpen, onCopy, onClose }) {
   return (
-    <aside className="conversation-preview" aria-label="结果预览">
+    <aside className="conversation-detail" aria-label="卡片详情">
       <header>
         <span>
-          <small>{preview?.eyebrow || "当前业务主线"}</small>
-          <b>{preview?.title || "尚未生成结果"}</b>
+          <small>{preview.eyebrow}</small>
+          <b>{preview.title}</b>
         </span>
-        <IconButton icon="maximize" label="展开结果预览" onClick={onOpen} />
+        <div>
+          {onOpen && (
+            <IconButton icon="maximize" label="打开完整内容" onClick={onOpen} />
+          )}
+          <IconButton icon="close" label="关闭卡片详情" onClick={onClose} />
+        </div>
       </header>
-      <div className="conversation-preview-scroll">
-        {preview ? (
-          <>
-            <section
-              className={`preview-hero preview-${preview.tone || "info"}`}
-            >
-              <span>
-                <Icon name={preview.icon || "sparkles"} />
-              </span>
-              <div>
-                {preview.status && (
-                  <Status tone={preview.tone || "info"}>
-                    {preview.status}
-                  </Status>
-                )}
-                <p>{preview.detail}</p>
-              </div>
-            </section>
-            {preview.metrics?.length ? (
-              <dl className="preview-metrics">
-                {preview.metrics.map(([label, value]) => (
-                  <div key={label}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : null}
-            {preview.items?.length ? (
-              <section className="preview-section">
-                <h3>{preview.listTitle || "关键内容"}</h3>
-                <ul>
-                  {preview.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-            {preview.evidence?.length ? (
-              <section className="preview-section">
-                <h3>证据与来源</h3>
-                <div className="preview-evidence">
-                  {preview.evidence.map((item) => (
-                    <button type="button" key={item} onClick={onOpen}>
-                      <Icon name="link" />
-                      <span>{item}</span>
-                      <Icon name="chevronRight" />
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            <div className="preview-actions">
-              <Button size="sm" icon="copy" onClick={onCopy}>
-                复制摘要
-              </Button>
-              <Button size="sm" tone="primary" onClick={onOpen}>
-                打开完整结果
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="preview-empty">
-            <Icon name="panelRight" />
-            <b>选择一项过程结果</b>
-            <p>点击中间对话里的计划、任务或成果卡片，在这里连续查看详情。</p>
+      <div className="conversation-detail-scroll">
+        <section className={`preview-hero preview-${preview.tone || "info"}`}>
+          <span>
+            <Icon name={preview.icon || "sparkles"} />
+          </span>
+          <div>
+            {preview.status && (
+              <Status tone={preview.tone || "info"}>{preview.status}</Status>
+            )}
+            <p>{preview.detail}</p>
           </div>
-        )}
-        {context && (
-          <section className="preview-context">
-            <header>
-              <h3>主线上下文</h3>
-              <IconButton
-                icon="edit"
-                label="编辑主线上下文"
-                onClick={onOpenContext}
-              />
-            </header>
-            <dl>
-              <div>
-                <dt>整体状态</dt>
-                <dd>{context.status}</dd>
+        </section>
+        {preview.metrics?.length ? (
+          <dl className="preview-metrics">
+            {preview.metrics.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
               </div>
-              <div>
-                <dt>当前下一步</dt>
-                <dd>{context.next}</dd>
-              </div>
-              <div>
-                <dt>正式成果</dt>
-                <dd>{context.assets}</dd>
-              </div>
-            </dl>
+            ))}
+          </dl>
+        ) : null}
+        {preview.items?.length ? (
+          <section className="preview-section">
+            <h3>{preview.listTitle || "关键内容"}</h3>
+            <ul>
+              {preview.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </section>
-        )}
+        ) : null}
+        {preview.evidence?.length ? (
+          <section className="preview-section">
+            <h3>证据与来源</h3>
+            <div className="preview-evidence">
+              {preview.evidence.map((item) => (
+                <button type="button" key={item} onClick={onCopy}>
+                  <Icon name="file" />
+                  <span>{item}</span>
+                  <Icon name="copy" />
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        <div className="preview-actions">
+          <Button size="sm" icon="copy" onClick={onCopy}>
+            复制摘要
+          </Button>
+          {onOpen && (
+            <Button size="sm" tone="primary" onClick={onOpen}>
+              打开完整内容
+            </Button>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
 
-export function ConversationWorkspace({ children, navigation, preview }) {
+export function ConversationWorkspace({
+  children,
+  navigation,
+  preview,
+  detail,
+}) {
+  const classes = [
+    "conversation-workspace",
+    navigation ? "has-navigation" : "",
+    preview ? "has-preview" : "",
+    detail ? "has-detail" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <section className="conversation-workspace">
-      <div className="mainline-conversation-navigation">{navigation}</div>
+    <section className={classes}>
+      {navigation && (
+        <div className="mainline-conversation-navigation">{navigation}</div>
+      )}
       <div className="mainline-conversation-main">{children}</div>
-      <div className="mainline-conversation-preview">{preview}</div>
+      {preview && (
+        <div className="mainline-conversation-preview">{preview}</div>
+      )}
+      {detail && <div className="mainline-conversation-detail">{detail}</div>}
     </section>
   );
 }
@@ -450,7 +338,7 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
         <button
           type="button"
           onClick={() => onSelect?.(event)}
-          aria-label={`在右侧预览：${event.title}`}
+          aria-label={`查看详情：${event.title}`}
         >
           <span className="business-event-icon">
             <Icon name={icon} />
@@ -648,44 +536,5 @@ export function MainlineContextPanel({ config, onOpenContext }) {
         </div>
       </section>
     </div>
-  );
-}
-
-export function PhaseList({ phases }) {
-  return (
-    <section className="surface phase-list-panel">
-      <header className="surface-header">
-        <div>
-          <h2>当前工作结构</h2>
-          <span className="muted">
-            按业务阶段归纳，不限制 Agent 的实际执行顺序
-          </span>
-        </div>
-      </header>
-      <ol className="phase-list">
-        {phases.map(([title, status, detail], index) => (
-          <li key={title} className={status === "进行中" ? "is-active" : ""}>
-            <i>{index + 1}</i>
-            <span>
-              <b>{title}</b>
-              <small>{detail}</small>
-            </span>
-            <Status
-              tone={
-                status === "完成"
-                  ? "success"
-                  : status === "进行中"
-                    ? "info"
-                    : status === "等待外部"
-                      ? "warning"
-                      : "neutral"
-              }
-            >
-              {status}
-            </Status>
-          </li>
-        ))}
-      </ol>
-    </section>
   );
 }

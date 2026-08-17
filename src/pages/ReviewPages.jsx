@@ -27,9 +27,9 @@ import {
   AgentModeSelect,
   BusinessEventCard,
   ConfigurationCard,
+  ConversationDetail,
   ConversationEntry,
   PermissionRequestCard,
-  WorkstreamNavigator,
 } from "../components/conversation";
 
 export function ComponentsPage() {
@@ -301,58 +301,34 @@ export function ComponentsPage() {
           </div>
           <div className="surface span-2">
             <header className="surface-header">
-              <h2>业务主线导航</h2>
+              <h2>按需卡片详情</h2>
             </header>
-            <div className="surface-body component-workstream-navigator">
-              <WorkstreamNavigator
-                config={{
-                  status: "推进中",
-                  tone: "info",
-                  next: "审核首批 18 位候选人，并决定是否扩大寻访范围。",
+            <div className="surface-body component-conversation-detail">
+              <ConversationDetail
+                preview={{
+                  eyebrow: "阶段结果",
+                  title: "首批候选人已完成匹配",
+                  detail:
+                    "46 人进入候选池；12 人推荐、4 人有条件匹配、2 人不建议，其余留作储备。",
+                  status: "待审核",
+                  tone: "warning",
+                  icon: "users",
+                  metrics: [
+                    ["所属主线", "VLA 算法负责人"],
+                    ["候选人数", "46 位"],
+                    ["更新时间", "今天 09:06"],
+                  ],
+                  listTitle: "关键结论",
+                  items: [
+                    "12 位候选人建议优先审核",
+                    "4 位候选人保留有条件匹配理由",
+                    "2 位候选人被岗位角色门禁拒绝",
+                  ],
+                  evidence: ["岗位 JD 与岗位解析", "候选人公开资料"],
                 }}
-                phases={[
-                  ["理解岗位", "已完成"],
-                  ["寻找候选人", "进行中"],
-                  ["审核并联系", "等待处理"],
-                ]}
-                filters={[
-                  {
-                    value: "all",
-                    label: "全部过程",
-                    description: "交互、任务和结果",
-                    icon: "route",
-                    count: 28,
-                  },
-                  {
-                    value: "decisions",
-                    label: "等待处理",
-                    description: "授权、审核和支线",
-                    icon: "user",
-                    count: 4,
-                  },
-                ]}
-                filter="all"
-                tasks={[
-                  {
-                    id: "sourcing",
-                    title: "多渠道候选人寻访",
-                    meta: "猎聘第 2 页 · 脉脉等待回复",
-                    status: "运行中",
-                    tone: "info",
-                  },
-                  {
-                    id: "review",
-                    title: "首批候选人审核",
-                    meta: "18 位候选人等待审核",
-                    status: "待处理",
-                    tone: "warning",
-                  },
-                ]}
-                onFilter={(value) => toast(`已切换过程筛选：${value}`, "info")}
-                onPhase={(value) => toast(`已定位业务阶段：${value}`, "info")}
-                onTask={(task) => toast(`已打开任务：${task.title}`, "info")}
-                onOpenContext={() => toast("已打开业务主线信息", "info")}
-                onOpenTasks={() => toast("已打开任务中心", "info")}
+                onOpen={() => toast("已打开完整结果", "info")}
+                onCopy={() => toast("详情摘要已复制")}
+                onClose={() => toast("卡片详情已关闭", "info")}
               />
             </div>
           </div>

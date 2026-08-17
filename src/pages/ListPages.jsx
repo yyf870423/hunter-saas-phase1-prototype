@@ -120,10 +120,10 @@ const configs = {
       `/workstreams/${row.id}/${row.type === "客户开发" ? "client" : row.type === "岗位招聘" ? "position" : row.type === "人才摸排" ? "mapping" : "career"}`,
   },
   tasks: {
-    title: "任务中心",
+    title: "独立任务",
     description:
-      "查看所有 Agent 与自动化任务的状态、等待原因、恢复入口和结果去向。",
-    rows: tasks,
+      "查看具备独立目标和生命周期的支线任务；业务主线内部执行在对应主线中查看。",
+    rows: tasks.filter((item) => item.independent),
     filters: ["type", "status", "date"],
     columns: [
       {
@@ -464,6 +464,9 @@ function filterOption(type) {
       "候选人求职",
       "公司调研",
       "人才寻找",
+      "支线调研",
+      "学术搜索",
+      "共同发明人检索",
     ],
     status: [
       "推进中",
