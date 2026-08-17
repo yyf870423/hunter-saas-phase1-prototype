@@ -23,13 +23,6 @@
   color: var(--ink-tertiary);
   font-size: var(--font-size-min);
 }
-.dashboard-priority-label {
-  color: var(--blue-strong);
-  font-size: var(--font-size-min);
-  font-style: normal;
-  font-weight: 750;
-  white-space: nowrap;
-}
 .dashboard-mainline-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);

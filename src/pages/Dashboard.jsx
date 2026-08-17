@@ -144,7 +144,6 @@ export function Dashboard() {
       <section className="page-section dashboard-mainline-focus">
         <header className="dashboard-section-heading">
           <div>
-            <span className="dashboard-priority-label">首先继续</span>
             <h2>业务主线</h2>
             <p>优先展示正在等待你决策、并会影响后续工作的主线。</p>
           </div>
@@ -223,7 +222,6 @@ export function Dashboard() {
       <section className="page-section surface dashboard-task-panel-v2">
         <header className="surface-header dashboard-layer-header">
           <div>
-            <span className="dashboard-priority-label">其次查看</span>
             <h2>支线任务</h2>
             <p>只在任务需要关注、等待外部输入或发生异常时进入详情。</p>
           </div>
@@ -270,7 +268,6 @@ export function Dashboard() {
       <section className="page-section surface dashboard-discoveries">
         <header className="surface-header dashboard-layer-header">
           <div>
-            <span className="dashboard-priority-label">然后判断</span>
             <h2>信号与机会</h2>
             <p>
               这些发现尚未阻塞当前工作，可以判断是否加入现有主线或创建新主线。
@@ -317,7 +314,6 @@ export function Dashboard() {
             <Icon name="task" />
           </span>
           <span>
-            <small className="dashboard-priority-label">最后按需处理</small>
             <b>行动队列</b>
             <em>8 项待处理，其中 3 项需要确认、2 条新回复、1 个异常</em>
           </span>
