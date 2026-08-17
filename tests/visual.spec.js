@@ -36,7 +36,7 @@ test("截图 position-workstream-detail", async ({ page }) => {
   await page
     .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
     .click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(1000);
   await page.screenshot({
     path: "artifacts/position-workstream-detail-1440x900.png",
     fullPage: true,
@@ -49,7 +49,7 @@ test("截图 new-position-workstream-generated-plan", async ({ page }) => {
   await page
     .getByRole("button", { name: /为星澜机器人招聘具身智能 VLA/ })
     .click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(1000);
   await page.screenshot({
     path: "artifacts/new-position-workstream-generated-plan-1440x900.png",
     fullPage: true,
@@ -62,7 +62,7 @@ test("截图 new-position-workstream-generated-plan-mobile", async ({ page }) =>
   await page
     .getByRole("button", { name: /为星澜机器人招聘具身智能 VLA/ })
     .click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(1000);
   await page.screenshot({
     path: "artifacts/new-position-workstream-generated-plan-mobile-390x844.png",
     fullPage: true,

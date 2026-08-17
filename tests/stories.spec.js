@@ -61,7 +61,7 @@ test("四类业务主线使用不同问题和配置", async ({ page }) => {
   }
 });
 
-test("业务主线用文字对话和卡片共同推进补充信息", async ({ page }) => {
+test("业务主线用 Markdown 对话逐段推进并在审核节点等待", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
   await expect(
     page
@@ -74,13 +74,70 @@ test("业务主线用文字对话和卡片共同推进补充信息", async ({ pa
     .fill("杭州也可以接受，但每周至少三天到岗");
   await page.getByRole("button", { name: "发送", exact: true }).click();
   await expect(
-    page.getByText(/先判断它会影响哪些正在运行的工作和已有结果/),
+    page.getByText("Hunter 正在应用你的决定并检查后续步骤"),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/补充信息已收到。我已把它作为当前人工节点的反馈/),
   ).toBeVisible();
   await expect(
     page
       .locator(".mainline-conversation-main")
-      .getByText("补充信息已完成影响分析"),
+      .getByText("新信息只影响 6 位候选人"),
   ).toBeVisible();
+});
+
+test("业务主线入口直接打开会话并通过左侧加号新建", async ({ page }) => {
+  await page.goto("./#/workstreams");
+  await expect(page).toHaveURL(/workstreams\/position-vla\/position/);
+  const navigation = page.getByRole("navigation", { name: "业务主线" });
+  await expect(navigation.getByText("星澜机器人招聘机会")).toBeVisible();
+  await expect(navigation.getByText("林昊下一份工作")).toBeVisible();
+  await navigation.getByRole("button", { name: "新建业务主线" }).click();
+  await expect(page).toHaveURL(/workstreams\/new/);
+  await expect(page.getByText("你希望持续推进哪一类业务？")).toBeVisible();
+});
+
+test("四类业务主线都在人工节点暂停并在反馈后继续", async ({ page }) => {
+  const cases = [
+    {
+      route: "client-xinglan/client",
+      current: "已形成公司与联系人草稿",
+      hidden: "是否联系 HRD 周雅雯？",
+      open: /查看详情：已形成公司与联系人草稿/,
+      confirm: "确认公司与联系人",
+      next: "是否联系 HRD 周雅雯？",
+    },
+    {
+      route: "position-vla/position",
+      current: "首批候选人已完成匹配",
+      hidden: "新信息只影响 6 位候选人",
+      open: /查看详情：首批候选人已完成匹配/,
+      confirm: "确认首批名单",
+      next: "新信息只影响 6 位候选人",
+    },
+  ];
+  for (const item of cases) {
+    await page.goto(`./#/workstreams/${item.route}`);
+    await expect(page.getByText(item.current)).toBeVisible();
+    await expect(page.getByText(item.hidden)).toHaveCount(0);
+    await page.getByRole("button", { name: item.open }).click();
+    await page.getByRole("button", { name: item.confirm }).click();
+    await expect(page.getByText(item.next)).toBeVisible();
+  }
+
+  await page.goto("./#/workstreams/mapping-embodied/mapping");
+  await expect(
+    page.getByText("允许读取平台中的一度关系用于核验联系路径？"),
+  ).toBeVisible();
+  await expect(page.getByText("7 条人物关系需要人工核验")).toHaveCount(0);
+  await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
+  await expect(page.getByText("7 条人物关系需要人工核验")).toBeVisible();
+
+  await page.goto("./#/workstreams/career-linhao/career");
+  await expect(page.getByText("允许解析候选人刚发送的新简历？")).toBeVisible();
+  await expect(page.getByText("新简历已生成资料更新建议")).toHaveCount(0);
+  await page.getByRole("button", { name: "仅允许本次" }).click();
+  await expect(page.getByText("新简历已生成资料更新建议")).toBeVisible();
 });
 
 test("Agent 操作权限在主线对话中显示当前授权范围", async ({ page }) => {
@@ -189,14 +246,17 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await page.goto("./#/workstreams/position-vla/position");
   await expect(page.getByText("3 / 5 已完成")).toBeVisible();
   await page.locator(".plan-list-toggle").click();
+  await page
+    .getByRole("button", { name: /查看详情：首批候选人已完成匹配/ })
+    .click();
+  await page.getByRole("button", { name: "确认首批名单" }).click();
+  await expect(page.getByText("新信息只影响 6 位候选人")).toBeVisible();
   await page.getByRole("button", { name: "确认局部重匹配" }).click();
   await expect(
     page.getByText("重算 6 位候选人的地点适配", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/3 \/ 6 已完成 · v5/)).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "查看详情：执行计划已更新" }),
-  ).toBeVisible();
+  await expect(page.getByText(/地点范围已经更新为上海或杭州/)).toBeVisible();
 });
 
 test("移动端业务主线点击卡片后用 Drawer 查看详情", async ({ page }) => {

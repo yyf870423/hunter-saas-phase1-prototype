@@ -14,6 +14,7 @@ import {
 import { Icon } from "../components/Icon";
 import {
   agentModes,
+  AgentThinking,
   ConfigurationCard,
   ConversationComposer,
   ConversationDetail,
@@ -23,6 +24,7 @@ import {
   MainlineContextPanel,
   MessageAttachments,
   PlanListDock,
+  WorkstreamConversationNav,
   WorkstreamTypeChooser,
 } from "../components/conversation";
 import {
@@ -31,6 +33,29 @@ import {
   workstreamDetails,
   workstreamKinds,
 } from "../data/workstreamConversations";
+import { workstreams } from "../data/demo";
+
+const workstreamKindByType = {
+  客户开发: "client",
+  岗位招聘: "position",
+  人才摸排: "mapping",
+  候选人求职: "career",
+};
+
+const workstreamIdByKind = Object.fromEntries(
+  workstreams.map((item) => [workstreamKindByType[item.type], item.id]),
+);
+
+function workstreamRoute(item) {
+  return `/workstreams/${item.id}/${workstreamKindByType[item.type]}`;
+}
+
+function firstBlockingCount(items, start = 0) {
+  const next = items.findIndex(
+    (item, index) => index >= start && item.blocking && !item.resolved,
+  );
+  return next < 0 ? items.length : next + 1;
+}
 
 export function NewWorkstreamPage() {
   const navigate = useNavigate();
@@ -45,11 +70,14 @@ export function NewWorkstreamPage() {
   const [configOpen, setConfigOpen] = useState(false);
   const [configDetailOpen, setConfigDetailOpen] = useState(false);
   const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [autoConfirm, setAutoConfirm] = useState(false);
   const [contact, setContact] = useState(false);
   const [mode, setMode] = useState("edit");
+  const [processing, setProcessing] = useState(false);
   const threadRef = useRef(null);
+  const responseTimerRef = useRef(null);
   const flow = kind ? creationFlows[kind] : null;
   const kindMeta = workstreamKinds.find((item) => item.value === kind);
   const plan = kind
@@ -75,13 +103,17 @@ export function NewWorkstreamPage() {
     return () => window.cancelAnimationFrame(frame);
   }, [messages.length, step]);
 
+  useEffect(() => () => window.clearTimeout(responseTimerRef.current), []);
+
   const chooseKind = (value) => {
+    window.clearTimeout(responseTimerRef.current);
     setKind(value);
     setStep(1);
     setMessages([]);
     setMessage("");
     setAttachments([]);
     setConfigDetailOpen(false);
+    setProcessing(false);
   };
 
   const send = (preset) => {
@@ -91,6 +123,8 @@ export function NewWorkstreamPage() {
     const attachmentText = sentAttachments.length
       ? `我还会读取你附上的 ${sentAttachments.map((item) => item.name).join("、")}，并把有效信息合并到当前计划。`
       : "";
+    if (processing) return;
+    const thinkingId = `thinking-${Date.now()}`;
     setMessages((current) => [
       ...current,
       {
@@ -99,18 +133,29 @@ export function NewWorkstreamPage() {
         attachments: sentAttachments,
         time: "刚刚",
       },
-      {
-        role: "agent",
-        text:
-          step === 1
-            ? `${attachmentText}${flow.followup}`
-            : `${attachmentText}已把新信息加入${kindMeta?.label}范围，并更新执行计划和结构化配置。你可以继续补充，或确认创建主线。`,
-        time: "刚刚",
-      },
+      { id: thinkingId, processing: true },
     ]);
-    setStep((current) => Math.min(current + 1, 3));
     setMessage("");
     setAttachments([]);
+    setProcessing(true);
+    responseTimerRef.current = window.setTimeout(() => {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === thinkingId
+            ? {
+                role: "agent",
+                text:
+                  step === 1
+                    ? `${attachmentText}${flow.followup}`
+                    : `${attachmentText}已把新信息加入${kindMeta?.label}范围，并更新执行计划和结构化配置。你可以继续补充，或确认创建主线。`,
+                time: "刚刚",
+              }
+            : item,
+        ),
+      );
+      setStep((current) => Math.min(current + 1, 3));
+      setProcessing(false);
+    }, 800);
   };
 
   const addAttachment = (type) => {
@@ -176,6 +221,19 @@ export function NewWorkstreamPage() {
         }}
       />
     ) : null;
+  const conversationNav = (
+    <WorkstreamConversationNav
+      items={workstreams}
+      currentId="new"
+      onSelect={(item) => navigate(workstreamRoute(item))}
+      onCreate={() => {
+        setKind("");
+        setStep(0);
+        setMessages([]);
+        setListOpen(false);
+      }}
+    />
+  );
 
   return (
     <div className="page-content workstream-conversation-page">
@@ -183,9 +241,17 @@ export function NewWorkstreamPage() {
         eyebrow="新建业务主线"
         title="告诉 Hunter 你要持续完成什么"
         description="Hunter 会通过对话补齐范围、授权、停止条件和完成标准，再建立可持续推进的业务主线。"
-        back={() => navigate("/workstreams")}
+        actions={
+          <Button
+            className="chat-mobile-button"
+            icon="panelLeft"
+            onClick={() => setListOpen(true)}
+          >
+            业务主线
+          </Button>
+        }
       />
-      <ConversationWorkspace detail={detailPanel}>
+      <ConversationWorkspace navigation={conversationNav} detail={detailPanel}>
         <div className="conversation-thread creation-thread" ref={threadRef}>
           <ConversationEntry time="现在">
             <p>
@@ -211,16 +277,23 @@ export function NewWorkstreamPage() {
               )}
             </ConversationEntry>
           )}
-          {messages.map((item, index) => (
-            <ConversationEntry
-              role={item.role}
-              time={item.time}
-              key={`${item.role}-${index}`}
-            >
-              <p>{item.text}</p>
-              <MessageAttachments items={item.attachments} />
-            </ConversationEntry>
-          ))}
+          {messages.map((item, index) =>
+            item.processing ? (
+              <AgentThinking
+                label="Hunter 正在整理目标和执行条件"
+                key={item.id}
+              />
+            ) : (
+              <ConversationEntry
+                role={item.role}
+                time={item.time}
+                key={`${item.role}-${index}`}
+              >
+                <p>{item.text}</p>
+                <MessageAttachments items={item.attachments} />
+              </ConversationEntry>
+            ),
+          )}
           {flow && step >= 2 && (
             <ConfigurationCard
               title={flow.title}
@@ -285,7 +358,8 @@ export function NewWorkstreamPage() {
           value={message}
           onChange={setMessage}
           attachments={attachments}
-          disabled={!flow}
+          disabled={!flow || processing}
+          processing={processing}
           onSend={() => send()}
           onAddFile={() => addAttachment("file")}
           onAddScreenshot={() => addAttachment("image")}
@@ -315,6 +389,14 @@ export function NewWorkstreamPage() {
           }
         />
       </ConversationWorkspace>
+      <Drawer
+        open={listOpen}
+        onClose={() => setListOpen(false)}
+        title="切换业务主线"
+        width="360px"
+      >
+        {conversationNav}
+      </Drawer>
       <Drawer
         open={configDrawerOpen}
         onClose={() => setConfigDrawerOpen(false)}
@@ -406,7 +488,7 @@ function eventToDetail(event, config, kind) {
           : event.type === "permission"
             ? "settings"
             : "sparkles",
-    metrics: [
+    metrics: event.metrics || [
       ["所属主线", config.title],
       ["主线状态", config.status],
       ["更新时间", event.time],
@@ -415,6 +497,8 @@ function eventToDetail(event, config, kind) {
     items: scopedItems || event.chips || [config.next, config.assets],
     evidence: kindEvidence[kind],
     route: event.route,
+    confirmLabel: event.confirmLabel,
+    rejectLabel: event.secondary,
   };
 }
 
@@ -424,28 +508,52 @@ export function WorkstreamDetailPage({ kind }) {
   const config = workstreamDetails[kind];
   const [message, setMessage] = useState("");
   const [events, setEvents] = useState(config.events);
+  const [visibleCount, setVisibleCount] = useState(() =>
+    firstBlockingCount(config.events),
+  );
   const [attachments, setAttachments] = useState([]);
   const [plan, setPlan] = useState(config.plan);
   const [planVersion, setPlanVersion] = useState(config.planVersion);
   const [planUpdatedAt, setPlanUpdatedAt] = useState(config.planUpdatedAt);
   const [mode, setMode] = useState("edit");
+  const [processing, setProcessing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [paused, setPaused] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const [terminate, setTerminate] = useState(false);
   const threadRef = useRef(null);
+  const didInitialScrollRef = useRef(false);
+  const interactionTimerRef = useRef(null);
 
   useEffect(() => {
-    if (events.length <= config.events.length) return;
     const frame = window.requestAnimationFrame(() => {
       threadRef.current?.scrollTo({
         top: threadRef.current.scrollHeight,
-        behavior: "smooth",
+        behavior: didInitialScrollRef.current ? "smooth" : "auto",
       });
+      didInitialScrollRef.current = true;
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [config.events.length, events.length]);
+  }, [events.length, visibleCount]);
+
+  useEffect(() => {
+    setEvents(config.events);
+    setVisibleCount(firstBlockingCount(config.events));
+    setSelectedEvent(null);
+    setPlan(config.plan);
+    setPlanVersion(config.planVersion);
+    setPlanUpdatedAt(config.planUpdatedAt);
+    didInitialScrollRef.current = false;
+  }, [config]);
+
+  useEffect(() => () => window.clearTimeout(interactionTimerRef.current), []);
+
+  const visibleEvents = events.slice(0, visibleCount);
+  const waitingEvent = [...visibleEvents]
+    .reverse()
+    .find((item) => item.blocking && !item.resolved);
 
   const detail = selectedEvent
     ? eventToDetail(selectedEvent, config, kind)
@@ -470,9 +578,10 @@ export function WorkstreamDetailPage({ kind }) {
                 : item,
             )
           : current;
-      return [
-        ...updated,
+      const next = [
+        ...updated.slice(0, visibleCount),
         {
+          id: `mode-${Date.now()}`,
           type: "agent",
           time: "刚刚",
           text:
@@ -482,101 +591,128 @@ export function WorkstreamDetailPage({ kind }) {
                 ? "操作模式已切换为自动执行。当前业务主线已授权范围内的普通操作不再逐次询问，Hunter 强制门禁和人工业务边界保持不变。"
                 : "操作模式已切换为执行模式。可以继续搜索、分析和生成草稿，敏感操作会在当前业务主线中询问。",
         },
+        ...updated.slice(visibleCount),
       ];
+      setVisibleCount((current) => current + 1);
+      return next;
     });
     toast(`已切换为${selected?.label}`, "info");
   };
 
-  const act = (event, action) => {
-    if (event.type === "permission") {
-      const result =
-        action === "deny"
-          ? ["已拒绝", "danger", "相关任务将保持等待，不会执行该操作。"]
-          : action === "mainline"
-            ? [
-                "当前业务主线已授权",
-                "success",
-                "授权只在当前业务主线有效，仍受预算和安全门禁约束。",
-              ]
-            : [
-                "已授权本次",
-                "success",
-                "授权只对本次操作有效，执行完成后自动失效。",
-              ];
-      setEvents((current) =>
-        current.map((item) =>
-          item === event
+  const applyPlanUpdate = (event) => {
+    if (!event.planUpdate) return;
+    const { item, before } = event.planUpdate;
+    setPlan((current) => {
+      const existing = current.findIndex((entry) => entry.id === item.id);
+      if (existing >= 0) {
+        return current.map((entry, index) =>
+          index === existing ? { ...entry, ...item } : entry,
+        );
+      }
+      const beforeIndex = current.findIndex((entry) => entry.id === before);
+      const next = [...current];
+      next.splice(beforeIndex >= 0 ? beforeIndex : next.length, 0, item);
+      return next;
+    });
+    setPlanVersion((current) => current + 1);
+    setPlanUpdatedAt("刚刚");
+  };
+
+  const resolveEvent = (event, action, feedback) => {
+    const thinkingId = `${event.id}-thinking-${Date.now()}`;
+    setProcessing(true);
+    setEvents((current) => {
+      const index = current.findIndex((item) => item.id === event.id);
+      if (index < 0) return current;
+      const option = event.options?.find((item) => item.value === action);
+      const rejected = action === "deny" || action === "secondary";
+      const decision =
+        feedback?.text ||
+        option?.label ||
+        (action === "primary"
+          ? event.confirmLabel || event.primary || "确认并继续"
+          : event.secondary || "暂不处理");
+      const response =
+        feedback?.response ||
+        (rejected
+          ? "已按你的决定保留当前状态，不会执行未获确认的操作。我会继续处理不受影响的工作。"
+          : event.afterResponse ||
+            "你的决定已记录。我会从当前检查点继续，并在下一次需要确认时再次停下来。");
+      const resolved = {
+        ...event,
+        resolved: true,
+        status: rejected ? "已暂缓" : "已确认",
+        tone: rejected ? "neutral" : "success",
+        options: undefined,
+        primary: undefined,
+        secondary: undefined,
+        action: undefined,
+      };
+      const additions = [
+        {
+          id: `${event.id}-decision`,
+          type: "user",
+          time: "刚刚",
+          text: decision,
+          attachments: feedback?.attachments,
+        },
+        {
+          id: thinkingId,
+          type: "thinking",
+          time: "刚刚",
+          text: "Hunter 正在应用你的决定并检查后续步骤",
+          response,
+        },
+      ];
+      const next = [
+        ...current.slice(0, index),
+        resolved,
+        ...additions,
+        ...current.slice(index + 1),
+      ];
+      setVisibleCount(index + additions.length + 1);
+      return next;
+    });
+    window.clearTimeout(interactionTimerRef.current);
+    interactionTimerRef.current = window.setTimeout(() => {
+      applyPlanUpdate(event);
+      setEvents((current) => {
+        const thinkingIndex = current.findIndex(
+          (item) => item.id === thinkingId,
+        );
+        if (thinkingIndex < 0) return current;
+        const next = current.map((item) =>
+          item.id === thinkingId
             ? {
-                ...item,
-                status: result[0],
-                tone: result[1],
-                options: undefined,
-                detail: `${item.detail} ${result[2]}`,
+                id: `${event.id}-response`,
+                type: "agent",
+                time: "刚刚",
+                text: item.response,
               }
             : item,
-        ),
-      );
-      toast(result[2], action === "deny" ? "info" : "success");
-      return;
-    }
-    if (action === "secondary") {
-      toast(
-        event.type === "branch" ? "支线建议已忽略" : "已保留当前状态",
-        "info",
-      );
-      return;
-    }
-    if (event.planUpdate) {
-      const { item, before, summary } = event.planUpdate;
-      setPlan((current) => {
-        const existing = current.findIndex((entry) => entry.id === item.id);
-        if (existing >= 0) {
-          return current.map((entry, index) =>
-            index === existing ? { ...entry, ...item } : entry,
-          );
-        }
-        const beforeIndex = current.findIndex((entry) => entry.id === before);
-        const next = [...current];
-        next.splice(beforeIndex >= 0 ? beforeIndex : next.length, 0, item);
+        );
+        setVisibleCount(firstBlockingCount(next, thinkingIndex + 1));
         return next;
       });
-      setPlanVersion((current) => current + 1);
-      setPlanUpdatedAt("刚刚");
-      setEvents((current) => [
-        ...current.map((itemEntry) =>
-          itemEntry === event
-            ? {
-                ...itemEntry,
-                status: "已确认",
-                tone: "success",
-                primary: undefined,
-                secondary: undefined,
-              }
-            : itemEntry,
-        ),
-        {
-          type: "agent",
-          time: "刚刚",
-          text: `${summary}。我已更新下方执行计划，只处理受影响的范围。`,
-        },
-        {
-          type: "plan",
-          time: "刚刚",
-          title: "执行计划已更新",
-          detail: `${item.title}已加入当前计划；完整计划和实时状态以下方计划列表为准。`,
-          status: "已更新",
-          tone: "info",
-        },
-      ]);
-      toast("执行计划已更新");
-      return;
-    }
-    if (event.route) {
+      setProcessing(false);
+    }, 800);
+    closeDetail();
+    toast(
+      action === "deny" ? "操作已拒绝" : "已记录并继续推进",
+      action === "deny" ? "info" : "success",
+    );
+  };
+
+  const act = (event, action) => {
+    if (event.route && !event.blocking) {
       navigate(event.route);
       return;
     }
+    if (event.blocking) {
+      resolveEvent(event, action);
+      return;
+    }
     setSelectedEvent(event);
-    toast("处理结果已记录到当前业务主线");
   };
 
   const send = () => {
@@ -585,29 +721,74 @@ export function WorkstreamDetailPage({ kind }) {
     const sentAttachments = [...attachments];
     const inputSummary =
       text || sentAttachments.map((item) => item.name).join("、");
+    if (waitingEvent) {
+      resolveEvent(waitingEvent, "feedback", {
+        text: text || "请结合这些资料调整当前审核结果。",
+        attachments: sentAttachments,
+        response:
+          "补充信息已收到。我已把它作为当前人工节点的反馈，并重新检查受影响范围；接下来只推进通过检查的步骤。",
+      });
+      setMessage("");
+      setAttachments([]);
+      return;
+    }
     const impact = {
+      id: `impact-${Date.now()}`,
       type: "impact",
       time: "刚刚",
       title: "补充信息已完成影响分析",
       detail: `Hunter 判断这条信息会影响当前阶段，将只调整相关任务和结果，不会重跑整条主线：${inputSummary}`,
       primary: "确认局部更新",
       secondary: "先不处理",
+      blocking: "action",
+      afterResponse:
+        "影响范围已确认，我会只更新受影响的任务与结果，不重跑整条业务主线。",
     };
-    setEvents((current) => [
-      ...current,
-      {
-        type: "user",
-        time: "刚刚",
-        text: text || "请结合这些资料继续推进。",
-        attachments: sentAttachments,
-      },
-      {
-        type: "agent",
-        time: "刚刚",
-        text: "我已经收到这条补充信息。先判断它会影响哪些正在运行的工作和已有结果，再决定是否需要局部重做。",
-      },
-      impact,
-    ]);
+    const thinkingId = `thinking-${Date.now()}`;
+    setProcessing(true);
+    setEvents((current) => {
+      const next = [
+        ...current,
+        {
+          id: `user-${Date.now()}`,
+          type: "user",
+          time: "刚刚",
+          text: text || "请结合这些资料继续推进。",
+          attachments: sentAttachments,
+        },
+        {
+          id: thinkingId,
+          type: "thinking",
+          time: "刚刚",
+          text: "Hunter 正在分析新信息的影响范围",
+        },
+      ];
+      setVisibleCount(next.length);
+      return next;
+    });
+    window.clearTimeout(interactionTimerRef.current);
+    interactionTimerRef.current = window.setTimeout(() => {
+      setEvents((current) => {
+        const thinkingIndex = current.findIndex(
+          (item) => item.id === thinkingId,
+        );
+        if (thinkingIndex < 0) return current;
+        const next = [
+          ...current.slice(0, thinkingIndex),
+          {
+            id: `agent-${Date.now()}`,
+            type: "agent",
+            time: "刚刚",
+            text: "我已经收到这条补充信息。先判断它会影响哪些正在运行的工作和已有结果，再决定是否需要局部重做。",
+          },
+          impact,
+          ...current.slice(thinkingIndex + 1),
+        ];
+        setVisibleCount(thinkingIndex + 2);
+        return next;
+      });
+      setProcessing(false);
+    }, 800);
     setMessage("");
     setAttachments([]);
     toast("补充信息已加入当前业务主线", "info");
@@ -648,6 +829,16 @@ export function WorkstreamDetailPage({ kind }) {
     <ConversationDetail
       preview={detail}
       onOpen={detail.route ? openDetail : undefined}
+      onConfirm={
+        selectedEvent?.blocking === "review"
+          ? () => resolveEvent(selectedEvent, "primary")
+          : undefined
+      }
+      onReject={
+        selectedEvent?.blocking === "review" && selectedEvent.secondary
+          ? () => resolveEvent(selectedEvent, "secondary")
+          : undefined
+      }
       onCopy={() => {
         navigator.clipboard
           ?.writeText(`${detail.title}\n${detail.detail}`)
@@ -657,6 +848,17 @@ export function WorkstreamDetailPage({ kind }) {
       onClose={closeDetail}
     />
   ) : null;
+  const conversationNav = (
+    <WorkstreamConversationNav
+      items={workstreams}
+      currentId={workstreamIdByKind[kind]}
+      onSelect={(item) => {
+        navigate(workstreamRoute(item));
+        setListOpen(false);
+      }}
+      onCreate={() => navigate("/workstreams/new")}
+    />
+  );
 
   return (
     <div className="page-content workstream-conversation-page">
@@ -669,9 +871,15 @@ export function WorkstreamDetailPage({ kind }) {
             {paused ? "已暂停" : config.status}
           </Status>
         }
-        back={() => navigate("/workstreams")}
         actions={
           <>
+            <Button
+              className="chat-mobile-button"
+              icon="panelLeft"
+              onClick={() => setListOpen(true)}
+            >
+              业务主线
+            </Button>
             <Button icon="info" onClick={() => setContextOpen(true)}>
               主线信息
             </Button>
@@ -687,7 +895,7 @@ export function WorkstreamDetailPage({ kind }) {
           </>
         }
       />
-      <ConversationWorkspace detail={cardDetail}>
+      <ConversationWorkspace navigation={conversationNav} detail={cardDetail}>
         <div className="conversation-toolbar">
           <span className="conversation-current-process">
             <small>与 Hunter 持续推进</small>
@@ -698,14 +906,25 @@ export function WorkstreamDetailPage({ kind }) {
           </Status>
         </div>
         <div className="conversation-thread detail-thread" ref={threadRef}>
-          {events.map((event, index) => (
+          {visibleEvents.map((event, index) => (
             <ConversationEvent
               event={event}
               onAction={act}
               onSelect={selectEvent}
-              key={`${event.type}-${index}`}
+              key={event.id || `${event.type}-${index}`}
             />
           ))}
+          {waitingEvent && (
+            <div className="conversation-waiting-note">
+              <Icon name="clock" />
+              <span>
+                <b>等待你的反馈</b>
+                <small>
+                  Hunter 已暂停后续推进；处理上方内容或直接发送补充信息后继续。
+                </small>
+              </span>
+            </div>
+          )}
         </div>
         <PlanListDock
           items={plan}
@@ -733,8 +952,18 @@ export function WorkstreamDetailPage({ kind }) {
           }
           mode={mode}
           onModeChange={changeMode}
+          disabled={processing}
+          processing={processing}
         />
       </ConversationWorkspace>
+      <Drawer
+        open={listOpen}
+        onClose={() => setListOpen(false)}
+        title="切换业务主线"
+        width="360px"
+      >
+        {conversationNav}
+      </Drawer>
       <Drawer
         open={contextOpen}
         onClose={() => setContextOpen(false)}

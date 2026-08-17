@@ -188,7 +188,14 @@ function ComposerAttachments({ items = [], onRemove }) {
   );
 }
 
-export function ConversationDetail({ preview, onOpen, onCopy, onClose }) {
+export function ConversationDetail({
+  preview,
+  onOpen,
+  onCopy,
+  onClose,
+  onConfirm,
+  onReject,
+}) {
   return (
     <aside className="conversation-detail" aria-label="卡片详情">
       <header>
@@ -250,9 +257,19 @@ export function ConversationDetail({ preview, onOpen, onCopy, onClose }) {
           </section>
         ) : null}
         <div className="preview-actions">
+          {onReject && (
+            <Button size="sm" onClick={onReject}>
+              {preview.rejectLabel || "暂不处理"}
+            </Button>
+          )}
           <Button size="sm" icon="copy" onClick={onCopy}>
             复制摘要
           </Button>
+          {onConfirm && (
+            <Button size="sm" tone="primary" onClick={onConfirm}>
+              {preview.confirmLabel || "确认并继续"}
+            </Button>
+          )}
           {onOpen && (
             <Button size="sm" tone="primary" onClick={onOpen}>
               打开完整内容
@@ -289,6 +306,52 @@ export function ConversationWorkspace({
       )}
       {detail && <div className="mainline-conversation-detail">{detail}</div>}
     </section>
+  );
+}
+
+const workstreamTone = {
+  等待用户: "warning",
+  推进中: "info",
+  维护中: "violet",
+  等待外部: "neutral",
+};
+
+export function WorkstreamConversationNav({
+  items,
+  currentId,
+  onSelect,
+  onCreate,
+}) {
+  return (
+    <nav className="workstream-conversation-nav" aria-label="业务主线">
+      <header>
+        <span>
+          <b>业务主线</b>
+          <small>{items.length} 条持续业务</small>
+        </span>
+        <IconButton icon="plus" label="新建业务主线" onClick={onCreate} />
+      </header>
+      <div className="workstream-conversation-list">
+        {items.map((item) => (
+          <button
+            type="button"
+            className={item.id === currentId ? "is-active" : ""}
+            key={item.id}
+            onClick={() => onSelect(item)}
+          >
+            <span>
+              <b>{item.target}</b>
+              <time>{item.changed}</time>
+            </span>
+            <small>{item.type}</small>
+            <p>{item.waiting}</p>
+            <Status tone={workstreamTone[item.status] || "neutral"}>
+              {item.status}
+            </Status>
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -381,6 +444,21 @@ export function ConversationEntry({ role = "agent", time, children }) {
   );
 }
 
+export function AgentThinking({ label = "Hunter 正在整理下一步" }) {
+  return (
+    <ConversationEntry time="刚刚">
+      <div className="agent-thinking" role="status" aria-live="polite">
+        <span>
+          <i />
+          <i />
+          <i />
+        </span>
+        <b>{label}</b>
+      </div>
+    </ConversationEntry>
+  );
+}
+
 const eventAppearance = {
   plan: ["route", "计划更新"],
   task: ["task", "任务运行"],
@@ -395,24 +473,35 @@ const eventAppearance = {
 
 export function BusinessEventCard({ event, onAction, onSelect }) {
   const [icon, label] = eventAppearance[event.type] || ["info", "运行记录"];
+  const headerContent = (
+    <>
+      <span className="business-event-icon">
+        <Icon name={icon} />
+      </span>
+      <span>
+        <small>{label}</small>
+        <b>{event.title}</b>
+      </span>
+      <time>{event.time}</time>
+      {onSelect && <Icon name="panelRight" />}
+    </>
+  );
   return (
-    <article className={`business-event business-event-${event.type}`}>
+    <article
+      className={`business-event business-event-${event.type} ${event.resolved ? "is-resolved" : ""}`}
+    >
       <header>
-        <button
-          type="button"
-          onClick={() => onSelect?.(event)}
-          aria-label={`查看详情：${event.title}`}
-        >
-          <span className="business-event-icon">
-            <Icon name={icon} />
-          </span>
-          <span>
-            <small>{label}</small>
-            <b>{event.title}</b>
-          </span>
-          <time>{event.time}</time>
-          {onSelect && <Icon name="panelRight" />}
-        </button>
+        {onSelect ? (
+          <button
+            type="button"
+            onClick={() => onSelect(event)}
+            aria-label={`查看详情：${event.title}`}
+          >
+            {headerContent}
+          </button>
+        ) : (
+          <div>{headerContent}</div>
+        )}
       </header>
       <p>{event.detail}</p>
       {event.chips?.length ? (
@@ -439,26 +528,31 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
           <span />
         )}
         <div>
-          {event.options?.map((option) => (
-            <Button
-              key={option.value}
-              size="sm"
-              tone={option.tone || "secondary"}
-              onClick={() => onAction(event, option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
-          {event.secondary && (
+          {!event.resolved &&
+            event.options?.map((option) => (
+              <Button
+                key={option.value}
+                size="sm"
+                tone={option.tone || "secondary"}
+                onClick={() => onAction(event, option.value)}
+              >
+                {option.label}
+              </Button>
+            ))}
+          {!event.resolved && event.secondary && (
             <Button size="sm" onClick={() => onAction(event, "secondary")}>
               {event.secondary}
             </Button>
           )}
-          {(event.primary || event.action) && (
+          {!event.resolved && (event.primary || event.action) && (
             <Button
               size="sm"
-              tone={event.type === "approval" ? "primary" : "secondary"}
-              onClick={() => onAction(event, "primary")}
+              tone={event.blocking === "review" ? "primary" : "secondary"}
+              onClick={() =>
+                event.blocking === "review"
+                  ? onSelect?.(event)
+                  : onAction(event, "primary")
+              }
             >
               {event.primary || event.action}
             </Button>
@@ -466,6 +560,53 @@ export function BusinessEventCard({ event, onAction, onSelect }) {
         </div>
       </footer>
     </article>
+  );
+}
+
+function MarkdownEvent({ event, onAction }) {
+  const [icon, label] = eventAppearance[event.type] || ["info", "进展更新"];
+  return (
+    <ConversationEntry time={event.time}>
+      <div className="markdown-message">
+        <h3>
+          <Icon name={icon} />
+          {event.title || label}
+        </h3>
+        <p>{event.detail || event.text}</p>
+        {event.chips?.length ? (
+          <ul>
+            {event.chips.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+        {event.scope?.length ? (
+          <ul>
+            {event.scope.map(([scopeLabel, value]) => (
+              <li key={scopeLabel}>
+                <b>{scopeLabel}：</b>
+                {value}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <footer>
+          {event.status && (
+            <Status tone={event.tone || "neutral"}>{event.status}</Status>
+          )}
+          {event.route && (
+            <Button
+              size="sm"
+              tone="ghost"
+              icon="chevronRight"
+              onClick={() => onAction(event, "primary")}
+            >
+              {event.action || "查看详情"}
+            </Button>
+          )}
+        </footer>
+      </div>
+    </ConversationEntry>
   );
 }
 
@@ -485,8 +626,18 @@ export function ConversationEvent({ event, onAction, onSelect }) {
       </ConversationEntry>
     );
   }
+  if (event.type === "thinking") {
+    return <AgentThinking label={event.text} />;
+  }
+  if (!event.blocking) {
+    return <MarkdownEvent event={event} onAction={onAction} />;
+  }
   return (
-    <BusinessEventCard event={event} onAction={onAction} onSelect={onSelect} />
+    <BusinessEventCard
+      event={event}
+      onAction={onAction}
+      onSelect={event.blocking === "review" ? onSelect : undefined}
+    />
   );
 }
 

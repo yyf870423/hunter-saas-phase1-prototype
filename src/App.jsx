@@ -57,7 +57,7 @@ function UserLayout() {
         <Route path="/home" element={<Dashboard />} />
         <Route
           path="/workstreams"
-          element={<EntityListPage kind="workstreams" />}
+          element={<Navigate to="/workstreams/position-vla/position" replace />}
         />
         <Route path="/workstreams/new" element={<NewWorkstreamPage />} />
         <Route

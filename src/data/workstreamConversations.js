@@ -446,8 +446,12 @@ const events = {
         "星澜机器人公司资料已补充；识别 4 位联系人，其中 HRD 周雅雯最可能确认招聘需求。",
       status: "待确认",
       tone: "warning",
-      action: "查看公司资料",
+      action: "查看并审核",
       route: "/companies/xinglan",
+      blocking: "review",
+      confirmLabel: "确认公司与联系人",
+      afterResponse:
+        "公司资料与 4 位联系人已确认，HRD 周雅雯被标记为首选需求确认人。下一步需要审核联系内容。",
     },
     {
       type: "agent",
@@ -455,13 +459,26 @@ const events = {
       text: "周雅雯最可能直接确认招聘需求。我已经准备好一封只询问 HC 和合作方式的邮件，但发送前需要你的明确授权。",
     },
     {
-      type: "permission",
+      type: "approval",
       time: "今天 09:29",
+      title: "是否联系 HRD 周雅雯？",
+      detail: "建议先询问 VLA 团队是否新增负责人岗位。邮件草稿不会自动发送。",
+      primary: "查看并审核联系内容",
+      secondary: "暂不联系",
+      blocking: "review",
+      confirmLabel: "确认联系内容",
+      afterResponse:
+        "联系内容已确认。正式发送前还需要你授予一次性邮箱使用权限。",
+    },
+    {
+      type: "permission",
+      time: "今天 09:31",
       title: "允许使用你的工作邮箱发送联系邮件？",
       detail:
         "将以你的身份向周雅雯发送当前已审核的邮件草稿。正式外部联系属于高风险动作，本次不提供持续授权。",
       status: "等待授权",
       tone: "warning",
+      blocking: "action",
       scope: [
         ["对象", "HRD 周雅雯"],
         ["发送内容", "已审核邮件草稿 1 封"],
@@ -472,14 +489,8 @@ const events = {
         { value: "deny", label: "拒绝" },
         { value: "once", label: "仅允许本次", tone: "primary" },
       ],
-    },
-    {
-      type: "approval",
-      time: "今天 09:31",
-      title: "是否联系 HRD 周雅雯？",
-      detail: "建议先询问 VLA 团队是否新增负责人岗位。邮件草稿不会自动发送。",
-      primary: "审核联系内容",
-      secondary: "暂不联系",
+      afterResponse:
+        "一次性发送权限已记录，联系邮件已进入发送队列。后续等待回复期间不会持续消耗 Agent 用量。",
     },
     {
       type: "branch",
@@ -489,6 +500,9 @@ const events = {
         "招聘页面新增结构工程师和运动控制岗位，可建立独立岗位招聘主线；当前主线不会自动创建。",
       primary: "查看支线建议",
       secondary: "忽略",
+      blocking: "action",
+      afterResponse:
+        "支线建议已记录，我会按你的选择决定是否创建独立岗位招聘主线。",
     },
   ],
   position: [
@@ -556,6 +570,15 @@ const events = {
       tone: "warning",
       action: "审核 18 位候选人",
       route: "/candidates",
+      blocking: "review",
+      confirmLabel: "确认首批名单",
+      metrics: [
+        ["进入候选池", "46 位"],
+        ["本批待审核", "18 位"],
+        ["建议分层", "12 推荐 · 4 有条件 · 2 不建议"],
+      ],
+      afterResponse:
+        "首批 18 位候选人的分层已确认。我会保留你的审核决定，并继续处理剩余 28 位候选人。",
     },
     {
       type: "agent",
@@ -580,6 +603,9 @@ const events = {
         "岗位地点从上海扩展到杭州。无需重跑全部召回，只需重算 6 位因地点受限的候选人。",
       primary: "确认局部重匹配",
       secondary: "保留原条件",
+      blocking: "action",
+      afterResponse:
+        "地点范围已经更新为上海或杭州，只会重算 6 位受地点限制影响的候选人。",
       planUpdate: {
         summary: "新增地点适配的局部重匹配步骤",
         before: "candidate-review",
@@ -619,6 +645,7 @@ const events = {
         "只读取与你已有关系的姓名和公开职业信息，用于判断联系路径；不会自动申请好友或发送消息。",
       status: "等待授权",
       tone: "warning",
+      blocking: "action",
       scope: [
         ["用途", "人物关系与联系路径核验"],
         ["数据范围", "当前摸排涉及的 93 位人物"],
@@ -630,6 +657,8 @@ const events = {
         { value: "once", label: "仅允许本次" },
         { value: "mainline", label: "当前业务主线持续允许", tone: "primary" },
       ],
+      afterResponse:
+        "关系读取范围已确认。我会继续核验一度关系，但所有关系建议仍需人工确认后才能写入。",
     },
     {
       type: "result",
@@ -655,6 +684,10 @@ const events = {
         "公开论文与履历显示有合作关系，但无法确认当前汇报线，不会自动写入正式关系。",
       primary: "开始核验",
       secondary: "稍后处理",
+      blocking: "review",
+      confirmLabel: "确认核验结果",
+      afterResponse:
+        "7 条关系的核验决定已记录，已确认关系将写入摸排成果，存疑关系继续保留证据。",
     },
     {
       type: "branch",
@@ -663,6 +696,9 @@ const events = {
       detail: "可建立客户开发主线核验招聘需求，也可先纳入当前摸排的目标公司。",
       primary: "查看两种处理方式",
       secondary: "仅加入摸排",
+      blocking: "action",
+      afterResponse:
+        "云脉芯能已按你的选择处理，当前摸排范围和后续计划已同步更新。",
     },
   ],
   career: [
@@ -704,16 +740,6 @@ const events = {
       route: "/communications/comm-linhao",
     },
     {
-      type: "object",
-      time: "今天 09:02",
-      title: "收到新简历，已生成资料更新建议",
-      detail: "新增 1 段项目经历和 3 项技能；原字段不直接覆盖，等待猎头确认。",
-      status: "待确认",
-      tone: "warning",
-      action: "审核资料更新",
-      route: "/candidates/lin-hao",
-    },
-    {
       type: "agent",
       time: "今天 09:02",
       text: "新简历已收到。解析前需要你允许读取附件；解析结果只形成字段级建议，不会直接覆盖候选人资料。",
@@ -726,6 +752,7 @@ const events = {
         "解析结果只生成字段级更新建议，不直接覆盖候选人的现有资料。原始文件仅用于当前候选人和本主线。",
       status: "等待授权",
       tone: "warning",
+      blocking: "action",
       scope: [
         ["文件", "林昊_2026最新简历.pdf"],
         ["操作", "文件解析、查重、影响分析"],
@@ -736,14 +763,33 @@ const events = {
         { value: "deny", label: "拒绝" },
         { value: "once", label: "仅允许本次", tone: "primary" },
       ],
+      afterResponse:
+        "简历解析权限已确认。我会先完成查重和字段级比较，再把更新建议交给你审核。",
+    },
+    {
+      type: "object",
+      time: "今天 09:04",
+      title: "新简历已生成资料更新建议",
+      detail: "新增 1 段项目经历和 3 项技能；原字段不直接覆盖，等待猎头确认。",
+      status: "待确认",
+      tone: "warning",
+      action: "查看并审核资料更新",
+      route: "/candidates/lin-hao",
+      blocking: "review",
+      confirmLabel: "确认资料更新",
+      afterResponse:
+        "资料更新建议已确认并写入候选人档案。下一步只需要重算受新项目经历影响的岗位。",
     },
     {
       type: "impact",
-      time: "今天 09:04",
+      time: "今天 09:06",
       title: "资料更新会影响 6 个岗位匹配",
       detail: "确认更新后只重新计算相关岗位，不重新搜索已经完成的来源。",
       primary: "确认更新并重匹配",
       secondary: "仅保存资料",
+      blocking: "action",
+      afterResponse:
+        "局部重匹配已加入当前计划，只重算 6 个相关岗位，不会重新搜索已完成的来源。",
       planUpdate: {
         summary: "开始处理新简历并局部重匹配",
         before: "career-rematch",
@@ -767,7 +813,10 @@ export const workstreamDetails = Object.fromEntries(
       plan: workstreamPlans[kind],
       planVersion: kind === "position" ? 4 : 3,
       planUpdatedAt: kind === "career" ? "今天 09:04" : "今天 09:28",
-      events: events[kind],
+      events: events[kind].map((event, index) => ({
+        ...event,
+        id: `${kind}-event-${index + 1}`,
+      })),
     },
   ]),
 );
