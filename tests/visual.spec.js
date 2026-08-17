@@ -53,6 +53,29 @@ test("截图 position-workstream-navigation-collapsed", async ({ page }) => {
   });
 });
 
+test("截图 position-workstream-user-time-hover", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/position-vla/position");
+  await page
+    .locator(".conversation-entry-user .conversation-bubble")
+    .first()
+    .hover();
+  await page.screenshot({
+    path: "artifacts/position-workstream-user-time-hover-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 position-workstream-task-inline-detail", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/position-vla/position");
+  await page.getByRole("button", { name: "查看任务运行" }).click();
+  await page.screenshot({
+    path: "artifacts/position-workstream-task-inline-detail-1440x900.png",
+    fullPage: true,
+  });
+});
+
 test("截图 client-workstream-inline-review", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./#/workstreams/client-xinglan/client");

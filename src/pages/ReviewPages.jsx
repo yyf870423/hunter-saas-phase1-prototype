@@ -332,9 +332,8 @@ export function ComponentsPage() {
                   ],
                   evidence: ["岗位 JD 与岗位解析", "候选人公开资料"],
                 }}
-                onOpen={() => toast("已打开完整结果", "info")}
                 onCopy={() => toast("详情摘要已复制")}
-                onClose={() => toast("大结果审核已关闭", "info")}
+                onClose={() => toast("业务主线详情已关闭", "info")}
               />
             </div>
           </div>

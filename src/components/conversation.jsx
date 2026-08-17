@@ -190,24 +190,20 @@ function ComposerAttachments({ items = [], onRemove }) {
 
 export function ConversationDetail({
   preview,
-  onOpen,
   onCopy,
   onClose,
   onConfirm,
   onReject,
 }) {
   return (
-    <aside className="conversation-detail" aria-label="大结果审核">
+    <aside className="conversation-detail" aria-label="业务主线详情">
       <header>
         <span>
           <small>{preview.eyebrow}</small>
           <b>{preview.title}</b>
         </span>
         <div>
-          {onOpen && (
-            <IconButton icon="maximize" label="打开完整内容" onClick={onOpen} />
-          )}
-          <IconButton icon="close" label="关闭大结果审核" onClick={onClose} />
+          <IconButton icon="close" label="关闭业务主线详情" onClick={onClose} />
         </div>
       </header>
       <div className="conversation-detail-scroll">
@@ -268,11 +264,6 @@ export function ConversationDetail({
           {onConfirm && (
             <Button size="sm" tone="primary" onClick={onConfirm}>
               {preview.confirmLabel || "确认并继续"}
-            </Button>
-          )}
-          {onOpen && (
-            <Button size="sm" tone="primary" onClick={onOpen}>
-              打开完整内容
             </Button>
           )}
         </div>
@@ -466,11 +457,15 @@ export function ConversationEntry({ role = "agent", time, children }) {
   return (
     <article className={`conversation-entry conversation-entry-${role}`}>
       <div>
-        <header>
-          <b>{role === "user" ? "你" : "Hunter"}</b>
-          <time>{time}</time>
-        </header>
-        <div className="conversation-bubble">{children}</div>
+        <div
+          className="conversation-bubble"
+          tabIndex={role === "user" ? 0 : undefined}
+        >
+          {children}
+        </div>
+        {role === "user" && time && (
+          <time className="user-message-time">{time}</time>
+        )}
       </div>
     </article>
   );
@@ -697,7 +692,7 @@ function MarkdownEvent({ event, onAction, onSelect }) {
               size="sm"
               tone="ghost"
               icon="chevronRight"
-              onClick={() => onAction(event, "primary")}
+              onClick={() => onSelect(event)}
             >
               {event.action || "查看详情"}
             </Button>

@@ -158,7 +158,23 @@
 }
 .workstream-conversation-list > button > .status {
   grid-column: 1 / -1;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  display: inline-grid;
+  grid-template-columns: 6px max-content;
   justify-self: start;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.workstream-conversation-list > button > .status i {
+  width: 6px;
+  min-width: 6px;
+  flex: 0 0 6px;
+}
+.workstream-conversation-list > button > .status > span {
+  min-width: max-content;
   white-space: nowrap;
 }
 .workstream-conversation-nav.is-collapsed > header {
@@ -515,21 +531,9 @@
 .conversation-entry > div {
   min-width: 0;
 }
-.conversation-entry > div > header {
-  min-height: 22px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.conversation-entry-user > div > header {
-  justify-content: flex-end;
-}
-.conversation-entry header b {
-  font-size: 12px;
-}
-.conversation-entry header time {
-  color: var(--ink-tertiary);
-  font-size: 10px;
+.conversation-entry-user > div {
+  display: grid;
+  justify-items: end;
 }
 .conversation-bubble {
   min-width: 0;
@@ -540,6 +544,26 @@
   border-color: color-mix(in srgb, var(--blue) 24%, var(--line));
   border-radius: 8px;
   background: color-mix(in srgb, var(--blue-soft) 74%, var(--surface));
+}
+.conversation-entry-user .conversation-bubble:focus-visible {
+  outline: 0;
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+.user-message-time {
+  min-height: 16px;
+  margin-top: 3px;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  line-height: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.14s ease;
+}
+.conversation-entry-user:hover .user-message-time,
+.conversation-entry-user:focus-within .user-message-time {
+  opacity: 1;
+  visibility: visible;
 }
 .conversation-bubble p {
   margin: 0;

@@ -106,13 +106,24 @@ test("桌面业务主线导航可收起且状态标签保持单行", async ({ pa
     .boundingBox();
   const status = page
     .getByRole("navigation", { name: "业务主线" })
-    .getByText("等待用户", { exact: true })
+    .locator(".status")
+    .filter({ hasText: "等待用户" })
     .first();
-  const statusBox = await status.boundingBox();
-  const statusLineHeight = Number.parseFloat(
-    await status.evaluate((element) => getComputedStyle(element).lineHeight),
-  );
-  expect(statusBox.height).toBeLessThanOrEqual(statusLineHeight + 8);
+  const statusText = status.locator(":scope > span");
+  const statusDot = status.locator(":scope > i");
+  const [statusBox, statusTextBox, statusDotBox] = await Promise.all([
+    status.boundingBox(),
+    statusText.boundingBox(),
+    statusDot.boundingBox(),
+  ]);
+  expect(statusBox.height).toBeLessThanOrEqual(24);
+  expect(
+    Math.abs(
+      statusTextBox.y +
+        statusTextBox.height / 2 -
+        (statusDotBox.y + statusDotBox.height / 2),
+    ),
+  ).toBeLessThanOrEqual(1);
 
   await page.getByRole("button", { name: "收起业务主线" }).click();
   await expect(workspace).toHaveClass(/navigation-collapsed/);
@@ -125,17 +136,23 @@ test("桌面业务主线导航可收起且状态标签保持单行", async ({ pa
   await expect(workspace).not.toHaveClass(/navigation-collapsed/);
 });
 
-test("业务主线消息不显示头像并区分用户消息与 Agent Markdown", async ({
-  page,
-}) => {
+test("业务主线仅在用户消息悬停时显示发送时间", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
   await expect(page.locator(".conversation-avatar")).toHaveCount(0);
+  await expect(page.locator(".conversation-entry-agent header")).toHaveCount(0);
+  await expect(page.locator(".conversation-entry-agent time")).toHaveCount(0);
   await expect(
     page.locator(".conversation-entry-user .conversation-bubble"),
   ).toBeVisible();
   await expect(
     page.locator(".conversation-entry-agent .markdown-message").first(),
   ).toBeVisible();
+  const userEntry = page.locator(".conversation-entry-user").first();
+  const userTime = userEntry.locator(".user-message-time");
+  await expect(userTime).toBeHidden();
+  await userEntry.locator(".conversation-bubble").hover();
+  await expect(userTime).toBeVisible();
+  await expect(userTime).toHaveText("今天 08:16");
 });
 
 test("四类业务主线都在人工节点暂停并在反馈后继续", async ({ page }) => {
@@ -203,24 +220,46 @@ test("Agent 操作权限在主线对话中显示当前授权范围", async ({ pa
   ).toHaveCount(0);
 });
 
-test("业务主线小结果内嵌处理，大结果才按需显示详情", async ({ page }) => {
+test("业务主线查看与确认始终留在当前页面", async ({ page }) => {
   await page.goto("./#/workstreams/client-xinglan/client");
   await expect(page.getByLabel("公司与联系人草稿")).toBeVisible();
-  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
+  await expect(page.getByLabel("业务主线详情")).toHaveCount(0);
 
   await page.goto("./#/workstreams/position-vla/position");
-  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
+  const workstreamUrl = page.url();
+  await expect(page.getByLabel("业务主线详情")).toHaveCount(0);
+  await page.getByRole("button", { name: "查看任务运行" }).click();
+  await expect(page).toHaveURL(workstreamUrl);
+  await expect(
+    page.getByLabel("业务主线详情").getByText("2 个人才平台任务正在运行"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "关闭业务主线详情" }).click();
+
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await expect(
-    page.getByLabel("大结果审核").getByText("首批候选人已完成匹配"),
+    page.getByLabel("业务主线详情").getByText("首批候选人已完成匹配"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "关闭大结果审核" }).click();
-  await expect(page.getByLabel("大结果审核")).toHaveCount(0);
+  await page.getByRole("button", { name: "确认首批名单" }).click();
+  await expect(page).toHaveURL(workstreamUrl);
+  await expect(page.getByText("候选人赵星羽已加入结果")).toBeVisible();
 
-  await page.getByRole("button", { name: "查看任务运行" }).click();
-  await expect(page).toHaveURL(/tasks\/task-sourcing/);
+  await page.getByRole("button", { name: "打开候选人" }).click();
+  await expect(page).toHaveURL(workstreamUrl);
+  await expect(
+    page.getByLabel("业务主线详情").getByText("候选人赵星羽已加入结果"),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "关闭业务主线详情" }).click();
+  await page.getByRole("button", { name: "主线信息" }).click();
+  await page.getByRole("button", { name: "终止业务主线" }).click();
+  await page.getByRole("button", { name: "确认终止" }).click();
+  await expect(page).toHaveURL(workstreamUrl);
+  await expect(
+    page.locator(".conversation-waiting-note b").getByText("业务主线已终止"),
+  ).toBeVisible();
+  await expect(page.getByLabel("发送给 Hunter")).toBeDisabled();
 });
 
 test("Agent 操作模式在当前业务主线中切换并保留记录", async ({ page }) => {
@@ -314,7 +353,7 @@ test("移动端业务主线点击大结果后用 Drawer 查看详情", async ({ 
     .click();
   const drawer = page.locator(".drawer");
   await expect(
-    drawer.getByRole("complementary", { name: "大结果审核" }),
+    drawer.getByRole("complementary", { name: "业务主线详情" }),
   ).toBeVisible();
   await drawer.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(drawer).toHaveCount(0);

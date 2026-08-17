@@ -491,6 +491,7 @@ export function WorkstreamDetailPage({ kind }) {
   const [processing, setProcessing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [paused, setPaused] = useState(false);
+  const [terminated, setTerminated] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
@@ -678,7 +679,7 @@ export function WorkstreamDetailPage({ kind }) {
 
   const act = (event, action) => {
     if (event.route && !event.blocking) {
-      navigate(event.route);
+      selectEvent(event);
       return;
     }
     if (event.blocking) {
@@ -787,14 +788,11 @@ export function WorkstreamDetailPage({ kind }) {
   };
 
   const selectEvent = (event) => {
-    if (!event.largeResult) return;
+    if (!event.largeResult && !event.route) return;
     setSelectedEvent(event);
     if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
   };
 
-  const openDetail = () => {
-    if (detail?.route) navigate(detail.route);
-  };
   const closeDetail = () => {
     setSelectedEvent(null);
     setDetailOpen(false);
@@ -802,7 +800,6 @@ export function WorkstreamDetailPage({ kind }) {
   const cardDetail = detail ? (
     <ConversationDetail
       preview={detail}
-      onOpen={detail.route ? openDetail : undefined}
       onConfirm={
         selectedEvent?.blocking === "review"
           ? () => resolveEvent(selectedEvent, "primary")
@@ -855,7 +852,7 @@ export function WorkstreamDetailPage({ kind }) {
         description={config.description}
         status={
           <Status tone={config.tone}>
-            {paused ? "已暂停" : config.status}
+            {terminated ? "已终止" : paused ? "已暂停" : config.status}
           </Status>
         }
         actions={
@@ -872,12 +869,13 @@ export function WorkstreamDetailPage({ kind }) {
             </Button>
             <Button
               icon={paused ? "play" : "pause"}
+              disabled={terminated}
               onClick={() => {
                 setPaused(!paused);
                 toast(paused ? "业务主线已继续" : "业务主线已暂停", "info");
               }}
             >
-              {paused ? "继续" : "暂停"}
+              {terminated ? "已终止" : paused ? "继续" : "暂停"}
             </Button>
           </>
         }
@@ -892,8 +890,11 @@ export function WorkstreamDetailPage({ kind }) {
             <small>与 Hunter 持续推进</small>
             <b>{config.next}</b>
           </span>
-          <Status tone={paused ? "neutral" : config.tone} dot={false}>
-            {paused ? "已暂停" : config.status}
+          <Status
+            tone={terminated || paused ? "neutral" : config.tone}
+            dot={false}
+          >
+            {terminated ? "已终止" : paused ? "已暂停" : config.status}
           </Status>
         </div>
         <div className="conversation-thread detail-thread" ref={threadRef}>
@@ -913,6 +914,15 @@ export function WorkstreamDetailPage({ kind }) {
                 <small>
                   Hunter 已暂停后续推进；处理上方内容或直接发送补充信息后继续。
                 </small>
+              </span>
+            </div>
+          )}
+          {terminated && (
+            <div className="conversation-waiting-note">
+              <Icon name="pause" />
+              <span>
+                <b>业务主线已终止</b>
+                <small>已确认成果和完整过程仍然保留在当前页面。</small>
               </span>
             </div>
           )}
@@ -943,7 +953,7 @@ export function WorkstreamDetailPage({ kind }) {
           }
           mode={mode}
           onModeChange={changeMode}
-          disabled={processing}
+          disabled={processing || terminated}
           processing={processing}
         />
       </ConversationWorkspace>
@@ -978,7 +988,7 @@ export function WorkstreamDetailPage({ kind }) {
       <Drawer
         open={detailOpen}
         onClose={closeDetail}
-        title="完整结果"
+        title={selectedEvent?.largeResult ? "完整结果" : "详情"}
         width="520px"
       >
         {cardDetail}
@@ -995,8 +1005,11 @@ export function WorkstreamDetailPage({ kind }) {
             <Button
               tone="danger"
               onClick={() => {
+                setTerminate(false);
+                setContextOpen(false);
+                setTerminated(true);
+                setPaused(true);
                 toast("业务主线已终止");
-                navigate("/workstreams");
               }}
             >
               确认终止
