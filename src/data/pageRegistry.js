@@ -44,6 +44,7 @@ export const userPages = [
   ["U43", "用量", "/account/usage"],
   ["U44", "数据与支持", "/account/data"],
   ["U45", "候选人岗位推进", "/progress/linhao-vla"],
+  ["U46", "人岗匹配审核", "/matching/vla-lead"],
 ];
 
 export const opsPages = [

@@ -1,29 +1,6 @@
 @media (max-width: 1199px) {
-  :root {
-    --sidebar: 76px;
-  }
   .sidebar {
-    padding: 14px 9px;
-  }
-  .brand {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
-  .brand > span,
-  .sidebar nav a span,
-  .sidebar-section-label,
-  .usage-mini,
-  .profile-mini span,
-  .profile-mini > svg {
-    display: none;
-  }
-  .sidebar nav a {
-    justify-content: center;
-    padding: 0;
-  }
-  .sidebar nav a svg {
-    width: 19px;
+    padding: 10px 8px;
   }
   .profile-mini {
     display: grid;
@@ -87,7 +64,8 @@
     padding: 5px 7px calc(5px + env(safe-area-inset-bottom));
   }
   .sidebar .brand,
-  .sidebar-section-label,
+  .sidebar-brand-button,
+  .sidebar-expand-button,
   .sidebar-foot {
     display: none;
   }

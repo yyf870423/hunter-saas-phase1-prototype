@@ -20,6 +20,51 @@ const pages = [
   ["communication-tablet", "/communications/comm-linhao", 820, 1180],
   ["ops-dashboard", "/ops", 1440, 900],
   ["ops-task", "/ops/tasks/RUN-2B43", 1180, 820],
+  ["candidates-v2", "/candidates", 1440, 900],
+  ["candidate-detail-v2", "/candidates/lin-hao", 1440, 900],
+  ["positions-v2", "/positions", 1440, 900],
+  ["position-detail-v2", "/positions/position-vla", 1440, 900],
+  ["companies-v2", "/companies", 1440, 900],
+  ["papers-v2", "/papers", 1440, 900],
+  ["patents-v2", "/patents", 1440, 900],
+  ["matching-review-v2", "/matching/position-vla", 1440, 900],
+  ["intermediate-coverage", "/review/intermediate-results", 1440, 900],
+  [
+    "intermediate-search-strategy",
+    "/workstreams/position-vla/position?scene=search-strategy",
+    1440,
+    900,
+  ],
+  [
+    "intermediate-profile-diff",
+    "/workstreams/career-linhao/career?scene=profile-diff",
+    1440,
+    900,
+  ],
+  [
+    "intermediate-budget-blocked",
+    "/workstreams/mapping-embodied/mapping?scene=budget-blocked",
+    1440,
+    900,
+  ],
+  [
+    "intermediate-source-conflict",
+    "/workstreams/client-xinglan/client?scene=source-conflict",
+    1440,
+    900,
+  ],
+  [
+    "intermediate-no-result",
+    "/workstreams/position-vla/position?scene=no-result",
+    1440,
+    900,
+  ],
+  [
+    "intermediate-runtime-failure",
+    "/workstreams/position-vla/position?scene=runtime-failure",
+    1440,
+    900,
+  ],
 ];
 
 for (const [name, route, width, height] of pages) {

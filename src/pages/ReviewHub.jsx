@@ -37,7 +37,7 @@ export function ReviewHub() {
         </div>
         <div className="review-meta">
           <article>
-            <strong>45</strong>
+            <strong>46</strong>
             <small>用户端页面</small>
           </article>
           <article>
@@ -45,8 +45,8 @@ export function ReviewHub() {
             <small>运营端页面</small>
           </article>
           <article>
-            <strong>6</strong>
-            <small>端到端故事</small>
+            <strong>31</strong>
+            <small>类中间结果</small>
           </article>
         </div>
       </section>
@@ -68,12 +68,15 @@ export function ReviewHub() {
           <button onClick={() => navigate("/review/stories")}>
             端到端故事
           </button>
+          <button onClick={() => navigate("/review/intermediate-results")}>
+            中间结果覆盖
+          </button>
         </nav>
         <div>
           <div className="section-header">
             <div>
               <h2>
-                {section === "user" ? "用户端 U01–U45" : "运营端 O01–O15"}
+                {section === "user" ? "用户端 U01–U46" : "运营端 O01–O15"}
               </h2>
               <p>点击任一页面进入真实交互；返回后仍保留原型状态。</p>
             </div>

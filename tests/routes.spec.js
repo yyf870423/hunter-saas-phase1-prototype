@@ -38,10 +38,10 @@ for (const [id, title, route] of allPages) {
 
 test("页面审核入口列出全部用户端和运营端页面", async ({ page }) => {
   await page.goto("./#/review");
-  await expect(page.getByText("60 个页面")).toBeVisible();
+  await expect(page.getByText("61 个页面")).toBeVisible();
   await expect(
     page.locator(".review-meta article").filter({ hasText: "用户端页面" }),
-  ).toContainText("45");
+  ).toContainText("46");
   await expect(
     page.locator(".review-meta article").filter({ hasText: "运营端页面" }),
   ).toContainText("15");

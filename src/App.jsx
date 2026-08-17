@@ -17,14 +17,8 @@ import {
   TaskDetailPage,
 } from "./pages/TaskSignalPages";
 import {
-  CandidateDetailPage,
-  CompanyDetailPage,
-  ContactDetailPage,
   MappingDetailPage,
   OpportunityDetailPage,
-  PaperDetailPage,
-  PatentDetailPage,
-  PositionDetailPage,
   ProgressDetailPage,
 } from "./pages/AssetDetailPages";
 import {
@@ -49,6 +43,12 @@ import {
   OpsUsagePage,
   OpsWorkspaceDetailPage,
 } from "./pages/OpsPages";
+import {
+  AssetDetailPageV2,
+  AssetListPageV2,
+  MatchReviewPageV2,
+} from "./pages/AssetPagesV2";
+import { IntermediateCoveragePage } from "./pages/IntermediateCoveragePage";
 
 function UserLayout() {
   return (
@@ -83,11 +83,17 @@ function UserLayout() {
         <Route path="/assets" element={<AssetsPage />} />
         <Route
           path="/companies"
-          element={<EntityListPage kind="companies" />}
+          element={<AssetListPageV2 kind="companies" />}
         />
-        <Route path="/companies/:id" element={<CompanyDetailPage />} />
-        <Route path="/contacts" element={<EntityListPage kind="contacts" />} />
-        <Route path="/contacts/:id" element={<ContactDetailPage />} />
+        <Route
+          path="/companies/:id"
+          element={<AssetDetailPageV2 kind="company" />}
+        />
+        <Route path="/contacts" element={<AssetListPageV2 kind="contacts" />} />
+        <Route
+          path="/contacts/:id"
+          element={<AssetDetailPageV2 kind="contact" />}
+        />
         <Route
           path="/opportunities"
           element={<EntityListPage kind="opportunities" />}
@@ -95,20 +101,33 @@ function UserLayout() {
         <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
         <Route
           path="/positions"
-          element={<EntityListPage kind="positions" />}
+          element={<AssetListPageV2 kind="positions" />}
         />
-        <Route path="/positions/:id" element={<PositionDetailPage />} />
+        <Route
+          path="/positions/:id"
+          element={<AssetDetailPageV2 kind="position" />}
+        />
+        <Route path="/matching/:positionId" element={<MatchReviewPageV2 />} />
         <Route
           path="/candidates"
-          element={<EntityListPage kind="candidates" />}
+          element={<AssetListPageV2 kind="candidates" />}
         />
-        <Route path="/candidates/:id" element={<CandidateDetailPage />} />
+        <Route
+          path="/candidates/:id"
+          element={<AssetDetailPageV2 kind="candidate" />}
+        />
         <Route path="/mappings" element={<EntityListPage kind="mappings" />} />
         <Route path="/mappings/:id" element={<MappingDetailPage />} />
-        <Route path="/papers" element={<EntityListPage kind="papers" />} />
-        <Route path="/papers/:id" element={<PaperDetailPage />} />
-        <Route path="/patents" element={<EntityListPage kind="patents" />} />
-        <Route path="/patents/:id" element={<PatentDetailPage />} />
+        <Route path="/papers" element={<AssetListPageV2 kind="papers" />} />
+        <Route
+          path="/papers/:id"
+          element={<AssetDetailPageV2 kind="paper" />}
+        />
+        <Route path="/patents" element={<AssetListPageV2 kind="patents" />} />
+        <Route
+          path="/patents/:id"
+          element={<AssetDetailPageV2 kind="patent" />}
+        />
         <Route path="/communications/:id" element={<CommunicationPage />} />
         <Route path="/progress/:id" element={<ProgressDetailPage />} />
         <Route path="/imports" element={<ImportsPage />} />
@@ -191,6 +210,10 @@ export default function App() {
       <Route path="/" element={<Navigate to="/review" replace />} />
       <Route path="/review" element={<ReviewHub />} />
       <Route path="/review/stories" element={<StoriesReviewPage />} />
+      <Route
+        path="/review/intermediate-results"
+        element={<IntermediateCoveragePage />}
+      />
       <Route path="/components" element={<ComponentsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/apply" element={<ApplyPage />} />

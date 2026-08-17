@@ -58,15 +58,45 @@ const notificationItems = [
 
 function Brand() {
   return (
-    <div className="brand">
-      <span className="brand-mark">
-        <Icon name="signal" />
+    <span className="brand-mark" aria-label="Hunter">
+      <Icon name="signal" />
+    </span>
+  );
+}
+
+function UsageRing({ value = 64, expanded = false, onClick }) {
+  const radius = 16;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - value / 100);
+  return (
+    <button
+      type="button"
+      className="usage-ring-button"
+      title={`本月 Agent 用量 ${value}%`}
+      aria-label={`查看本月 Agent 用量，已使用 ${value}%`}
+      onClick={onClick}
+    >
+      <span className="usage-ring" aria-hidden="true">
+        <svg viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r={radius} />
+          <circle
+            className="usage-ring-progress"
+            cx="20"
+            cy="20"
+            r={radius}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        </svg>
+        <b>{value}</b>
       </span>
-      <span>
-        <b>Hunter</b>
-        <small>智能猎头工作空间</small>
-      </span>
-    </div>
+      {expanded && (
+        <span className="usage-ring-copy">
+          <b>Agent 用量</b>
+          <small>本月已使用 {value}%</small>
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -344,6 +374,7 @@ export function AppShell({ children }) {
     params.get("panel") === "search",
   );
   const [newOpen, setNewOpen] = useState(false);
+  const [navExpanded, setNavExpanded] = useState(false);
   useEffect(() => {
     setNotificationsOpen(params.get("panel") === "notifications");
     setSearchOpen(params.get("panel") === "search");
@@ -360,17 +391,32 @@ export function AppShell({ children }) {
     return () => document.removeEventListener("keydown", handler);
   }, []);
   return (
-    <div className="app-shell" data-theme={state.theme}>
+    <div
+      className={`app-shell ${navExpanded ? "nav-expanded" : "nav-collapsed"}`}
+      data-theme={state.theme}
+    >
       <aside className="sidebar">
-        <button aria-label="返回工作台" onClick={() => navigate("/home")}>
+        <button
+          className="sidebar-brand-button"
+          aria-label="返回工作台"
+          title="Hunter 工作台"
+          onClick={() => navigate("/home")}
+        >
           <Brand />
         </button>
-        <span className="sidebar-section-label">业务工作区</span>
+        <IconButton
+          className="sidebar-expand-button"
+          icon={navExpanded ? "panelLeft" : "panelRight"}
+          label={navExpanded ? "收起导航" : "展开导航"}
+          onClick={() => setNavExpanded((current) => !current)}
+        />
         <nav>
           {navItems.map(([icon, label, route]) => (
             <NavLink
               key={route}
               to={route}
+              title={navExpanded ? undefined : label}
+              aria-label={label}
               className={({ isActive }) => (isActive ? "is-active" : "")}
             >
               <Icon name={icon} />
@@ -379,20 +425,13 @@ export function AppShell({ children }) {
           ))}
         </nav>
         <div className="sidebar-foot">
-          <button
-            className="usage-mini"
+          <UsageRing
+            expanded={navExpanded}
             onClick={() => navigate("/account/usage")}
-          >
-            <span>
-              <b>本月 Agent 用量</b>
-              <em>64%</em>
-            </span>
-            <i>
-              <i />
-            </i>
-          </button>
+          />
           <button
             className="profile-mini"
+            title={navExpanded ? undefined : "沈岚 · 个人工作空间"}
             onClick={() => navigate("/account/profile")}
           >
             <i className="avatar">SL</i>
@@ -477,19 +516,35 @@ export function OpsShell({ children }) {
   const { state, update } = usePrototype();
   const navigate = useNavigate();
   const toast = useToast();
+  const [navExpanded, setNavExpanded] = useState(false);
   return (
-    <div className="app-shell ops-shell" data-theme={state.theme}>
+    <div
+      className={`app-shell ops-shell ${navExpanded ? "nav-expanded" : "nav-collapsed"}`}
+      data-theme={state.theme}
+    >
       <aside className="sidebar">
-        <button aria-label="返回运营工作台" onClick={() => navigate("/ops")}>
+        <button
+          className="sidebar-brand-button"
+          aria-label="返回运营工作台"
+          title="Hunter 运营工作台"
+          onClick={() => navigate("/ops")}
+        >
           <Brand />
         </button>
-        <span className="sidebar-section-label">Hunter 运营</span>
+        <IconButton
+          className="sidebar-expand-button"
+          icon={navExpanded ? "panelLeft" : "panelRight"}
+          label={navExpanded ? "收起导航" : "展开导航"}
+          onClick={() => setNavExpanded((current) => !current)}
+        />
         <nav>
           {opsNav.map(([icon, label, route]) => (
             <NavLink
               end={route === "/ops"}
               key={route}
               to={route}
+              title={navExpanded ? undefined : label}
+              aria-label={label}
               className={({ isActive }) => (isActive ? "is-active" : "")}
             >
               <Icon name={icon} />

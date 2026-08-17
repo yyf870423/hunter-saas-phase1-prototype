@@ -213,6 +213,7 @@ export function Select({
           type="button"
           aria-expanded={open}
           aria-controls={id}
+          aria-label={label || selected?.label || placeholder}
           disabled={disabled}
           onClick={() => setOpen((current) => !current)}
         >
@@ -276,6 +277,9 @@ export function MultiSelect({
         <button
           type="button"
           aria-expanded={open}
+          aria-label={
+            label || (values.length ? `已选 ${values.length} 项` : placeholder)
+          }
           onClick={() => setOpen((current) => !current)}
         >
           <span className={values.length ? "" : "placeholder"}>

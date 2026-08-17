@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
@@ -31,6 +31,7 @@ import {
 } from "../components/conversation";
 import { CandidateReviewWorkspace } from "../components/candidateReview";
 import { BusinessReviewWorkspace } from "../components/businessReview";
+import { IntermediateResultWorkspace } from "../components/intermediateResults";
 import { candidateReviewItems } from "../data/candidateReview";
 import {
   creationPlans,
@@ -39,6 +40,7 @@ import {
   workstreamKinds,
 } from "../data/workstreamConversations";
 import { workstreams } from "../data/demo";
+import { buildWorkstreamEvents } from "../data/intermediateScenarios";
 
 const workstreamKindByType = {
   客户开发: "client",
@@ -528,11 +530,36 @@ function eventToDetail(event, config, kind) {
 export function WorkstreamDetailPage({ kind }) {
   const navigate = useNavigate();
   const toast = useToast();
-  const config = workstreamDetails[kind];
+  const [searchParams] = useSearchParams();
+  const scene = searchParams.get("scene");
+  const config = useMemo(() => {
+    const base = workstreamDetails[kind];
+    return { ...base, events: buildWorkstreamEvents(kind, base.events, scene) };
+  }, [kind, scene]);
+  const initialSceneIndex = scene
+    ? config.events.findIndex((event) => event.scene === scene)
+    : -1;
+  const prepareEvents = () =>
+    config.events.map((event, index) =>
+      initialSceneIndex >= 0 && index < initialSceneIndex && event.blocking
+        ? {
+            ...event,
+            resolved: true,
+            status: "已处理",
+            tone: "success",
+            options: undefined,
+            primary: undefined,
+            secondary: undefined,
+            action: event.action,
+          }
+        : event,
+    );
   const [message, setMessage] = useState("");
-  const [events, setEvents] = useState(config.events);
+  const [events, setEvents] = useState(prepareEvents);
   const [visibleCount, setVisibleCount] = useState(() =>
-    Math.min(1, config.events.length),
+    initialSceneIndex >= 0
+      ? initialSceneIndex + 1
+      : Math.min(1, config.events.length),
   );
   const [attachments, setAttachments] = useState([]);
   const [plan, setPlan] = useState(config.plan);
@@ -566,15 +593,35 @@ export function WorkstreamDetailPage({ kind }) {
   }, [events.length, visibleCount]);
 
   useEffect(() => {
-    setEvents(config.events);
-    setVisibleCount(Math.min(1, config.events.length));
-    setSelectedEvent(null);
+    const nextEvents = config.events.map((event, index) =>
+      initialSceneIndex >= 0 && index < initialSceneIndex && event.blocking
+        ? {
+            ...event,
+            resolved: true,
+            status: "已处理",
+            tone: "success",
+            options: undefined,
+            primary: undefined,
+            secondary: undefined,
+          }
+        : event,
+    );
+    setEvents(nextEvents);
+    setVisibleCount(
+      initialSceneIndex >= 0
+        ? initialSceneIndex + 1
+        : Math.min(1, config.events.length),
+    );
+    setSelectedEvent(
+      initialSceneIndex >= 0 ? nextEvents[initialSceneIndex] : null,
+    );
+    setNavigationCollapsed(initialSceneIndex >= 0);
     setRuntimeSection(null);
     setPlan(config.plan);
     setPlanVersion(config.planVersion);
     setPlanUpdatedAt(config.planUpdatedAt);
     didInitialScrollRef.current = false;
-  }, [config]);
+  }, [config, initialSceneIndex]);
 
   useEffect(
     () => () => {
@@ -609,7 +656,9 @@ export function WorkstreamDetailPage({ kind }) {
     ? eventToDetail(selectedEvent, config, kind)
     : null;
   const reviewingCandidates = selectedEvent?.reviewType === "candidate-batch";
-  const reviewingBusiness = Boolean(selectedEvent?.reviewId);
+  const reviewingIntermediate = Boolean(selectedEvent?.interactionKind);
+  const reviewingBusiness =
+    Boolean(selectedEvent?.reviewId) && !reviewingIntermediate;
   const completedSteps = plan.filter(
     (item) => item.status === "completed",
   ).length;
@@ -895,7 +944,8 @@ export function WorkstreamDetailPage({ kind }) {
       !event.largeResult &&
       !event.route &&
       !event.reviewId &&
-      !event.reviewType
+      !event.reviewType &&
+      !event.interactionKind
     )
       return;
     if (window.matchMedia("(min-width: 1121px)").matches) {
@@ -1023,7 +1073,9 @@ export function WorkstreamDetailPage({ kind }) {
         navigation={conversationNav}
         navigationCollapsed={navigationCollapsed}
         detail={
-          reviewingCandidates || reviewingBusiness ? null : workspaceDetail
+          reviewingCandidates || reviewingBusiness || reviewingIntermediate
+            ? null
+            : workspaceDetail
         }
       >
         {reviewingCandidates ? (
@@ -1045,6 +1097,20 @@ export function WorkstreamDetailPage({ kind }) {
                 response: `审核结果已保存：${counts.contact || 0} 位候选人进入联系名单，${counts.reserve || 0} 位加入岗位储备，${counts.hold || 0} 位保留观察，${counts.reject || 0} 位标记为不合适。接下来我会为联系名单准备沟通信息，并继续评估剩余 28 位候选人。`,
               });
             }}
+          />
+        ) : reviewingIntermediate ? (
+          <IntermediateResultWorkspace
+            event={selectedEvent}
+            readOnly={selectedEvent.resolved}
+            onBack={closeDetail}
+            onSubmit={(response) =>
+              resolveEvent(selectedEvent, "primary", {
+                text: response,
+                response:
+                  selectedEvent.afterResponse ||
+                  `${selectedEvent.title}已按你的反馈处理，我会继续推进后续步骤。`,
+              })
+            }
           />
         ) : reviewingBusiness ? (
           <BusinessReviewWorkspace

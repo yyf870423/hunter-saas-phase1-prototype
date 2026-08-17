@@ -13,6 +13,8 @@ import "./styles/pages.css";
 import "./styles/conversation.css";
 import "./styles/candidate-review.css";
 import "./styles/business-review.css";
+import "./styles/assets-v2.css";
+import "./styles/intermediate-results.css";
 import "./styles/responsive.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
