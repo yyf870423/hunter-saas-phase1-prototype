@@ -23,6 +23,13 @@ import {
   useToast,
 } from "../components/ui";
 import { Icon } from "../components/Icon";
+import {
+  AgentModeSelect,
+  BusinessEventCard,
+  ConfigurationCard,
+  ConversationEntry,
+  PermissionRequestCard,
+} from "../components/conversation";
 
 export function ComponentsPage() {
   const navigate = useNavigate();
@@ -37,6 +44,7 @@ export function ComponentsPage() {
   const [date, setDate] = useState("");
   const [checked, setChecked] = useState(true);
   const [switchOn, setSwitchOn] = useState(true);
+  const [agentMode, setAgentMode] = useState("edit");
   return (
     <div className="page-content component-page" data-theme={theme}>
       <PageHeader
@@ -61,6 +69,7 @@ export function ComponentsPage() {
           { value: "commands", label: "命令与状态" },
           { value: "inputs", label: "输入与选择" },
           { value: "overlays", label: "浮层与反馈" },
+          { value: "conversation", label: "对话与过程" },
           { value: "states", label: "页面状态" },
         ]}
       />
@@ -190,6 +199,103 @@ export function ComponentsPage() {
               <Button onClick={() => toast("后台任务仍在运行", "info")}>
                 信息 Toast
               </Button>
+            </div>
+          </div>
+        </section>
+      )}
+      {tab === "conversation" && (
+        <section className="page-section component-grid conversation-component-demo">
+          <div className="surface">
+            <header className="surface-header">
+              <h2>自然语言输入</h2>
+            </header>
+            <div className="surface-body stack">
+              <ConversationEntry time="刚刚">
+                <p>我会先核验招聘信号和负责人，再给出需要你确认的联系建议。</p>
+              </ConversationEntry>
+              <ConversationEntry role="user" time="刚刚">
+                <p>先确认是否真的扩招，没有明确需求前不要联系。</p>
+              </ConversationEntry>
+              <div className="component-agent-mode">
+                <span>输入框底部操作模式</span>
+                <AgentModeSelect value={agentMode} onChange={setAgentMode} />
+              </div>
+            </div>
+          </div>
+          <div className="surface">
+            <header className="surface-header">
+              <h2>计划、结果与审批</h2>
+            </header>
+            <div className="surface-body stack">
+              <BusinessEventCard
+                event={{
+                  type: "result",
+                  title: "招聘信号已完成核验",
+                  detail: "官网招聘与融资公告相互印证，结果保留 5 条证据。",
+                  time: "10:06",
+                  status: "已确认",
+                  tone: "success",
+                  action: "查看证据",
+                }}
+                onAction={() => toast("已打开结果证据", "info")}
+              />
+              <BusinessEventCard
+                event={{
+                  type: "approval",
+                  title: "是否联系招聘负责人？",
+                  detail: "邮件草稿已生成，不会自动发送。",
+                  time: "10:12",
+                  primary: "审核联系内容",
+                  secondary: "暂不联系",
+                }}
+                onAction={() => toast("处理结果已记录")}
+              />
+              <PermissionRequestCard
+                event={{
+                  title: "允许使用已登录的人才平台？",
+                  detail: "只执行搜索、翻页和详情读取，不会发送消息。",
+                  time: "10:14",
+                  status: "等待授权",
+                  tone: "warning",
+                  scope: [
+                    ["平台", "猎聘、脉脉"],
+                    ["范围", "当前岗位，最多 40 个详情"],
+                  ],
+                  options: [
+                    { value: "deny", label: "拒绝" },
+                    { value: "once", label: "仅允许本次" },
+                    {
+                      value: "mainline",
+                      label: "当前会话持续允许",
+                      tone: "primary",
+                    },
+                  ],
+                }}
+                onAction={(_, value) =>
+                  toast(
+                    value === "deny" ? "已拒绝操作" : "授权已记录",
+                    value === "deny" ? "info" : "success",
+                  )
+                }
+              />
+            </div>
+          </div>
+          <div className="surface span-2">
+            <header className="surface-header">
+              <h2>结构化配置</h2>
+            </header>
+            <div className="surface-body">
+              <ConfigurationCard
+                title="客户开发主线"
+                config={{
+                  scope: "星澜机器人及其机器人算法团队",
+                  trigger: "手动启动；每周复查",
+                  approval: "写入前人工确认",
+                  contact: "联系前人工确认",
+                  stop: "确认招聘机会或连续三次无新增",
+                }}
+                onEdit={() => toast("已进入配置编辑", "info")}
+              />
             </div>
           </div>
         </section>

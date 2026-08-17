@@ -95,12 +95,25 @@ const configs = {
       },
       {
         key: "running",
-        label: "运行任务",
-        width: "10%",
-        render: (value) => `${value} 个`,
+        label: "当前工作",
+        width: "15%",
+        render: (value, row) => (
+          <span className="cell-main">
+            <b>{value ? `${value} 个任务运行` : "暂无运行任务"}</b>
+            <small>
+              {row.type === "人才摸排"
+                ? "组织与人物补齐"
+                : row.type === "岗位招聘"
+                  ? "找人与匹配"
+                  : row.type === "客户开发"
+                    ? "需求核验"
+                    : "等待资料更新"}
+            </small>
+          </span>
+        ),
       },
-      { key: "waiting", label: "等待事项", width: "20%" },
-      { key: "next", label: "下一步", width: "23%" },
+      { key: "waiting", label: "需处理 / 等待", width: "18%" },
+      { key: "next", label: "下一步", width: "20%" },
       { key: "changed", label: "最近变化", width: "10%" },
     ],
     route: (row) =>

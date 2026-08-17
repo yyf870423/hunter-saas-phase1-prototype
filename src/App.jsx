@@ -10,7 +10,7 @@ import { AssetsPage, EntityListPage } from "./pages/ListPages";
 import {
   NewWorkstreamPage,
   WorkstreamDetailPage,
-} from "./pages/WorkstreamPages";
+} from "./pages/WorkstreamConversationPages";
 import {
   CommunicationPage,
   SignalDetailPage,

@@ -44,6 +44,11 @@ test("公共组件的选择、浮层、反馈和页面状态可交互", async ({
   await expect(page.getByText("当前没有任务")).toBeVisible();
   await expect(page.getByText("暂时无法加载")).toBeVisible();
   await expect(page.getByText("当前角色没有权限")).toBeVisible();
+
+  await page.getByRole("button", { name: "对话与过程" }).click();
+  await expect(page.getByText("招聘信号已完成核验")).toBeVisible();
+  await page.getByRole("button", { name: "查看证据" }).click();
+  await expect(page.getByText("已打开结果证据", { exact: true })).toBeVisible();
 });
 
 test("公共组件没有使用浏览器原生可见 select、checkbox 和 radio", async ({
