@@ -89,14 +89,17 @@ function UserLayout() {
           path="/companies/:id"
           element={<AssetDetailPageV2 kind="company" />}
         />
-        <Route path="/contacts" element={<AssetListPageV2 kind="contacts" />} />
+        <Route
+          path="/contacts"
+          element={<Navigate to="/companies/xinglan?tab=contacts" replace />}
+        />
         <Route
           path="/contacts/:id"
           element={<AssetDetailPageV2 kind="contact" />}
         />
         <Route
           path="/opportunities"
-          element={<EntityListPage kind="opportunities" />}
+          element={<Navigate to="/signals" replace />}
         />
         <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
         <Route

@@ -134,9 +134,9 @@ export function Input({
   );
 }
 
-export function Textarea({ label, help, error, ...props }) {
+export function Textarea({ label, help, error, className = "", ...props }) {
   return (
-    <label className={`field ${error ? "field-error" : ""}`}>
+    <label className={`field ${error ? "field-error" : ""} ${className}`}>
       {label && <span className="field-label">{label}</span>}
       <textarea {...props} />
       {error ? (
@@ -534,6 +534,7 @@ export function Modal({
   danger = false,
   size = "md",
   preventClose = false,
+  className = "",
 }) {
   useEffect(() => {
     if (!open) return undefined;
@@ -553,7 +554,7 @@ export function Modal({
       }}
     >
       <section
-        className={`modal modal-${size} ${danger ? "modal-danger" : ""}`}
+        className={`modal modal-${size} ${danger ? "modal-danger" : ""} ${className}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -737,9 +738,29 @@ export function DataTable({
         />
       )
     );
+  const selectWidth = onSelect ? 46 : 0;
+  const actionWidth = actions ? 116 : 0;
+  const fixedWidth = selectWidth + actionWidth;
+  const weights = columns.map((column) => {
+    const parsed = Number.parseFloat(column.width);
+    return Number.isFinite(parsed) ? parsed : 160;
+  });
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
   return (
     <div className="table-wrap">
       <table className="data-table">
+        <colgroup>
+          {onSelect && <col style={{ width: `${selectWidth}px` }} />}
+          {columns.map((column, index) => (
+            <col
+              key={column.key}
+              style={{
+                width: `calc((100% - ${fixedWidth}px) * ${weights[index] / totalWeight})`,
+              }}
+            />
+          ))}
+          {actions && <col style={{ width: `${actionWidth}px` }} />}
+        </colgroup>
         <thead>
           <tr>
             {onSelect && (
@@ -753,12 +774,7 @@ export function DataTable({
               </th>
             )}
             {columns.map((column) => (
-              <th
-                key={column.key}
-                style={column.width ? { width: column.width } : undefined}
-              >
-                {column.label}
-              </th>
+              <th key={column.key}>{column.label}</th>
             ))}
             {actions && <th className="action-cell">操作</th>}
           </tr>

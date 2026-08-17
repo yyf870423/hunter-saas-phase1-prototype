@@ -194,8 +194,7 @@ const configs = {
   },
   companies: {
     title: "公司",
-    description:
-      "管理客户公司、目标公司及其联系人、招聘机会、岗位和候选人推进。",
+    description: "管理客户公司、目标公司及其联系人、关联岗位和候选人推进。",
     newLabel: "新建公司",
     rows: companies,
     filters: ["industry", "location", "hiring"],
@@ -768,15 +767,7 @@ export function EntityListPage({ kind }) {
 export function AssetsPage() {
   const navigate = useNavigate();
   const assetCards = [
-    ["building", "公司", companies.length, "1 家招聘机会待核验", "/companies"],
-    ["users", "联系人", contacts.length, "2 位等待回复", "/contacts"],
-    [
-      "signal",
-      "招聘机会",
-      opportunities.length,
-      "1 条待澄清",
-      "/opportunities",
-    ],
+    ["building", "公司", companies.length, "2 家公司资料待补充", "/companies"],
     ["briefcase", "岗位", positions.length, "3 个正在招聘", "/positions"],
     ["user", "候选人", candidates.length, "4 位资料有更新", "/candidates"],
     ["route", "人才摸排", mappings.length, "7 条人物关系待核验", "/mappings"],
@@ -839,13 +830,13 @@ export function AssetsPage() {
               <Status tone="warning">待核验</Status>
               <Icon name="chevronRight" />
             </button>
-            <button onClick={() => navigate("/opportunities/opp-vla")}>
+            <button onClick={() => navigate("/signals/sig-hiring")}>
               <i className="summary-tone-info">
                 <Icon name="signal" />
               </i>
               <span>
-                <b>机器人平台架构岗位机会</b>
-                <small>招聘人数和职级范围待澄清</small>
+                <b>拓界智驾公开招聘信号</b>
+                <small>是否形成客户开发主线待确认</small>
               </span>
               <Status tone="warning">待澄清</Status>
               <Icon name="chevronRight" />

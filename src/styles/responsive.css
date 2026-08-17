@@ -231,6 +231,26 @@
     width: 100%;
     border-radius: 8px 8px 0 0;
   }
+  .modal > header {
+    min-height: 70px;
+    padding: 13px 14px;
+  }
+  .modal-body {
+    padding: 16px 14px;
+  }
+  .modal > footer {
+    min-height: 62px;
+    padding: 10px 14px;
+  }
+  .modal > footer .button {
+    flex: 1;
+  }
+  .asset-form {
+    gap: 18px;
+  }
+  .asset-form-section + .asset-form-section {
+    padding-top: 18px;
+  }
   .drawer {
     width: 100% !important;
   }

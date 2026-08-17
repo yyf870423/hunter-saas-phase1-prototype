@@ -90,6 +90,39 @@ test("截图 expanded-sidebar", async ({ page }) => {
   });
 });
 
+test("截图 company-create-modal", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/companies");
+  await page.getByRole("button", { name: "新建公司" }).click();
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: "artifacts/company-create-modal-1440x900.png",
+    fullPage: false,
+  });
+});
+
+test("截图 company-create-modal-mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./#/companies");
+  await page.getByRole("button", { name: "新建公司" }).click();
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: "artifacts/company-create-modal-mobile-390x844.png",
+    fullPage: false,
+  });
+});
+
+test("截图 contact-communication-modal", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/contacts/zhou-yawen");
+  await page.getByRole("button", { name: "添加沟通记录" }).click();
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: "artifacts/contact-communication-modal-1440x900.png",
+    fullPage: false,
+  });
+});
+
 test("截图 position-workstream-detail", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./#/workstreams/position-vla/position");

@@ -19,6 +19,7 @@ import {
   Textarea,
   useToast,
 } from "../components/ui";
+import { AssetForm, buildAssetFormValue } from "../components/AssetForm";
 import {
   candidateRows,
   companyRows,
@@ -319,7 +320,7 @@ export function AssetListPageV2({ kind }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState(null);
   const [records, setRecords] = useState(() => rowsByKind[kind] || []);
-  const [draft, setDraft] = useState({ name: "", company: "", note: "" });
+  const [draft, setDraft] = useState(() => buildAssetFormValue(kind));
   const [createError, setCreateError] = useState("");
   const rows = records;
   const filtered = useMemo(() => {
@@ -352,7 +353,7 @@ export function AssetListPageV2({ kind }) {
             tone="primary"
             icon="plus"
             onClick={() => {
-              setDraft({ name: "", company: "", note: "" });
+              setDraft(buildAssetFormValue(kind));
               setCreateError("");
               setCreateOpen(true);
             }}
@@ -443,35 +444,51 @@ export function AssetListPageV2({ kind }) {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         title={`新建${meta.singular}`}
-        description="先填写最少必要信息，创建后可以继续补充完整资料。"
+        description="新建与编辑使用相同的资料结构，后续可以继续补充或修正。"
+        size="xl"
         footer={
           <>
             <Button onClick={() => setCreateOpen(false)}>取消</Button>
             <Button
               tone="primary"
               onClick={() => {
-                if (!draft.name.trim()) {
+                const nameKey = [
+                  "companies",
+                  "candidates",
+                  "contacts",
+                ].includes(kind)
+                  ? "name"
+                  : "title";
+                if (!String(draft[nameKey] || "").trim()) {
                   setCreateError(`${meta.singular}名称不能为空`);
                   return;
                 }
                 const template = rowsByKind[kind]?.[0] || {};
-                const isNamed = [
-                  "candidates",
-                  "companies",
-                  "contacts",
-                ].includes(kind);
+                const listKeys = [
+                  "industries",
+                  "skills",
+                  "matchTerms",
+                  "authors",
+                  "institutions",
+                  "sources",
+                  "tags",
+                  "inventors",
+                ];
+                const normalizedDraft = Object.fromEntries(
+                  Object.entries(draft).map(([key, item]) => [
+                    key,
+                    listKeys.includes(key) && typeof item === "string"
+                      ? item
+                          .split(/[,，]/)
+                          .map((entry) => entry.trim())
+                          .filter(Boolean)
+                      : item,
+                  ]),
+                );
                 const created = {
                   ...template,
+                  ...normalizedDraft,
                   id: `prototype-${kind}-${Date.now()}`,
-                  ...(isNamed
-                    ? { name: draft.name.trim() }
-                    : { title: draft.name.trim(), titleZh: draft.name.trim() }),
-                  ...(draft.company.trim()
-                    ? kind === "patents"
-                      ? { assignee: draft.company.trim() }
-                      : { company: draft.company.trim() }
-                    : {}),
-                  note: draft.note.trim(),
                   updated: "刚刚",
                 };
                 setRecords((current) => [created, ...current]);
@@ -484,43 +501,23 @@ export function AssetListPageV2({ kind }) {
           </>
         }
       >
-        <div className="form-grid">
-          <Input
-            label={`${meta.singular}名称 *`}
-            placeholder={`输入${meta.singular}名称`}
-            value={draft.name}
-            onChange={(event) => {
-              setDraft((current) => ({
-                ...current,
-                name: event.target.value,
-              }));
-              setCreateError("");
-            }}
-            error={createError}
-          />
-          <Input
-            label="所属公司"
-            placeholder="输入公司名称"
-            value={draft.company}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                company: event.target.value,
-              }))
-            }
-          />
-          <Textarea
-            label="补充信息"
-            placeholder="输入已知信息、备注或来源"
-            value={draft.note}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                note: event.target.value,
-              }))
-            }
-          />
-        </div>
+        <AssetForm
+          kind={kind}
+          value={draft}
+          onChange={(next) => {
+            setDraft(next);
+            setCreateError("");
+          }}
+          errors={
+            createError
+              ? {
+                  [["companies", "candidates", "contacts"].includes(kind)
+                    ? "name"
+                    : "title"]: createError,
+                }
+              : {}
+          }
+        />
       </Modal>
       <Modal
         open={Boolean(deleteRow)}
@@ -612,7 +609,7 @@ function StandardEditModal({ open, close, title, children }) {
       open={open}
       onClose={close}
       title={title}
-      size="lg"
+      size="xl"
       footer={
         <>
           <Button onClick={close}>取消</Button>
@@ -638,6 +635,9 @@ function CandidateDetailV2({ candidate }) {
   const toast = useToast();
   const [tab, setTab] = useState("profile");
   const [edit, setEdit] = useState(false);
+  const [editDraft, setEditDraft] = useState(() =>
+    buildAssetFormValue("candidate", candidate),
+  );
   const [remove, setRemove] = useState(false);
   const [enrich, setEnrich] = useState(false);
   const tabs = [
@@ -656,7 +656,10 @@ function CandidateDetailV2({ candidate }) {
         back={() => navigate("/candidates")}
         actions={
           <EditDeleteActions
-            onEdit={() => setEdit(true)}
+            onEdit={() => {
+              setEditDraft(buildAssetFormValue("candidate", candidate));
+              setEdit(true);
+            }}
             onDelete={() => setRemove(true)}
             primary={
               <Button
@@ -844,13 +847,7 @@ function CandidateDetailV2({ candidate }) {
         close={() => setEdit(false)}
         title={`编辑候选人 · ${candidate.name}`}
       >
-        <div className="form-grid">
-          <Input label="姓名" defaultValue={candidate.name} />
-          <Input label="当前公司" defaultValue={candidate.company} />
-          <Input label="当前职位" defaultValue={candidate.title} />
-          <Input label="地点" defaultValue={candidate.location} />
-          <Textarea label="AI 摘要" defaultValue={candidate.summary} />
-        </div>
+        <AssetForm kind="candidate" value={editDraft} onChange={setEditDraft} />
       </StandardEditModal>
       <Modal
         open={enrich}
@@ -1045,6 +1042,9 @@ function PositionDetailV2({ position }) {
   const toast = useToast();
   const [tab, setTab] = useState("overview");
   const [edit, setEdit] = useState(false);
+  const [editDraft, setEditDraft] = useState(() =>
+    buildAssetFormValue("position", position),
+  );
   const [analyse, setAnalyse] = useState(false);
   const [remove, setRemove] = useState(false);
   const [stageEdit, setStageEdit] = useState(false);
@@ -1058,7 +1058,10 @@ function PositionDetailV2({ position }) {
         back={() => navigate("/positions")}
         actions={
           <EditDeleteActions
-            onEdit={() => setEdit(true)}
+            onEdit={() => {
+              setEditDraft(buildAssetFormValue("position", position));
+              setEdit(true);
+            }}
             onDelete={() => setRemove(true)}
             primary={
               <Button
@@ -1228,17 +1231,7 @@ function PositionDetailV2({ position }) {
         close={() => setEdit(false)}
         title={`编辑岗位 · ${position.title}`}
       >
-        <div className="form-grid">
-          <Input label="岗位名称" defaultValue={position.title} />
-          <Input label="公司" defaultValue={position.company} />
-          <Input label="地点" defaultValue={position.location} />
-          <Input label="薪资" defaultValue={position.salary} />
-          <Textarea label="岗位 JD" defaultValue={position.jd} />
-          <Textarea
-            label="自动寻访关键词"
-            defaultValue={position.analysis?.keywords?.join("\n")}
-          />
-        </div>
+        <AssetForm kind="position" value={editDraft} onChange={setEditDraft} />
       </StandardEditModal>
       <Modal
         open={analyse}
@@ -1341,9 +1334,17 @@ function PositionDetailV2({ position }) {
 function CompanyDetailV2({ company }) {
   const navigate = useNavigate();
   const toast = useToast();
-  const [tab, setTab] = useState("profile");
+  const [tab, setTab] = useState(
+    () => new URLSearchParams(window.location.search).get("tab") || "profile",
+  );
   const [edit, setEdit] = useState(false);
+  const [editDraft, setEditDraft] = useState(() =>
+    buildAssetFormValue("company", company),
+  );
   const [contactOpen, setContactOpen] = useState(false);
+  const [contactDraft, setContactDraft] = useState(() =>
+    buildAssetFormValue("contact"),
+  );
   const [remove, setRemove] = useState(false);
   const [tablePages, setTablePages] = useState({
     progress: 1,
@@ -1370,7 +1371,10 @@ function CompanyDetailV2({ company }) {
         back={() => navigate("/companies")}
         actions={
           <EditDeleteActions
-            onEdit={() => setEdit(true)}
+            onEdit={() => {
+              setEditDraft(buildAssetFormValue("company", company));
+              setEdit(true);
+            }}
             onDelete={() => setRemove(true)}
             primary={
               <Button
@@ -1471,7 +1475,13 @@ function CompanyDetailV2({ company }) {
         <InfoSection
           title="联系人"
           actions={
-            <Button icon="plus" onClick={() => setContactOpen(true)}>
+            <Button
+              icon="plus"
+              onClick={() => {
+                setContactDraft(buildAssetFormValue("contact"));
+                setContactOpen(true);
+              }}
+            >
               添加联系人
             </Button>
           }
@@ -1537,28 +1547,14 @@ function CompanyDetailV2({ company }) {
         close={() => setEdit(false)}
         title={`编辑公司资料 · ${company.name}`}
       >
-        <div className="form-grid">
-          <Input label="公司名称" defaultValue={company.name} />
-          <Input
-            label="行业标签"
-            defaultValue={company.industries?.join("、")}
-          />
-          <Textarea label="公司简介" defaultValue={company.intro} />
-          <Textarea label="融资情况" defaultValue={company.funding} />
-          <Textarea
-            label="人才吸引力"
-            defaultValue={company.talentAttraction}
-          />
-          <Textarea
-            label="匹配字符串"
-            defaultValue={company.matchTerms?.join("\n")}
-          />
-        </div>
+        <AssetForm kind="company" value={editDraft} onChange={setEditDraft} />
       </StandardEditModal>
       <Modal
         open={contactOpen}
         onClose={() => setContactOpen(false)}
         title="添加联系人"
+        description="联系人由猎头自行沟通，Hunter 记录联系人资料和沟通历史。"
+        size="lg"
         footer={
           <>
             <Button onClick={() => setContactOpen(false)}>取消</Button>
@@ -1574,13 +1570,11 @@ function CompanyDetailV2({ company }) {
           </>
         }
       >
-        <div className="form-grid">
-          <Input label="姓名 *" placeholder="输入联系人姓名" />
-          <Input label="角色" placeholder="例如：研发招聘负责人" />
-          <Input label="电话" />
-          <Input label="邮箱" />
-          <Textarea label="备注" />
-        </div>
+        <AssetForm
+          kind="contact"
+          value={contactDraft}
+          onChange={setContactDraft}
+        />
       </Modal>
       <DeleteModal
         open={remove}
@@ -1597,6 +1591,33 @@ function ContactDetailV2({ contact }) {
   const navigate = useNavigate();
   const toast = useToast();
   const [edit, setEdit] = useState(false);
+  const [editDraft, setEditDraft] = useState(() =>
+    buildAssetFormValue("contact", contact),
+  );
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [recordError, setRecordError] = useState("");
+  const [recordDraft, setRecordDraft] = useState({
+    date: "2026-08-17",
+    channel: "电话",
+    content: "",
+    next: "",
+  });
+  const [communicationRows, setCommunicationRows] = useState([
+    {
+      date: contact.recent,
+      content: "确认当前负责研发和产品招聘，后续通过工作邮箱发送岗位概要。",
+      next: "8 月 20 日前确认岗位需求范围。",
+      channel: "电话",
+      owner: "沈岚",
+    },
+    {
+      date: "8 月 12 日",
+      content: "首次核验公开联系方式和公司角色。",
+      next: "待取得首次沟通反馈。",
+      channel: "公开资料核验",
+      owner: "沈岚",
+    },
+  ]);
   return (
     <div className="page-content asset-detail-v2">
       <DetailHeader
@@ -1606,13 +1627,29 @@ function ContactDetailV2({ contact }) {
         back={() => navigate("/contacts")}
         actions={
           <>
-            <Button onClick={() => setEdit(true)}>编辑</Button>
+            <Button
+              onClick={() => {
+                setEditDraft(buildAssetFormValue("contact", contact));
+                setEdit(true);
+              }}
+            >
+              编辑
+            </Button>
             <Button
               tone="primary"
-              icon="message"
-              onClick={() => toast("沟通草稿已创建", "info")}
+              icon="plus"
+              onClick={() => {
+                setRecordDraft({
+                  date: "2026-08-17",
+                  channel: "电话",
+                  content: "",
+                  next: "",
+                });
+                setRecordError("");
+                setRecordOpen(true);
+              }}
             >
-              开始沟通
+              添加沟通记录
             </Button>
           </>
         }
@@ -1635,22 +1672,18 @@ function ContactDetailV2({ contact }) {
         </InfoSection>
         <InfoSection title="沟通记录">
           <div className="timeline-v2">
-            <article>
-              <span>{contact.recent}</span>
-              <div>
-                <p>
-                  确认当前负责研发和产品招聘，后续通过工作邮箱发送岗位概要。
-                </p>
-                <small>沈岚</small>
-              </div>
-            </article>
-            <article>
-              <span>8 月 12 日</span>
-              <div>
-                <p>首次核验公开联系方式和公司角色。</p>
-                <small>Hunter</small>
-              </div>
-            </article>
+            {communicationRows.map((row, index) => (
+              <article key={`${row.date}-${index}`}>
+                <span>{row.date}</span>
+                <div>
+                  <p>{row.content}</p>
+                  <small>
+                    {row.channel} · 记录人：{row.owner}
+                  </small>
+                  <small>后续计划：{row.next}</small>
+                </div>
+              </article>
+            ))}
           </div>
         </InfoSection>
       </div>
@@ -1659,14 +1692,94 @@ function ContactDetailV2({ contact }) {
         close={() => setEdit(false)}
         title={`编辑联系人 · ${contact.name}`}
       >
-        <div className="form-grid">
-          <Input label="姓名" defaultValue={contact.name} />
-          <Input label="角色" defaultValue={contact.role} />
-          <Input label="电话" defaultValue={contact.phone} />
-          <Input label="邮箱" defaultValue={contact.email} />
-          <Textarea label="备注" defaultValue={contact.note} />
-        </div>
+        <AssetForm kind="contact" value={editDraft} onChange={setEditDraft} />
       </StandardEditModal>
+      <Modal
+        open={recordOpen}
+        onClose={() => setRecordOpen(false)}
+        title="添加沟通记录"
+        description="记录猎头已经完成的沟通，不会由 Hunter 自动联系对方。"
+        size="lg"
+        footer={
+          <>
+            <Button onClick={() => setRecordOpen(false)}>取消</Button>
+            <Button
+              tone="primary"
+              onClick={() => {
+                if (!recordDraft.content.trim()) {
+                  setRecordError("请填写本次沟通内容");
+                  return;
+                }
+                setCommunicationRows((current) => [
+                  {
+                    ...recordDraft,
+                    date: recordDraft.date || "刚刚",
+                    next: recordDraft.next || "暂无后续计划",
+                    owner: "沈岚",
+                  },
+                  ...current,
+                ]);
+                setRecordOpen(false);
+                toast("沟通记录已添加");
+              }}
+            >
+              保存记录
+            </Button>
+          </>
+        }
+      >
+        <div className="form-grid">
+          <Input
+            label="沟通日期 *"
+            placeholder="YYYY-MM-DD"
+            value={recordDraft.date}
+            onChange={(event) =>
+              setRecordDraft((current) => ({
+                ...current,
+                date: event.target.value,
+              }))
+            }
+          />
+          <Select
+            label="沟通方式 *"
+            value={recordDraft.channel}
+            onChange={(channel) =>
+              setRecordDraft((current) => ({ ...current, channel }))
+            }
+            options={["电话", "微信", "邮件", "线下会面", "其他"].map(
+              (value) => ({ value, label: value }),
+            )}
+          />
+          <Textarea
+            className="span-2"
+            rows={5}
+            label="沟通内容 *"
+            placeholder="记录对方反馈、确认事项和关键信息"
+            value={recordDraft.content}
+            error={recordError}
+            onChange={(event) => {
+              setRecordDraft((current) => ({
+                ...current,
+                content: event.target.value,
+              }));
+              setRecordError("");
+            }}
+          />
+          <Textarea
+            className="span-2"
+            rows={3}
+            label="后续计划"
+            placeholder="例如：8 月 20 日前确认岗位范围"
+            value={recordDraft.next}
+            onChange={(event) =>
+              setRecordDraft((current) => ({
+                ...current,
+                next: event.target.value,
+              }))
+            }
+          />
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -1677,6 +1790,9 @@ function AcademicDetailV2({ item, kind }) {
   const isPaper = kind === "paper";
   const [linkOpen, setLinkOpen] = useState(false);
   const [edit, setEdit] = useState(false);
+  const [editDraft, setEditDraft] = useState(() =>
+    buildAssetFormValue(kind, item),
+  );
   const [linkedCandidates, setLinkedCandidates] = useState(
     item.relatedCandidates,
   );
@@ -1689,7 +1805,14 @@ function AcademicDetailV2({ item, kind }) {
         back={() => navigate(isPaper ? "/papers" : "/patents")}
         actions={
           <>
-            <Button onClick={() => setEdit(true)}>编辑</Button>
+            <Button
+              onClick={() => {
+                setEditDraft(buildAssetFormValue(kind, item));
+                setEdit(true);
+              }}
+            >
+              编辑
+            </Button>
             <Button
               tone="primary"
               icon="users"
@@ -1809,17 +1932,7 @@ function AcademicDetailV2({ item, kind }) {
         close={() => setEdit(false)}
         title={`编辑${isPaper ? "论文" : "专利"}`}
       >
-        <div className="form-grid">
-          <Input label="标题" defaultValue={item.title} />
-          <Input
-            label={isPaper ? "DOI" : "公开号"}
-            defaultValue={isPaper ? item.doi : item.publicationNo}
-          />
-          <Textarea
-            label="摘要"
-            defaultValue={item.abstractZh || item.abstract}
-          />
-        </div>
+        <AssetForm kind={kind} value={editDraft} onChange={setEditDraft} />
       </StandardEditModal>
     </div>
   );

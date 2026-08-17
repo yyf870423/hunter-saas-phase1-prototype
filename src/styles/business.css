@@ -622,6 +622,36 @@
 .form-grid .span-2 {
   grid-column: 1 / -1;
 }
+
+.asset-form {
+  display: grid;
+  gap: 22px;
+}
+.asset-form-section {
+  display: grid;
+  gap: 16px;
+}
+.asset-form-section + .asset-form-section {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.asset-form-section > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.asset-form-section > header h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+.asset-form-section > header p {
+  margin: 4px 0 0;
+  color: var(--ink-tertiary);
+  font-size: 12px;
+  line-height: 1.55;
+}
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

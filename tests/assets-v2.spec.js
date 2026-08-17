@@ -12,9 +12,9 @@ test("业务资产列表的新建与删除会真实改变当前列表", async ({
   await dialog.getByRole("button", { name: "创建" }).click();
   await expect(dialog.getByText("候选人名称不能为空")).toBeVisible();
 
-  await dialog.getByLabel("候选人名称 *").fill("周砚秋");
-  await dialog.getByLabel("所属公司").fill("星澜机器人");
-  await dialog.getByLabel("补充信息").fill("来自行业活动的公开资料。");
+  await dialog.getByLabel("姓名 *").fill("周砚秋");
+  await dialog.getByLabel("当前公司").fill("星澜机器人");
+  await dialog.getByLabel("候选人摘要").fill("来自行业活动的公开资料。");
   await dialog.getByRole("button", { name: "创建" }).click();
 
   const row = page.getByRole("row").filter({ hasText: "周砚秋" });
@@ -23,6 +23,73 @@ test("业务资产列表的新建与删除会真实改变当前列表", async ({
   const deleteDialog = page.getByRole("dialog", { name: "删除候选人" });
   await deleteDialog.getByRole("button", { name: "删除" }).click();
   await expect(row).toHaveCount(0);
+});
+
+test("资产新建与编辑复用同一字段结构", async ({ page }) => {
+  await page.goto("./#/companies");
+  await page.getByRole("button", { name: "新建公司" }).click();
+  const createDialog = page.getByRole("dialog", { name: "新建公司" });
+  for (const label of [
+    "公司名称 *",
+    "包含匹配词",
+    "行业标签",
+    "公司简介",
+    "融资情况",
+    "Base 地点",
+    "公司优势和亮点",
+    "薪资结构和福利",
+    "一般面试流程",
+    "其他要求",
+    "备注",
+  ]) {
+    await expect(createDialog.getByLabel(label)).toBeVisible();
+  }
+  await createDialog.getByRole("button", { name: "关闭" }).click();
+
+  await page.getByRole("row").nth(1).click();
+  await page.getByRole("button", { name: "编辑" }).click();
+  const editDialog = page.getByRole("dialog", { name: /编辑公司资料/ });
+  for (const label of [
+    "公司名称 *",
+    "包含匹配词",
+    "行业标签",
+    "公司简介",
+    "融资情况",
+    "Base 地点",
+    "公司优势和亮点",
+    "薪资结构和福利",
+    "一般面试流程",
+    "其他要求",
+    "备注",
+  ]) {
+    await expect(editDialog.getByLabel(label)).toBeVisible();
+  }
+});
+
+test("公司联系人只记录人工沟通历史", async ({ page }) => {
+  await page.goto("./#/contacts/zhou-yawen");
+  await expect(page.getByRole("button", { name: "开始沟通" })).toHaveCount(0);
+  await page.getByRole("button", { name: "添加沟通记录" }).click();
+  const dialog = page.getByRole("dialog", { name: "添加沟通记录" });
+  await dialog
+    .getByLabel("沟通内容 *")
+    .fill("电话确认本季度新增两个算法岗位。");
+  await dialog.getByLabel("后续计划").fill("周五前补充岗位级别和薪资范围。");
+  await dialog.getByRole("button", { name: "保存记录" }).click();
+  await expect(
+    page.getByText("电话确认本季度新增两个算法岗位。"),
+  ).toBeVisible();
+  await expect(page.getByText(/周五前补充岗位级别和薪资范围/)).toBeVisible();
+});
+
+test("业务资产只展示六类独立资产", async ({ page }) => {
+  await page.goto("./#/assets");
+  const assets = page.locator(".asset-grid");
+  for (const name of ["公司", "岗位", "候选人", "人才摸排", "论文", "专利"]) {
+    await expect(assets.getByText(name, { exact: true })).toBeVisible();
+  }
+  await expect(assets.getByText("联系人", { exact: true })).toHaveCount(0);
+  await expect(assets.getByText("招聘机会", { exact: true })).toHaveCount(0);
 });
 
 test("岗位解析选中更新 JD 后才显示新版 JD 说明", async ({ page }) => {

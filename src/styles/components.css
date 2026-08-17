@@ -650,10 +650,10 @@
   animation: fadeIn 0.16s ease;
 }
 .modal {
-  width: min(520px, 100%);
+  width: min(680px, 100%);
   max-height: calc(100vh - 48px);
   display: grid;
-  grid-template-rows: auto minmax(0, auto) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
@@ -662,18 +662,24 @@
   animation: riseIn 0.2s ease;
 }
 .modal-sm {
-  width: min(420px, 100%);
+  width: min(520px, 100%);
+}
+.modal-md {
+  width: min(680px, 100%);
 }
 .modal-lg {
-  width: min(760px, 100%);
+  width: min(900px, 100%);
+}
+.modal-xl {
+  width: min(1080px, 100%);
 }
 .modal > header {
-  min-height: 74px;
+  min-height: 78px;
   display: grid;
   grid-template-columns: 38px 1fr 36px;
   gap: 12px;
   align-items: center;
-  padding: 15px 18px;
+  padding: 17px 22px;
   border-bottom: 1px solid var(--line);
 }
 .modal-symbol {
@@ -699,16 +705,17 @@
   font-size: 12px;
 }
 .modal-body {
-  padding: 20px;
+  min-height: 0;
+  padding: 24px;
   overflow: auto;
 }
 .modal > footer {
-  min-height: 64px;
+  min-height: 68px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  padding: 12px 18px;
+  padding: 14px 22px;
   border-top: 1px solid var(--line);
   background: var(--surface-subtle);
 }
@@ -876,11 +883,12 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  overflow: auto;
+  overflow-x: clip;
+  overflow-y: auto;
 }
 .data-table {
   width: 100%;
-  min-width: 860px;
+  min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -897,6 +905,9 @@
   font-size: var(--font-size-min);
   font-weight: 700;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .data-table td {
   height: 56px;
@@ -904,6 +915,7 @@
   border-bottom: 1px solid var(--line);
   color: var(--ink-secondary);
   vertical-align: middle;
+  overflow: hidden;
 }
 .data-table tbody tr {
   cursor: pointer;
@@ -928,7 +940,7 @@
   min-height: 24px;
 }
 .action-cell {
-  width: 108px;
+  width: 116px;
   text-align: right !important;
   white-space: nowrap;
 }
