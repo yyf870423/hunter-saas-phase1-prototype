@@ -32,6 +32,7 @@ const paths = {
   bell: ["M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9", "M10 21h4"],
   plus: ["M12 5v14", "M5 12h14"],
   chevronDown: ["m6 9 6 6 6-6"],
+  chevronUp: ["m18 15-6-6-6 6"],
   chevronRight: ["m9 18 6-6-6-6"],
   chevronLeft: ["m15 18-6-6 6-6"],
   close: ["M6 6l12 12", "M18 6 6 18"],

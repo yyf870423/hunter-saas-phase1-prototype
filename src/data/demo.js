@@ -513,7 +513,7 @@ export const navItems = [
   ["home", "工作台", "/home"],
   ["route", "业务主线", "/workstreams"],
   ["signal", "机会与信号", "/signals"],
-  ["task", "任务", "/tasks"],
+  ["task", "支线任务", "/tasks"],
   ["database", "业务资产", "/assets"],
   ["upload", "数据进入", "/imports"],
 ];

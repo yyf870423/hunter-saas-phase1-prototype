@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
-  DateRange,
   Modal,
   PageHeader,
   Segmented,
@@ -84,14 +83,24 @@ const actionItems = [
 const routeForWorkstream = (item) =>
   `/workstreams/${item.id}/${item.type === "客户开发" ? "client" : item.type === "岗位招聘" ? "position" : item.type === "人才摸排" ? "mapping" : "career"}`;
 
+const iconForWorkstream = (type) =>
+  type === "客户开发"
+    ? "building"
+    : type === "岗位招聘"
+      ? "briefcase"
+      : type === "人才摸排"
+        ? "users"
+        : "user";
+
 export function Dashboard() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [range, setRange] = useState("today");
-  const [date, setDate] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
+  const [actionsExpanded, setActionsExpanded] = useState(false);
   const [decision, setDecision] = useState(null);
   const [taskView, setTaskView] = useState("running");
+  const featuredWorkstream = workstreams[0];
+  const secondaryWorkstreams = workstreams.slice(1);
   const filteredActions = useMemo(
     () =>
       actionFilter === "all"
@@ -120,226 +129,155 @@ export function Dashboard() {
       <PageHeader
         eyebrow="2026 年 8 月 17 日 · 星期一"
         title="上午好，沈岚"
-        description="先处理会阻塞业务推进的事项，再查看主线进度和新发现。"
+        description="从最重要的业务主线开始，按需查看支线任务、机会信号和行动队列。"
         actions={
-          <>
-            <Segmented
-              value={range}
-              onChange={setRange}
-              items={[
-                { value: "today", label: "今天" },
-                { value: "week", label: "本周" },
-              ]}
-            />
-            <DateRange value={date} onChange={setDate} width="184px" />
-            <Button
-              tone="primary"
-              icon="plus"
-              onClick={() => navigate("/workstreams/new")}
-            >
-              新建业务主线
-            </Button>
-          </>
+          <Button
+            tone="primary"
+            icon="plus"
+            onClick={() => navigate("/workstreams/new")}
+          >
+            新建业务主线
+          </Button>
         }
       />
 
-      <section className="dashboard-status-strip">
-        <button onClick={() => setActionFilter("all")}>
-          <span>
-            <Icon name="task" />
-            待你处理
-          </span>
-          <b>8</b>
-          <small>3 项阻塞推进</small>
-        </button>
-        <button onClick={() => setTaskView("running")}>
-          <span>
-            <Icon name="play" />
-            正在执行
-          </span>
-          <b>3</b>
-          <small>预计今日完成 2 个</small>
-        </button>
-        <button onClick={() => setTaskView("waiting")}>
-          <span>
-            <Icon name="clock" />
-            外部等待
-          </span>
-          <b>5</b>
-          <small>收到 2 条新回复</small>
-        </button>
-        <button onClick={() => navigate("/assets")}>
-          <span>
-            <Icon name="check" />
-            本月确认成果
-          </span>
-          <b>42</b>
-          <small>较上月同期 +18%</small>
-        </button>
-      </section>
-
-      <section className="page-section surface dashboard-action-queue">
-        <header className="surface-header">
+      <section className="page-section dashboard-mainline-focus">
+        <header className="dashboard-section-heading">
           <div>
-            <h2>行动队列</h2>
-            <span className="muted">
-              不同来源的待办统一按业务影响和时效排序
-            </span>
+            <span className="dashboard-priority-label">首先继续</span>
+            <h2>业务主线</h2>
+            <p>优先展示正在等待你决策、并会影响后续工作的主线。</p>
           </div>
-          <button
-            className="link"
-            onClick={() => navigate("/tasks?status=waiting")}
-          >
-            查看全部待办
+          <button className="link" onClick={() => navigate("/workstreams")}>
+            查看全部主线
           </button>
         </header>
-        <div className="action-queue-filters">
-          <Segmented
-            value={actionFilter}
-            onChange={setActionFilter}
-            items={[
-              { value: "all", label: "全部 8" },
-              { value: "decision", label: "需要确认 3" },
-              { value: "reply", label: "新回复 2" },
-              { value: "issue", label: "异常 1" },
-              { value: "signal", label: "信号 2" },
-            ]}
-          />
-        </div>
-        <div className="action-queue-list">
-          {filteredActions.map((item) => (
-            <article key={item.id}>
-              <span className="action-queue-icon">
-                <Icon name={item.icon} />
-              </span>
-              <div className="action-queue-copy">
-                <span>
-                  <Status tone={item.tone}>{item.priority}</Status>
-                  <small>{item.source}</small>
-                </span>
-                <b>{item.title}</b>
-                <p>{item.reason}</p>
-              </div>
-              <time>{item.due}</time>
-              <Button
-                size="sm"
-                tone={item.tone === "danger" ? "dangerGhost" : "secondary"}
-                onClick={() => setDecision(item)}
-              >
-                {item.action}
-              </Button>
-            </article>
-          ))}
-        </div>
-      </section>
 
-      <section className="page-section dashboard-primary-grid">
-        <div className="surface">
-          <header className="surface-header">
-            <div>
-              <h2>正在推进的业务主线</h2>
-              <span className="muted">
-                显示目标、当前并行工作、阻塞和下一步
+        <div className="dashboard-mainline-layout">
+          <button
+            className="dashboard-featured-mainline"
+            onClick={() => navigate(routeForWorkstream(featuredWorkstream))}
+          >
+            <span className="featured-mainline-topline">
+              <i>
+                <Icon name={iconForWorkstream(featuredWorkstream.type)} />
+              </i>
+              <span>
+                <small>{featuredWorkstream.type}</small>
+                <Status tone={toneForStatus(featuredWorkstream.status)}>
+                  {featuredWorkstream.status}
+                </Status>
               </span>
-            </div>
-            <button className="link" onClick={() => navigate("/workstreams")}>
-              全部主线
-            </button>
-          </header>
-          <div className="dashboard-workstream-table">
-            {workstreams.map((item) => (
+              <time>{featuredWorkstream.changed}</time>
+            </span>
+            <span className="featured-mainline-title">
+              <strong>{featuredWorkstream.target}</strong>
+              <small>{featuredWorkstream.object}</small>
+            </span>
+            <span className="featured-mainline-progress">
+              <span>
+                <small>当前工作</small>
+                <b>{featuredWorkstream.running} 个支线任务正在运行</b>
+              </span>
+              <span>
+                <small>等待你处理</small>
+                <b>{featuredWorkstream.waiting}</b>
+              </span>
+              <span>
+                <small>确认后继续</small>
+                <b>{featuredWorkstream.next}</b>
+              </span>
+            </span>
+            <span className="featured-mainline-action">
+              <b>继续处理</b>
+              <Icon name="chevronRight" />
+            </span>
+          </button>
+
+          <div className="dashboard-secondary-mainlines">
+            {secondaryWorkstreams.map((item) => (
               <button
                 key={item.id}
                 onClick={() => navigate(routeForWorkstream(item))}
               >
                 <i>
-                  <Icon
-                    name={
-                      item.type === "客户开发"
-                        ? "building"
-                        : item.type === "岗位招聘"
-                          ? "briefcase"
-                          : item.type === "人才摸排"
-                            ? "users"
-                            : "user"
-                    }
-                  />
+                  <Icon name={iconForWorkstream(item.type)} />
                 </i>
-                <span className="workstream-main">
+                <span>
                   <small>{item.type}</small>
                   <b>{item.target}</b>
-                  <em>{item.object}</em>
-                </span>
-                <span className="workstream-current">
-                  <small>当前并行工作</small>
-                  <b>
-                    {item.running
-                      ? `${item.running} 个任务运行`
-                      : "暂无运行任务"}
-                  </b>
                   <em>{item.waiting}</em>
                 </span>
-                <span className="workstream-next">
+                <span>
                   <Status tone={toneForStatus(item.status)}>
                     {item.status}
                   </Status>
-                  <small>下一步</small>
-                  <b>{item.next}</b>
+                  <Icon name="chevronRight" />
                 </span>
-                <Icon name="chevronRight" />
               </button>
             ))}
           </div>
         </div>
-        <aside className="surface dashboard-task-panel">
-          <header className="surface-header">
-            <h2>Agent 与外部等待</h2>
-            <button className="link" onClick={() => navigate("/tasks")}>
-              独立任务
-            </button>
-          </header>
-          <div className="dashboard-task-tabs">
-            <Segmented
-              value={taskView}
-              onChange={setTaskView}
-              items={[
-                { value: "running", label: "运行 3" },
-                { value: "waiting", label: "等待 5" },
-                { value: "error", label: "异常 1" },
-              ]}
-            />
+      </section>
+
+      <section className="page-section surface dashboard-task-panel-v2">
+        <header className="surface-header dashboard-layer-header">
+          <div>
+            <span className="dashboard-priority-label">其次查看</span>
+            <h2>支线任务</h2>
+            <p>只在任务需要关注、等待外部输入或发生异常时进入详情。</p>
           </div>
-          <div className="dashboard-task-list">
-            {taskGroups[taskView].map((task, index) => (
-              <button
-                key={`${task.id}-${index}`}
-                onClick={() => navigate(`/tasks/${task.id}`)}
-              >
-                <span>
-                  <b>{task.title}</b>
-                  <small>{task.action}</small>
-                </span>
-                <Status tone={toneForStatus(task.status)}>{task.status}</Status>
-              </button>
-            ))}
-          </div>
-          <div className="dashboard-wait-note">
+          <button className="link" onClick={() => navigate("/tasks")}>
+            查看全部支线任务
+          </button>
+        </header>
+        <div className="dashboard-task-overview">
+          <Segmented
+            value={taskView}
+            onChange={setTaskView}
+            items={[
+              { value: "running", label: "运行 3" },
+              { value: "waiting", label: "等待 5" },
+              { value: "error", label: "异常 1" },
+            ]}
+          />
+          <span>
             <Icon name="info" />
-            <span>等待外部回复的主线不会持续消耗 Agent 用量。</span>
-          </div>
-        </aside>
+            等待外部回复时不会持续消耗 Agent 用量
+          </span>
+        </div>
+        <div className="dashboard-task-cards">
+          {taskGroups[taskView].map((task, index) => (
+            <button
+              key={`${task.id}-${index}`}
+              onClick={() => navigate(`/tasks/${task.id}`)}
+            >
+              <span>
+                <small>{task.type}</small>
+                <Status tone={toneForStatus(task.status)}>{task.status}</Status>
+              </span>
+              <b>{task.title}</b>
+              <p>{task.action}</p>
+              <em>
+                查看任务详情
+                <Icon name="chevronRight" />
+              </em>
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="page-section surface dashboard-discoveries">
-        <header className="surface-header">
+        <header className="surface-header dashboard-layer-header">
           <div>
-            <h2>新发现</h2>
-            <span className="muted">
-              尚未阻塞当前工作，判断后再创建支线或加入已有主线
-            </span>
+            <span className="dashboard-priority-label">然后判断</span>
+            <h2>信号与机会</h2>
+            <p>
+              这些发现尚未阻塞当前工作，可以判断是否加入现有主线或创建新主线。
+            </p>
           </div>
           <button className="link" onClick={() => navigate("/signals")}>
-            全部信号
+            查看全部信号
           </button>
         </header>
         <div>
@@ -348,12 +286,17 @@ export function Dashboard() {
               key={signal.id}
               onClick={() => navigate(`/signals/${signal.id}`)}
             >
-              <Icon name="signal" />
+              <i>
+                <Icon name="signal" />
+              </i>
               <span>
-                <b>{signal.title}</b>
                 <small>
-                  {signal.object} · {signal.time}
+                  {signal.type} · {signal.source}
                 </small>
+                <b>{signal.title}</b>
+                <em>
+                  {signal.object} · {signal.time}
+                </em>
               </span>
               <Status tone={signal.priority === "高" ? "warning" : "neutral"}>
                 {signal.priority === "高" ? "建议关注" : signal.status}
@@ -362,6 +305,69 @@ export function Dashboard() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="page-section surface dashboard-action-queue">
+        <button
+          className="dashboard-action-summary"
+          aria-expanded={actionsExpanded}
+          onClick={() => setActionsExpanded((current) => !current)}
+        >
+          <span className="dashboard-action-summary-icon">
+            <Icon name="task" />
+          </span>
+          <span>
+            <small className="dashboard-priority-label">最后按需处理</small>
+            <b>行动队列</b>
+            <em>8 项待处理，其中 3 项需要确认、2 条新回复、1 个异常</em>
+          </span>
+          <span>
+            {actionsExpanded ? "收起行动队列" : "展开行动队列"}
+            <Icon name={actionsExpanded ? "chevronUp" : "chevronDown"} />
+          </span>
+        </button>
+        {actionsExpanded && (
+          <div className="dashboard-action-expanded">
+            <div className="action-queue-filters">
+              <Segmented
+                value={actionFilter}
+                onChange={setActionFilter}
+                items={[
+                  { value: "all", label: "全部 8" },
+                  { value: "decision", label: "需要确认 3" },
+                  { value: "reply", label: "新回复 2" },
+                  { value: "issue", label: "异常 1" },
+                  { value: "signal", label: "信号 2" },
+                ]}
+              />
+            </div>
+            <div className="action-queue-list">
+              {filteredActions.map((item) => (
+                <article key={item.id}>
+                  <span className="action-queue-icon">
+                    <Icon name={item.icon} />
+                  </span>
+                  <div className="action-queue-copy">
+                    <span>
+                      <Status tone={item.tone}>{item.priority}</Status>
+                      <small>{item.source}</small>
+                    </span>
+                    <b>{item.title}</b>
+                    <p>{item.reason}</p>
+                  </div>
+                  <time>{item.due}</time>
+                  <Button
+                    size="sm"
+                    tone={item.tone === "danger" ? "dangerGhost" : "secondary"}
+                    onClick={() => setDecision(item)}
+                  >
+                    {item.action}
+                  </Button>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="banner banner-warning dashboard-expiry">

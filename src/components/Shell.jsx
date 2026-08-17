@@ -32,7 +32,7 @@ const notificationItems = [
   },
   {
     id: 2,
-    type: "任务",
+    type: "支线任务",
     title: "VLA 候选人召回等待审核",
     time: "18 分钟前",
     route: "/tasks/task-sourcing",
@@ -56,15 +56,41 @@ const notificationItems = [
   },
 ];
 
-function Brand() {
+function Brand({ expanded = false, operations = false }) {
   return (
-    <span className="brand-mark" aria-label="Hunter">
-      <Icon name="signal" />
+    <span className="brand" aria-label="Hunter">
+      <span className="brand-mark">
+        <Icon name="signal" />
+      </span>
+      {expanded && (
+        <span className="brand-copy">
+          <b>Hunter</b>
+          <small>{operations ? "运营支持工作台" : "智能猎头工作空间"}</small>
+        </span>
+      )}
     </span>
   );
 }
 
 function UsageRing({ value = 64, expanded = false, onClick }) {
+  if (expanded) {
+    return (
+      <button
+        type="button"
+        className="usage-mini"
+        aria-label={`查看本月 Agent 用量，已使用 ${value}%`}
+        onClick={onClick}
+      >
+        <span>
+          <b>本月 Agent 用量</b>
+          <em>{value}%</em>
+        </span>
+        <i>
+          <i style={{ width: `${value}%` }} />
+        </i>
+      </button>
+    );
+  }
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - value / 100);
@@ -277,7 +303,7 @@ function GlobalSearch({ open, close }) {
         icon: "route",
       })),
       ...tasks.map((item) => ({
-        group: "任务",
+        group: "支线任务",
         label: item.title,
         meta: `${item.type} · ${item.status}`,
         route: `/tasks/${item.id}`,
@@ -299,14 +325,14 @@ function GlobalSearch({ open, close }) {
       open={open}
       onClose={close}
       title="全局搜索"
-      description="搜索业务主线、任务、信号和全部业务资产"
+      description="搜索业务主线、支线任务、信号和全部业务资产"
       size="lg"
     >
       <div className="global-search">
         <SearchInput
           value={query}
           onChange={setQuery}
-          placeholder="输入姓名、公司、岗位或任务"
+          placeholder="输入姓名、公司、岗位或支线任务"
         />
         <div className="search-results">
           {results.length ? (
@@ -402,7 +428,7 @@ export function AppShell({ children }) {
           title="Hunter 工作台"
           onClick={() => navigate("/home")}
         >
-          <Brand />
+          <Brand expanded={navExpanded} />
         </button>
         <IconButton
           className="sidebar-expand-button"
@@ -410,6 +436,7 @@ export function AppShell({ children }) {
           label={navExpanded ? "收起导航" : "展开导航"}
           onClick={() => setNavExpanded((current) => !current)}
         />
+        <span className="sidebar-section-label">业务工作区</span>
         <nav>
           {navItems.map(([icon, label, route]) => (
             <NavLink
@@ -451,7 +478,7 @@ export function AppShell({ children }) {
             onClick={() => setSearchOpen(true)}
           >
             <Icon name="search" />
-            <span className="placeholder">搜索主线、任务和业务资产</span>
+            <span className="placeholder">搜索主线、支线任务和业务资产</span>
             <kbd>Ctrl K</kbd>
           </button>
           <span className="topbar-spacer" />
@@ -529,7 +556,7 @@ export function OpsShell({ children }) {
           title="Hunter 运营工作台"
           onClick={() => navigate("/ops")}
         >
-          <Brand />
+          <Brand expanded={navExpanded} operations />
         </button>
         <IconButton
           className="sidebar-expand-button"
@@ -537,6 +564,7 @@ export function OpsShell({ children }) {
           label={navExpanded ? "收起导航" : "展开导航"}
           onClick={() => setNavExpanded((current) => !current)}
         />
+        <span className="sidebar-section-label">Hunter 运营</span>
         <nav>
           {opsNav.map(([icon, label, route]) => (
             <NavLink

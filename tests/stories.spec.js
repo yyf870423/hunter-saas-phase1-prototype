@@ -15,7 +15,7 @@ test("登录、通知和全局搜索形成连续入口", async ({ page }) => {
     .getByRole("button", { name: "关闭", exact: true })
     .click();
   await page.getByRole("button", { name: /搜索主线/ }).click();
-  await page.getByPlaceholder("输入姓名、公司、岗位或任务").fill("林昊");
+  await page.getByPlaceholder("输入姓名、公司、岗位或支线任务").fill("林昊");
   await page
     .locator(".global-search .search-results > button")
     .filter({ hasText: "林昊" })
@@ -189,6 +189,63 @@ test("桌面业务主线导航可收起且状态标签保持单行", async ({ pa
   expect(after.width).toBeGreaterThan(before.width + 120);
   await page.getByRole("button", { name: "展开业务主线" }).click();
   await expect(workspace).not.toHaveClass(/navigation-collapsed/);
+});
+
+test("应用导航展开后恢复完整品牌、分组和用量卡样式", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/home");
+  await page.getByRole("button", { name: "展开导航" }).click();
+
+  const sidebar = page.locator(".sidebar");
+  await expect(sidebar.getByText("智能猎头工作空间")).toBeVisible();
+  await expect(sidebar.getByText("业务工作区")).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "支线任务" })).toBeVisible();
+  await expect(sidebar.getByText("本月 Agent 用量")).toBeVisible();
+  expect((await sidebar.boundingBox()).width).toBe(224);
+
+  await page.getByRole("button", { name: "收起导航" }).click();
+  await expect(sidebar.getByText("智能猎头工作空间")).toHaveCount(0);
+  expect((await sidebar.boundingBox()).width).toBe(64);
+});
+
+test("工作台按业务主线、支线任务、信号与机会、行动队列分层", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/home");
+
+  const orderedSections = await page
+    .locator(".page-section")
+    .evaluateAll((sections) =>
+      sections
+        .slice(0, 4)
+        .map((section) =>
+          [
+            "dashboard-mainline-focus",
+            "dashboard-task-panel-v2",
+            "dashboard-discoveries",
+            "dashboard-action-queue",
+          ].find((className) => section.classList.contains(className)),
+        ),
+    );
+  expect(orderedSections).toEqual([
+    "dashboard-mainline-focus",
+    "dashboard-task-panel-v2",
+    "dashboard-discoveries",
+    "dashboard-action-queue",
+  ]);
+
+  await expect(page.getByText("星澜机器人招聘机会").first()).toBeVisible();
+  await expect(page.locator(".dashboard-task-cards > button")).toHaveCount(3);
+  await expect(
+    page.locator(".dashboard-discoveries > div > button"),
+  ).toHaveCount(3);
+  await expect(page.locator(".action-queue-list > article")).toHaveCount(0);
+
+  await page.getByRole("button", { name: /展开行动队列/ }).click();
+  await expect(page.locator(".action-queue-list > article")).toHaveCount(5);
+  await page.getByRole("button", { name: /收起行动队列/ }).click();
+  await expect(page.locator(".action-queue-list > article")).toHaveCount(0);
 });
 
 test("执行计划与相关任务默认收起并共享右侧检查区", async ({ page }) => {
@@ -580,9 +637,9 @@ test("移动端业务主线点击大结果后仍在当前页完成审核", async
   await expect(page.getByLabel("候选人完整审核")).toHaveCount(0);
 });
 
-test("全局任务列表只显示独立支线任务", async ({ page }) => {
+test("全局支线任务列表只显示独立支线任务", async ({ page }) => {
   await page.goto("./#/tasks");
-  await expect(page.getByRole("heading", { name: "独立任务" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "支线任务" })).toBeVisible();
   await expect(page.getByText("核验灵巧手团队招聘机会")).toBeVisible();
   await expect(page.getByText("核验云脉芯能机器人芯片团队")).toBeVisible();
   await expect(page.getByText("召回 VLA 岗位候选人")).toHaveCount(0);

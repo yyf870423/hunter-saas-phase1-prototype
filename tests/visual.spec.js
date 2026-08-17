@@ -3,6 +3,8 @@ import { test } from "@playwright/test";
 const pages = [
   ["review", "/review", 1440, 900],
   ["dashboard", "/home", 1440, 900],
+  ["dashboard-tablet", "/home", 820, 1180],
+  ["dashboard-mobile", "/home", 390, 844],
   ["independent-tasks", "/tasks", 1440, 900],
   ["new-position-workstream", "/workstreams/new?type=position", 1440, 900],
   ["position-workstream", "/workstreams/position-vla/position", 1440, 900],
@@ -77,6 +79,16 @@ for (const [name, route, width, height] of pages) {
     });
   });
 }
+
+test("截图 expanded-sidebar", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/home");
+  await page.getByRole("button", { name: "展开导航" }).click();
+  await page.screenshot({
+    path: "artifacts/expanded-sidebar-1440x900.png",
+    fullPage: true,
+  });
+});
 
 test("截图 position-workstream-detail", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
