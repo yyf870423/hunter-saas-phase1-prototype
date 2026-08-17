@@ -2,6 +2,8 @@
 
 本仓库承载 Hunter 阶段一 SaaS 产品的用户端与运营端完整交互原型。它独立于 Hunter 产品代码，不写入真实数据，不调用生产服务。
 
+在线原型：<https://yyf870423.github.io/hunter-saas-phase1-prototype/#/review>
+
 ## 体验入口
 
 - 用户端：`#/home`
