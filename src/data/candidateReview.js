@@ -587,6 +587,7 @@ export const candidateTierMeta = {
 
 export const candidateDecisionMeta = {
   contact: { label: "加入联系名单", tone: "success" },
+  reserve: { label: "加入岗位储备", tone: "info" },
   hold: { label: "保留观察", tone: "warning" },
   reject: { label: "不合适", tone: "neutral" },
 };

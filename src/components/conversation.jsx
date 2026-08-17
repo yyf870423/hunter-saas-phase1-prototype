@@ -686,6 +686,7 @@ const eventAppearance = {
   branch: ["signal", "支线建议"],
   impact: ["refresh", "影响分析"],
   permission: ["settings", "操作授权"],
+  command: ["check", "待执行指令"],
 };
 
 export function InlineDataTable({ data }) {
@@ -856,7 +857,7 @@ function MarkdownEvent({ event, onAction, onSelect }) {
           </dl>
         ) : null}
         <InlineDataTable data={event.inlineData} />
-        {event.largeResult && !event.resolved && (
+        {event.largeResult && (
           <button
             type="button"
             className="large-result-link"
@@ -864,7 +865,11 @@ function MarkdownEvent({ event, onAction, onSelect }) {
             aria-label={`查看大结果：${event.title}`}
           >
             <span>
-              <b>{event.action || "查看完整结果"}</b>
+              <b>
+                {event.resolved
+                  ? "查看已处理结果"
+                  : event.action || "查看完整结果"}
+              </b>
               <small>
                 {event.largeResultHint ||
                   "在宽幅审核区查看、筛选并处理完整数据"}

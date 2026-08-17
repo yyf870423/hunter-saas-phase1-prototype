@@ -11,6 +11,8 @@
 - 页面索引与审核入口：`#/review`
 - 六条用户故事：`#/review/stories`
 - 公共组件与状态：`#/components`
+- 业务主线自然语言审核示例：`#/workstreams/position-vla/position`
+- 四类支线任务示例：`#/tasks/task-company`、`#/tasks/task-sourcing`、`#/tasks/task-mapping`、`#/tasks/task-enrich`
 
 ## 本地运行
 

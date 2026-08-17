@@ -30,6 +30,7 @@ import {
   WorkstreamTypeChooser,
 } from "../components/conversation";
 import { CandidateReviewWorkspace } from "../components/candidateReview";
+import { candidateReviewItems } from "../data/candidateReview";
 import {
   creationPlans,
   creationFlows,
@@ -58,6 +59,105 @@ function firstBlockingCount(items, start = 0) {
     (item, index) => index >= start && item.blocking && !item.resolved,
   );
   return next < 0 ? items.length : next + 1;
+}
+
+function buildFeedbackCommand(kind, event, text) {
+  const commandBase = {
+    id: `${event.id}-command-${Date.now()}`,
+    type: "command",
+    time: "刚刚",
+    status: "等待确认",
+    tone: "warning",
+    blocking: "action",
+    reviewType: event.reviewType,
+    options: [
+      { value: "secondary", label: "继续修改" },
+      { value: "primary", label: "确认并执行", tone: "primary" },
+    ],
+  };
+  if (kind === "position" && event.reviewType === "candidate-batch") {
+    const reviewDecisions = Object.fromEntries(
+      candidateReviewItems.map((item) => [
+        item.id,
+        item.id === "zhao-xingyu"
+          ? "reject"
+          : item.score >= 85
+            ? "contact"
+            : "reserve",
+      ]),
+    );
+    return {
+      ...commandBase,
+      reviewDecisions,
+      title: "确认候选人批量处理指令",
+      detail:
+        "Hunter 已把自然语言转换为与审核页相同的候选人决定。外部联系尚未执行，确认本批处理后还会单独请求联系授权。",
+      scope: [
+        ["原始指令", text],
+        ["加入联系名单", "综合匹配 85 分及以上共 4 位，排除赵星羽后为 3 位"],
+        ["明确排除", "赵星羽：不适合当前岗位"],
+        ["其余候选人", "14 位加入岗位储备"],
+        ["执行边界", "只更新候选人处理决定，不自动联系"],
+      ],
+      afterResponse:
+        "批量决定已应用：3 位进入联系名单，赵星羽标记为不合适，其余 14 位进入岗位储备。下一步会单独确认外部联系范围。",
+    };
+  }
+  const templates = {
+    client: {
+      title: "确认客户开发处理指令",
+      detail:
+        "Hunter 已将反馈转换为联系人和客户机会的处理决定；未经授权不会发送邮件或消息。",
+      scope: [
+        ["原始指令", text],
+        ["联系人", "周雅雯作为首选需求确认人，陈树明作为业务核验人"],
+        ["下一步", "先确认岗位 HC 与猎头合作方式"],
+        ["执行边界", "仅更新草稿，外部联系另行授权"],
+      ],
+      afterResponse:
+        "联系人和客户机会处理决定已更新。Hunter 会继续准备联系内容，并在外发前再次停下来确认。",
+    },
+    position: {
+      title: "确认岗位招聘处理指令",
+      detail:
+        "Hunter 已将反馈转换为候选人联系范围或岗位条件调整；外部联系和批量写入仍按各自门禁执行。",
+      scope: [
+        ["原始指令", text],
+        ["作用范围", "当前岗位和本轮候选人"],
+        ["处理方式", "只调整受指令影响的候选人决定或匹配条件"],
+        ["执行边界", "不自动发送消息，不重跑无关渠道"],
+      ],
+      afterResponse:
+        "岗位招聘处理指令已更新。我会只处理受影响候选人，并在需要外部联系时再次检查授权。",
+    },
+    mapping: {
+      title: "确认人才摸排处理指令",
+      detail:
+        "Hunter 已将反馈转换为关系核验和覆盖范围调整，不会把推断关系直接写成已确认事实。",
+      scope: [
+        ["原始指令", text],
+        ["确认关系", "保留 5 条有双来源证据的关系"],
+        ["继续核验", "2 条单一来源关系暂不写入"],
+        ["覆盖调整", "继续补齐平台负责人和结构专家"],
+      ],
+      afterResponse:
+        "关系处理决定已应用：5 条写入已确认关系，2 条保留为待核验，并继续补齐关键角色缺口。",
+    },
+    career: {
+      title: "确认候选人资料处理指令",
+      detail:
+        "Hunter 已将反馈转换为候选人资料更新和局部重匹配指令；现有资料不会被直接覆盖。",
+      scope: [
+        ["原始指令", text],
+        ["资料处理", "读取新简历并生成字段级差异"],
+        ["匹配范围", "只重算受新项目和地点影响的岗位"],
+        ["执行边界", "资料更新仍需字段级确认"],
+      ],
+      afterResponse:
+        "资料处理范围已确认。我会先生成字段差异，再由你确认是否更新候选人资料和重算相关岗位。",
+    },
+  };
+  return { ...commandBase, ...(templates[kind] || templates.position) };
 }
 
 export function NewWorkstreamPage() {
@@ -531,8 +631,7 @@ export function WorkstreamDetailPage({ kind }) {
   const detail = selectedEvent
     ? eventToDetail(selectedEvent, config, kind)
     : null;
-  const reviewingCandidates =
-    selectedEvent?.reviewType === "candidate-batch" && !selectedEvent.resolved;
+  const reviewingCandidates = selectedEvent?.reviewType === "candidate-batch";
   const completedSteps = plan.filter(
     (item) => item.status === "completed",
   ).length;
@@ -622,6 +721,7 @@ export function WorkstreamDetailPage({ kind }) {
       const resolved = {
         ...event,
         resolved: true,
+        reviewDecisions: feedback?.decisions || event.reviewDecisions,
         status: rejected ? "已暂缓" : "已确认",
         tone: rejected ? "neutral" : "success",
         options: undefined,
@@ -645,8 +745,17 @@ export function WorkstreamDetailPage({ kind }) {
           response,
         },
       ];
+      const prior = current
+        .slice(0, index)
+        .map((item) =>
+          event.type === "command" &&
+          event.reviewDecisions &&
+          item.reviewType === "candidate-batch"
+            ? { ...item, reviewDecisions: event.reviewDecisions }
+            : item,
+        );
       const next = [
-        ...current.slice(0, index),
+        ...prior,
         resolved,
         ...additions,
         ...current.slice(index + 1),
@@ -662,16 +771,17 @@ export function WorkstreamDetailPage({ kind }) {
           (item) => item.id === thinkingId,
         );
         if (thinkingIndex < 0) return current;
-        const next = current.map((item) =>
-          item.id === thinkingId
-            ? {
-                id: `${event.id}-response`,
-                type: "agent",
-                time: "刚刚",
-                text: item.response,
-              }
-            : item,
-        );
+        const next = [
+          ...current.slice(0, thinkingIndex),
+          {
+            id: `${event.id}-response`,
+            type: "agent",
+            time: "刚刚",
+            text: current[thinkingIndex].response,
+          },
+          ...(feedback?.followup ? [feedback.followup] : []),
+          ...current.slice(thinkingIndex + 1),
+        ];
         setVisibleCount(firstBlockingCount(next, thinkingIndex + 1));
         return next;
       });
@@ -685,6 +795,13 @@ export function WorkstreamDetailPage({ kind }) {
   };
 
   const act = (event, action) => {
+    if (event.type === "command" && action === "secondary") {
+      setMessage(
+        event.scope?.find(([label]) => label === "原始指令")?.[1] || "",
+      );
+      toast("可以在输入框中修改指令后重新发送", "info");
+      return;
+    }
     if (event.route && !event.blocking) {
       selectEvent(event);
       return;
@@ -703,11 +820,13 @@ export function WorkstreamDetailPage({ kind }) {
     const inputSummary =
       text || sentAttachments.map((item) => item.name).join("、");
     if (waitingEvent) {
+      const followup = buildFeedbackCommand(kind, waitingEvent, text);
       resolveEvent(waitingEvent, "feedback", {
         text: text || "请结合这些资料调整当前审核结果。",
         attachments: sentAttachments,
         response:
-          "补充信息已收到。我已把它作为当前人工节点的反馈，并重新检查受影响范围；接下来只推进通过检查的步骤。",
+          "补充信息已收到。我先把自然语言转换为明确的业务操作、对象范围和执行边界，请确认理解无误后再继续。",
+        followup,
       });
       setMessage("");
       setAttachments([]);
@@ -935,6 +1054,8 @@ export function WorkstreamDetailPage({ kind }) {
         {reviewingCandidates ? (
           <CandidateReviewWorkspace
             onBack={closeDetail}
+            initialDecisions={selectedEvent.reviewDecisions}
+            readOnly={selectedEvent.resolved}
             onSubmit={(decisions) => {
               const counts = Object.values(decisions).reduce(
                 (current, decision) => ({
@@ -945,7 +1066,8 @@ export function WorkstreamDetailPage({ kind }) {
               );
               resolveEvent(selectedEvent, "primary", {
                 text: "提交首批候选人审核结果",
-                response: `审核结果已保存：${counts.contact || 0} 位候选人进入联系名单，${counts.hold || 0} 位保留观察，${counts.reject || 0} 位标记为不合适。接下来我会为联系名单准备沟通信息，并继续评估剩余 28 位候选人。`,
+                decisions,
+                response: `审核结果已保存：${counts.contact || 0} 位候选人进入联系名单，${counts.reserve || 0} 位加入岗位储备，${counts.hold || 0} 位保留观察，${counts.reject || 0} 位标记为不合适。接下来我会为联系名单准备沟通信息，并继续评估剩余 28 位候选人。`,
               });
             }}
           />

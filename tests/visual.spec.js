@@ -7,6 +7,9 @@ const pages = [
   ["new-position-workstream", "/workstreams/new?type=position", 1440, 900],
   ["position-workstream", "/workstreams/position-vla/position", 1440, 900],
   ["task-detail", "/tasks/task-sourcing", 1440, 900],
+  ["task-company-detail", "/tasks/task-company", 1440, 900],
+  ["task-mapping-detail", "/tasks/task-mapping", 1440, 900],
+  ["task-enrich-detail", "/tasks/task-enrich", 1440, 900],
   ["candidate-mobile", "/candidates/lin-hao", 390, 844],
   [
     "new-position-workstream-mobile",
@@ -39,6 +42,22 @@ test("截图 position-workstream-detail", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.screenshot({
     path: "artifacts/position-workstream-detail-1440x900.png",
+    fullPage: true,
+  });
+});
+
+test("截图 position-workstream-natural-language-command", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./#/workstreams/position-vla/position");
+  await page
+    .getByLabel("发送给 Hunter")
+    .fill(
+      "联系 85 分以上的候选人，赵星羽虽然分高但不适合这个岗位，其余筛选出来的候选人加入岗位储备",
+    );
+  await page.getByRole("button", { name: "发送", exact: true }).click();
+  await page.getByText("确认候选人批量处理指令").waitFor();
+  await page.screenshot({
+    path: "artifacts/position-workstream-natural-language-command-1440x900.png",
     fullPage: true,
   });
 });

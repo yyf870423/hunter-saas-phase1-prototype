@@ -678,6 +678,67 @@ const events = {
         "一次性发送权限已记录，联系邮件已进入发送队列。后续等待回复期间不会持续消耗 Agent 用量。",
     },
     {
+      type: "wait",
+      time: "今天 09:33",
+      title: "等待客户联系人回复",
+      detail:
+        "联系邮件已发送。主线保留当前状态但不持续运行 Agent；收到邮件回复或用户补充沟通结果时恢复。",
+      status: "等待外部",
+      tone: "neutral",
+      inlineData: {
+        title: "外部联系状态",
+        columns: [
+          { key: "contact", label: "联系人" },
+          { key: "channel", label: "渠道" },
+          { key: "state", label: "状态" },
+          { key: "next", label: "恢复条件" },
+        ],
+        rows: [
+          {
+            contact: "周雅雯 · HRD",
+            channel: "工作邮箱",
+            state: "已发送",
+            next: "收到回复或人工录入沟通结果",
+          },
+        ],
+      },
+    },
+    {
+      type: "object",
+      time: "今天 11:16",
+      title: "客户回复确认 2 个在招岗位",
+      detail:
+        "周雅雯确认 VLA 算法负责人和运动控制专家均有 HC，并愿意接收猎头候选人；岗位要求仍需补充确认。",
+      status: "待确认",
+      tone: "warning",
+      blocking: "review",
+      action: "审核客户机会",
+      confirmLabel: "确认客户机会",
+      inlineData: {
+        title: "客户回复形成的招聘机会",
+        summary: "2 个岗位 · 1 条合作意向",
+        columns: [
+          { key: "position", label: "岗位" },
+          { key: "status", label: "当前信息" },
+          { key: "next", label: "建议下一步" },
+        ],
+        rows: [
+          {
+            position: "VLA 算法负责人",
+            status: "HC 已确认，JD 待补齐",
+            next: "向客户确认完整岗位要求",
+          },
+          {
+            position: "运动控制专家",
+            status: "HC 已确认，职级待确认",
+            next: "补齐职级与汇报关系",
+          },
+        ],
+      },
+      afterResponse:
+        "客户机会已确认并写入系统。VLA 算法负责人将创建岗位招聘主线，运动控制专家保留为待补齐机会。",
+    },
+    {
       type: "branch",
       time: "今天 09:35",
       title: "发现潜在支线：灵巧手团队也在扩招",
@@ -755,10 +816,10 @@ const events = {
         ["建议分层", "12 推荐 · 4 有条件 · 2 不建议"],
       ],
       detailItems: [
-        "赵星羽 · 86 分 · 推荐 · 端到端与多模态经验符合",
-        "林昊 · 84 分 · 推荐 · VLA 落地和机器人平台经验符合",
-        "顾晨阳 · 81 分 · 推荐 · 具身学习与团队协作经验符合",
-        "孙春雨 · 76 分 · 有条件匹配 · 管理范围需要进一步确认",
+        "赵星羽 · 91 分 · 推荐 · 端到端与多模态经验符合",
+        "林昊 · 89 分 · 推荐 · VLA 落地和机器人平台经验符合",
+        "顾晨阳 · 87 分 · 推荐 · 具身学习与团队协作经验符合",
+        "方亦然 · 85 分 · 推荐 · 真机落地经验符合",
         "另外 14 位候选人可在完整结果中按分层和风险筛选",
       ],
       afterResponse:
@@ -768,6 +829,51 @@ const events = {
       type: "agent",
       time: "今天 09:07",
       text: "首批结果已经准备好。建议先审核 12 位推荐候选人，再决定是否扩大来源；有条件匹配的人选都保留了减分原因。",
+    },
+    {
+      type: "permission",
+      time: "今天 09:10",
+      title: "允许联系已进入联系名单的候选人？",
+      detail:
+        "只联系本轮审核后进入联系名单的人选。先生成逐人沟通草稿；发送消息、申请好友或拨打电话仍按渠道分别确认。",
+      status: "等待授权",
+      tone: "warning",
+      blocking: "action",
+      scope: [
+        ["候选人范围", "本轮进入联系名单的人选"],
+        ["允许操作", "生成沟通草稿并准备渠道动作"],
+        ["不包含", "未经确认发送消息、申请好友或拨打电话"],
+        ["后续状态", "发出后等待异步回复"],
+      ],
+      options: [
+        { value: "deny", label: "暂不联系" },
+        { value: "once", label: "仅准备本批联系", tone: "primary" },
+      ],
+      afterResponse:
+        "本批联系范围已授权。我会按候选人的来源和关系路径准备逐人沟通内容，真正外发前仍执行渠道门禁。",
+    },
+    {
+      type: "wait",
+      time: "今天 09:12",
+      title: "等待候选人异步回复",
+      detail:
+        "4 位候选人已通过猎头人工操作完成联系，3 位待发送。等待期间不持续消耗 Agent 用量；新回复、简历或人工录入会触发资料更新。",
+      status: "等待外部",
+      tone: "neutral",
+      inlineData: {
+        title: "候选人联系进展",
+        summary: "7 位联系名单",
+        columns: [
+          { key: "state", label: "状态" },
+          { key: "count", label: "人数" },
+          { key: "next", label: "下一步" },
+        ],
+        rows: [
+          { state: "已联系", count: "4", next: "等待回复" },
+          { state: "待发送", count: "3", next: "猎头确认渠道动作" },
+          { state: "已回复", count: "0", next: "收到后自动回流主线" },
+        ],
+      },
     },
     {
       type: "user",

@@ -73,9 +73,189 @@ const runEvents = [
   },
 ];
 
+const taskRunProfiles = {
+  "task-company": {
+    progress: 82,
+    live: "等待确认客户机会",
+    timing: "已用 18 分钟 · 等待用户处理",
+    messages: [
+      {
+        who: "user",
+        text: "核验星澜机器人灵巧手团队是否真的在扩招，找到能确认岗位的人，但不要直接联系。",
+      },
+      {
+        who: "agent",
+        text: "我会先交叉核验招聘信号，再整理联系人和联系路径；外部联系会回到客户开发主线等待授权。",
+      },
+    ],
+    supplementResponse:
+      "补充信息已加入客户机会核验范围。我会重新检查招聘信号和联系人，但不会自动外联。",
+    events: [
+      {
+        time: "09:04:12",
+        title: "核验融资与招聘信号",
+        summary: "官网新增 4 个灵巧手岗位，融资公告明确提到扩充硬件团队。",
+        tone: "success",
+        icon: "signal",
+        detail: "官网、融资公告和公开招聘动态时间一致，招聘需求可信度为高。",
+      },
+      {
+        time: "09:11:37",
+        title: "确认组织和需求负责人",
+        summary: "识别 3 位联系人；结构负责人陈树明和 HRD 周雅雯可信度最高。",
+        tone: "success",
+        icon: "users",
+        detail: "联系人身份已经通过公司官网、公开履历和候选人关系交叉核验。",
+      },
+      {
+        time: "09:18:03",
+        title: "交付客户机会草稿",
+        summary: "招聘机会、联系人和联系建议已返回客户开发主线等待审核。",
+        tone: "info",
+        icon: "database",
+        detail: "任务本身不发送消息；客户开发主线确认后才能继续外部联系。",
+      },
+    ],
+  },
+  "task-sourcing": {
+    progress: 58,
+    live: "正在读取候选人详情",
+    timing: "已用 42 分钟 · 预计剩余 18 分钟",
+    messages: [
+      {
+        who: "user",
+        text: "继续找 VLA 算法负责人，必须有真实落地经验，管理经验只影响排序。",
+      },
+      {
+        who: "agent",
+        text: "已读取岗位 v3 和历史检查点。我会合并内部人才池、学术作者和人才平台结果，再做角色门禁和匹配分层。",
+      },
+    ],
+    supplementResponse:
+      "补充条件已加入岗位版本。我会先判断影响范围，只重算受影响候选人。",
+    events: runEvents.slice(0, 4),
+  },
+  "task-platform": {
+    progress: 43,
+    live: "平台登录失效，等待处理",
+    timing: "已用 27 分钟 · 检查点已保留",
+    messages: [
+      {
+        who: "user",
+        text: "继续读取猎聘候选人，不要重新扫描已经完成的卡片。",
+      },
+      {
+        who: "agent",
+        text: "我会从 page-3-item-4 检查点继续；如果登录失效，将暂停受影响平台并保留结果池。",
+      },
+    ],
+    supplementResponse:
+      "补充信息已记录。恢复登录后会从检查点继续，不会重复读取已完成候选人。",
+    events: runEvents,
+    problem: {
+      title: "猎聘登录状态失效",
+      detail: "结果池和检查点已保留。处理平台登录后，可在本页继续同一个任务。",
+    },
+  },
+  "task-mapping": {
+    progress: 76,
+    live: "正在核验人物关系",
+    timing: "已用 2 小时 14 分 · 7 条关系待确认",
+    messages: [
+      {
+        who: "user",
+        text: "把云脉芯能机器人芯片团队纳入摸排，确认负责人、核心成员和可用联系路径。",
+      },
+      {
+        who: "agent",
+        text: "我会先确认团队是否真实存在，再补组织、方向、关键人和关系证据；推断关系不会直接写入。",
+      },
+    ],
+    supplementResponse:
+      "补充关系线索已加入核验队列。只有通过双来源核验的关系才会进入确认结果。",
+    events: [
+      {
+        time: "08:44:20",
+        title: "确认团队和研究方向",
+        summary: "团队已确认，主要覆盖机器人芯片、边缘推理和运动控制 SoC。",
+        tone: "success",
+        icon: "building",
+        detail: "公司公告、专利和招聘信息可以相互印证团队方向。",
+      },
+      {
+        time: "09:23:51",
+        title: "补齐组织与关键人物",
+        summary: "已确认负责人 1 位、核心成员 8 位，另有 3 位身份待核验。",
+        tone: "success",
+        icon: "users",
+        detail: "人物来自专利发明人、论文作者、公开履历和已有候选人资料。",
+      },
+      {
+        time: "10:17:08",
+        title: "核验关系与联系路径",
+        summary: "5 条关系通过双来源核验，2 条仅有单一来源，等待猎头判断。",
+        tone: "info",
+        icon: "route",
+        detail: "待核验关系已返回人才摸排主线，不会作为正式关系自动写入。",
+      },
+      {
+        time: "10:58:42",
+        title: "发现客户开发支线",
+        summary: "该团队近期新增 6 个岗位，可能形成新的客户开发机会。",
+        tone: "info",
+        icon: "signal",
+        detail: "支线建议已返回主线，是否创建客户开发主线由用户决定。",
+      },
+    ],
+  },
+  "task-enrich": {
+    progress: 45,
+    live: "等待候选人回复",
+    timing: "已用 11 分钟 · 等待期间不计用量",
+    messages: [
+      {
+        who: "user",
+        text: "林昊发来新版简历后先做查重和字段比较，不要直接覆盖现有资料。",
+      },
+      {
+        who: "agent",
+        text: "收到附件后会先做文件门禁、解析和字段差异，再把变化返回候选人求职主线审核。",
+      },
+    ],
+    supplementResponse:
+      "新资料已加入候选人版本。我会先做字段差异和影响分析，再决定需要重算哪些岗位。",
+    events: [
+      {
+        time: "17:42:03",
+        title: "记录候选人异步回复",
+        summary: "林昊表示晚上发送新版简历，地点仍优先上海或杭州。",
+        tone: "success",
+        icon: "message",
+        detail: "回复已经回流主线；等待期间任务不持续消耗 Agent 用量。",
+      },
+      {
+        time: "09:02:14",
+        title: "接收并检查新版简历",
+        summary: "已收到 PDF；文件门禁通过，等待当前主线授予解析权限。",
+        tone: "info",
+        icon: "file",
+        detail: "文件为候选人简历，候选人身份与现有林昊档案一致。",
+      },
+      {
+        time: "09:04:36",
+        title: "生成字段级更新建议",
+        summary: "识别 4 项变化，不直接覆盖；更新建议返回候选人求职主线。",
+        tone: "info",
+        icon: "database",
+        detail: "新增项目经历、技能、地点和管理意向，所有变化均保留来源。",
+      },
+    ],
+  },
+};
+
 function TechnicalDetail({ open, close, event }) {
   const toast = useToast();
-  const raw = `event_type: ${event?.tone === "danger" ? "platform_session_expired" : "business_step_completed"}\ncheckpoint: detail-page-2-item-6\nretryable: true\nsource_count: 18\nredaction: business_content_hidden`;
+  const raw = `event_type: ${event?.tone === "danger" ? "platform_session_expired" : "business_step_completed"}\nevent_title: ${event?.title || "unknown"}\ncheckpoint: ${event?.checkpoint || "saved"}\nretryable: true\nredaction: business_content_hidden`;
   return (
     <Modal
       open={open}
@@ -110,25 +290,22 @@ export function TaskDetailPage() {
   const toast = useToast();
   const { state, update } = usePrototype();
   const task = tasks.find((item) => item.id === id) || tasks[1];
+  const profile = taskRunProfiles[id] || taskRunProfiles["task-sourcing"];
   const [status, setStatus] = useState(state.taskStatus[id] || task.status);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [technical, setTechnical] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      who: "user",
-      text: "为这个岗位继续找人，匹配分数线设为 0，但仍保留岗位角色和范围门禁。",
-    },
-    {
-      who: "agent",
-      text: "已读取岗位 v3 和历史检查点。本次会继续尚未完成的平台读取，完成后将候选人按推荐、有条件匹配和不建议三类交付。",
-    },
-  ]);
-  const [progress, setProgress] = useState(
-    status === "运行中" ? 58 : status === "失败" ? 43 : 100,
-  );
+  const [messages, setMessages] = useState(profile.messages);
+  const [progress, setProgress] = useState(profile.progress);
   const threadRef = useRef(null);
+  useEffect(() => {
+    setStatus(state.taskStatus[id] || task.status);
+    setMessages(profile.messages);
+    setProgress(profile.progress);
+    setSelectedEvent(null);
+    setMessage("");
+  }, [id]);
   useEffect(() => {
     if (status !== "运行中") return undefined;
     const timer = window.setInterval(
@@ -155,13 +332,13 @@ export function TaskDetailPage() {
           ...current,
           {
             who: "agent",
-            text: "补充信息已加入当前任务版本。我会先判断影响范围，只重做受影响的步骤。",
+            text: profile.supplementResponse,
           },
         ]),
       500,
     );
   };
-  const events = status === "失败" ? runEvents : runEvents.slice(0, 4);
+  const events = profile.events;
   return (
     <div className="page-content task-detail-page">
       <PageHeader
@@ -239,13 +416,13 @@ export function TaskDetailPage() {
             <div className="task-live-summary">
               <span>
                 <b>
-                  {status === "运行中"
-                    ? "正在读取候选人详情"
-                    : status === "失败"
-                      ? "平台登录失效，等待处理"
-                      : "任务当前未运行"}
+                  {status === "已暂停"
+                    ? "当前未运行，检查点已保留"
+                    : profile.live}
                 </b>
-                <small>{progress}% · 已用 42 分钟 · 预计剩余 18 分钟</small>
+                <small>
+                  {progress}% · {profile.timing}
+                </small>
               </span>
               <div className="progress">
                 <i>
@@ -285,14 +462,12 @@ export function TaskDetailPage() {
               events={events}
               onOpen={(event) => setSelectedEvent(event)}
             />
-            {status === "失败" && (
+            {profile.problem && status === "失败" && (
               <div className="banner banner-danger">
                 <Icon name="warning" />
                 <span>
-                  <b>脉脉登录状态失效</b>
-                  <small>
-                    结果池和检查点已保留。处理平台登录后，可在本页继续同一个任务。
-                  </small>
+                  <b>{profile.problem.title}</b>
+                  <small>{profile.problem.detail}</small>
                 </span>
                 <Button
                   size="sm"

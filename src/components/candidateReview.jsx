@@ -15,10 +15,15 @@ const filters = [
   ["handled", "已处理"],
 ];
 
-export function CandidateReviewWorkspace({ onBack, onSubmit }) {
+export function CandidateReviewWorkspace({
+  onBack,
+  onSubmit,
+  initialDecisions = {},
+  readOnly = false,
+}) {
   const [filter, setFilter] = useState("all");
   const [selectedId, setSelectedId] = useState(candidateReviewItems[0].id);
-  const [decisions, setDecisions] = useState({});
+  const [decisions, setDecisions] = useState(initialDecisions);
   const selected =
     candidateReviewItems.find((item) => item.id === selectedId) ||
     candidateReviewItems[0];
@@ -65,6 +70,29 @@ export function CandidateReviewWorkspace({ onBack, onSubmit }) {
     setDecisions(next);
   };
 
+  const applyScoreRule = () => {
+    setDecisions((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        candidateReviewItems
+          .filter((item) => item.score >= 85)
+          .map((item) => [item.id, "contact"]),
+      ),
+      "zhao-xingyu": "reject",
+    }));
+  };
+
+  const reserveUnreviewed = () => {
+    setDecisions((current) => ({
+      ...Object.fromEntries(
+        candidateReviewItems.map((item) => [
+          item.id,
+          current[item.id] || "reserve",
+        ]),
+      ),
+    }));
+  };
+
   return (
     <section className="candidate-review-workspace" aria-label="候选人完整审核">
       <header className="candidate-review-header">
@@ -79,17 +107,27 @@ export function CandidateReviewWorkspace({ onBack, onSubmit }) {
           <span className="candidate-review-progress">
             <b>{handled}</b> / {candidateReviewItems.length} 已处理
           </span>
-          <Button size="sm" onClick={applySuggestions}>
-            按建议处理未审核
-          </Button>
-          <Button
-            size="sm"
-            tone="primary"
-            disabled={handled !== candidateReviewItems.length}
-            onClick={() => onSubmit(decisions)}
-          >
-            提交本批审核
-          </Button>
+          {!readOnly && (
+            <>
+              <Button size="sm" onClick={applySuggestions}>
+                按建议处理未审核
+              </Button>
+              <Button size="sm" onClick={applyScoreRule}>
+                85 分及以上加入联系
+              </Button>
+              <Button size="sm" onClick={reserveUnreviewed}>
+                未处理加入岗位储备
+              </Button>
+              <Button
+                size="sm"
+                tone="primary"
+                disabled={handled !== candidateReviewItems.length}
+                onClick={() => onSubmit(decisions)}
+              >
+                提交本批审核
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -278,24 +316,29 @@ export function CandidateReviewWorkspace({ onBack, onSubmit }) {
         </article>
       </div>
 
-      <footer className="candidate-review-actions">
-        <span>
-          {decisions[selected.id]
-            ? `当前决定：${candidateDecisionMeta[decisions[selected.id]].label}`
-            : "请选择当前候选人的处理决定"}
-        </span>
-        <div>
-          <Button size="sm" onClick={() => decide("reject")}>
-            不合适
-          </Button>
-          <Button size="sm" onClick={() => decide("hold")}>
-            保留观察
-          </Button>
-          <Button size="sm" tone="primary" onClick={() => decide("contact")}>
-            加入联系名单
-          </Button>
-        </div>
-      </footer>
+      {!readOnly && (
+        <footer className="candidate-review-actions">
+          <span>
+            {decisions[selected.id]
+              ? `当前决定：${candidateDecisionMeta[decisions[selected.id]].label}`
+              : "请选择当前候选人的处理决定"}
+          </span>
+          <div>
+            <Button size="sm" onClick={() => decide("reject")}>
+              不合适
+            </Button>
+            <Button size="sm" onClick={() => decide("hold")}>
+              保留观察
+            </Button>
+            <Button size="sm" onClick={() => decide("reserve")}>
+              加入岗位储备
+            </Button>
+            <Button size="sm" tone="primary" onClick={() => decide("contact")}>
+              加入联系名单
+            </Button>
+          </div>
+        </footer>
+      )}
     </section>
   );
 }

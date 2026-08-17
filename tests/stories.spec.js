@@ -73,19 +73,40 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
   await expect(page.getByText("脉脉候选人读取", { exact: true })).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
-    .fill("杭州也可以接受，但每周至少三天到岗");
+    .fill(
+      "联系 85 分以上的候选人，赵星羽虽然分高但不适合这个岗位，其余筛选出来的候选人加入岗位储备",
+    );
   await page.getByRole("button", { name: "发送", exact: true }).click();
   await expect(
     page.getByText("Hunter 正在应用你的决定并检查后续步骤"),
   ).toBeVisible();
   await expect(
-    page.getByText(/补充信息已收到。我已把它作为当前人工节点的反馈/),
+    page.getByText(/我先把自然语言转换为明确的业务操作/),
   ).toBeVisible();
   await expect(
     page
       .locator(".mainline-conversation-main")
-      .getByText("地点变化需要重新评估 6 位候选人"),
+      .getByText("确认候选人批量处理指令"),
   ).toBeVisible();
+  await expect(
+    page.getByText("综合匹配 85 分及以上共 4 位，排除赵星羽后为 3 位"),
+  ).toBeVisible();
+  await expect(page.getByText("赵星羽：不适合当前岗位")).toBeVisible();
+  await expect(page.getByText("14 位加入岗位储备")).toBeVisible();
+  await page.getByRole("button", { name: "确认并执行" }).click();
+  await expect(
+    page.getByText("允许联系已进入联系名单的候选人？"),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
+    .click();
+  await expect(page.getByLabel("候选人完整审核")).toContainText(
+    "18 / 18 已处理",
+  );
+  await expect(page.getByRole("button", { name: "提交本批审核" })).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "返回业务主线" }).click();
 });
 
 test("业务主线入口直接打开会话并通过左侧加号新建", async ({ page }) => {
@@ -208,7 +229,7 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
       current: "首批候选人已完成匹配",
       hidden: "地点变化需要重新评估 6 位候选人",
       confirm: "确认首批名单",
-      next: "地点变化需要重新评估 6 位候选人",
+      next: "允许联系已进入联系名单的候选人？",
       large: true,
     },
   ];
@@ -242,6 +263,47 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
   await expect(page.getByText("允许解析候选人刚发送的新简历？")).toBeVisible();
   await expect(page.getByText("新简历已生成资料更新建议")).toHaveCount(0);
   await page.getByRole("button", { name: "仅允许本次" }).click();
+  await expect(page.getByText("新简历已生成资料更新建议")).toBeVisible();
+});
+
+test("客户开发主线从信号核验渐进到客户回复和岗位机会", async ({ page }) => {
+  await page.goto("./#/workstreams/client-xinglan/client");
+  await page.getByRole("button", { name: "确认公司与联系人" }).click();
+  await page.getByRole("button", { name: "确认联系内容" }).click();
+  await page.getByRole("button", { name: "仅允许本次" }).click();
+  await expect(page.getByText("等待客户联系人回复")).toBeVisible();
+  await expect(page.getByText("客户回复确认 2 个在招岗位")).toBeVisible();
+  await expect(page.getByText("发现潜在支线：灵巧手团队也在扩招")).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "确认客户机会" }).click();
+  await expect(
+    page.getByText("发现潜在支线：灵巧手团队也在扩招"),
+  ).toBeVisible();
+});
+
+test("人才摸排支持自然语言核验关系并继续发现支线", async ({ page }) => {
+  await page.goto("./#/workstreams/mapping-embodied/mapping");
+  await page.getByRole("button", { name: "当前业务主线持续允许" }).click();
+  await page
+    .getByLabel("发送给 Hunter")
+    .fill("有两项独立证据的关系确认写入，只有单一来源的继续保留为待核验");
+  await page.getByRole("button", { name: "发送", exact: true }).click();
+  await expect(page.getByText("确认人才摸排处理指令")).toBeVisible();
+  await page.getByRole("button", { name: "确认并执行" }).click();
+  await expect(
+    page.getByText("发现潜在支线：云脉芯能成立机器人芯片团队"),
+  ).toBeVisible();
+});
+
+test("候选人求职支持自然语言控制资料更新和局部重匹配", async ({ page }) => {
+  await page.goto("./#/workstreams/career-linhao/career");
+  await page
+    .getByLabel("发送给 Hunter")
+    .fill("解析新简历，但不要覆盖原资料；先给我字段差异，再只重算受影响岗位");
+  await page.getByRole("button", { name: "发送", exact: true }).click();
+  await expect(page.getByText("确认候选人资料处理指令")).toBeVisible();
+  await page.getByRole("button", { name: "确认并执行" }).click();
   await expect(page.getByText("新简历已生成资料更新建议")).toBeVisible();
 });
 
@@ -302,6 +364,10 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
   await expect(
     page.getByText(/审核结果已保存：12 位候选人进入联系名单/),
   ).toBeVisible();
+  await expect(
+    page.getByText("允许联系已进入联系名单的候选人？"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "仅准备本批联系" }).click();
   await expect(
     page.getByText(
       "客户刚补充：工作地点除了上海，也可以考虑杭州。请更新候选人结果。",
@@ -398,6 +464,7 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
     .click();
   await page.getByRole("button", { name: "按建议处理未审核" }).click();
   await page.getByRole("button", { name: "提交本批审核" }).click();
+  await page.getByRole("button", { name: "仅准备本批联系" }).click();
   await expect(page.getByText("地点变化需要重新评估 6 位候选人")).toBeVisible();
   await page.getByRole("button", { name: "确认局部重匹配" }).click();
   await page.getByRole("button", { name: /执行计划 3\/6/ }).click();
@@ -438,7 +505,9 @@ test("任务暂停、恢复和技术详情均可操作", async ({ page }) => {
     page.getByRole("button", { name: "返回业务主线" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "暂停", exact: true }).click();
-  await expect(page.getByText("任务已暂停，检查点已保留")).toBeVisible();
+  await expect(
+    page.locator(".toast").getByText("任务已暂停，检查点已保留"),
+  ).toBeVisible();
   await page.getByRole("button", { name: "继续任务" }).click();
   await expect(page.getByText("任务已从检查点继续")).toBeVisible();
   const processEntry = page.locator(".task-process button").first();
@@ -448,6 +517,20 @@ test("任务暂停、恢复和技术详情均可操作", async ({ page }) => {
     .locator(".drawer")
     .getByRole("button", { name: "关闭", exact: true })
     .click();
+});
+
+test("不同支线任务展示各自业务过程而非复用寻访日志", async ({ page }) => {
+  const cases = [
+    ["task-company", "核验融资与招聘信号", "交付客户机会草稿"],
+    ["task-sourcing", "从人才平台召回候选人", "岗位角色门禁与匹配"],
+    ["task-mapping", "确认团队和研究方向", "发现客户开发支线"],
+    ["task-enrich", "记录候选人异步回复", "生成字段级更新建议"],
+  ];
+  for (const [taskId, first, last] of cases) {
+    await page.goto(`./#/tasks/${taskId}`);
+    await expect(page.getByText(first, { exact: true })).toBeVisible();
+    await expect(page.getByText(last, { exact: true })).toBeVisible();
+  }
 });
 
 test("候选人新资料可以生成局部更新和重新匹配任务", async ({ page }) => {
