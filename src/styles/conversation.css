@@ -181,32 +181,6 @@
   justify-content: center;
   padding: 9px 6px;
 }
-.collapsed-workstream-context {
-  min-height: 0;
-  flex: 1;
-  display: grid;
-  place-items: center;
-  align-content: start;
-  gap: 10px;
-  padding: 14px 8px;
-  color: var(--ink-tertiary);
-}
-.collapsed-workstream-context:hover {
-  color: var(--blue-strong);
-  background: var(--blue-soft);
-}
-.collapsed-workstream-context svg {
-  width: 18px;
-}
-.collapsed-workstream-context span {
-  max-height: 210px;
-  overflow: hidden;
-  font-size: 9px;
-  font-weight: 650;
-  line-height: 1.5;
-  text-overflow: ellipsis;
-  writing-mode: vertical-rl;
-}
 .drawer .workstream-conversation-nav {
   min-height: 560px;
   border: 0;
@@ -854,7 +828,7 @@
   transition: transform 0.16s ease;
 }
 .plan-list-dock.is-open .plan-list-toggle > svg {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 .plan-list-dock > ol {
   max-height: 220px;
@@ -917,6 +891,153 @@
   font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.task-run-dock {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.task-run-toggle {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  color: var(--ink);
+  text-align: left;
+}
+.task-run-toggle:hover {
+  background: var(--surface-subtle);
+}
+.task-run-toggle > i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--violet);
+  background: var(--violet-soft);
+}
+.task-run-toggle > i svg {
+  width: 14px;
+}
+.task-run-toggle > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.task-run-toggle b {
+  font-size: 11px;
+}
+.task-run-toggle small {
+  overflow: hidden;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.task-run-toggle > svg {
+  color: var(--ink-tertiary);
+  transition: transform 0.16s ease;
+}
+.task-run-dock.is-open .task-run-toggle > svg {
+  transform: rotate(90deg);
+}
+.task-run-list {
+  max-height: 176px;
+  padding: 4px 10px 8px;
+  border-top: 1px solid var(--line);
+  overflow-y: auto;
+}
+.task-run-list > button {
+  width: 100%;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 16px minmax(190px, 1fr) minmax(112px, 0.35fr) auto 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 5px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-secondary);
+  text-align: left;
+}
+.task-run-list > button:last-child {
+  border-bottom: 0;
+}
+.task-run-list > button:hover {
+  background: var(--surface-subtle);
+}
+.task-run-list > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.task-run-list b,
+.task-run-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.task-run-list b {
+  color: var(--ink);
+  font-size: 9px;
+}
+.task-run-list small {
+  color: var(--ink-tertiary);
+  font-size: 8px;
+}
+.task-run-state {
+  display: grid;
+  place-items: center;
+}
+.task-run-state > i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-tertiary);
+  box-shadow: 0 0 0 3px var(--surface-strong);
+}
+.task-run-state > i.is-running {
+  background: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-soft);
+  animation: task-run-pulse 1.8s ease-in-out infinite;
+}
+.task-run-state > i.is-completed {
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+.task-run-state > i.is-waiting,
+.task-run-state > i.is-failed {
+  background: var(--warning);
+  box-shadow: 0 0 0 3px var(--warning-soft);
+}
+.task-run-progress {
+  display: grid;
+  gap: 4px;
+}
+.task-run-progress > i {
+  height: 4px;
+  display: block;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  overflow: hidden;
+}
+.task-run-progress > i > em {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--blue);
+}
+.task-run-list > button > svg {
+  width: 12px;
+  color: var(--ink-tertiary);
+}
+@keyframes task-run-pulse {
+  50% {
+    opacity: 0.42;
+  }
 }
 .conversation-composer {
   position: relative;
@@ -1056,6 +1177,9 @@
 }
 .agent-mode-select > button svg {
   width: 13px;
+}
+.agent-mode-select > button span {
+  white-space: nowrap;
 }
 .agent-mode-select > button svg:last-child {
   width: 11px;
@@ -1749,6 +1873,12 @@
   .plan-list-dock li > .status {
     grid-column: 2;
     justify-self: start;
+  }
+  .task-run-list > button {
+    grid-template-columns: 14px minmax(0, 1fr) auto 12px;
+  }
+  .task-run-progress {
+    display: none;
   }
   .conversation-toolbar {
     align-items: stretch;

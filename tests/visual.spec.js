@@ -69,7 +69,7 @@ test("截图 position-workstream-user-time-hover", async ({ page }) => {
 test("截图 position-workstream-task-inline-detail", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./#/workstreams/position-vla/position");
-  await page.getByRole("button", { name: "查看任务运行" }).click();
+  await page.getByRole("button", { name: "查看任务：猎聘候选人读取" }).click();
   await page.screenshot({
     path: "artifacts/position-workstream-task-inline-detail-1440x900.png",
     fullPage: true,
@@ -119,7 +119,7 @@ test("截图 position-workstream-detail-mobile", async ({ page }) => {
     .click();
   await page.waitForTimeout(250);
   await page.screenshot({
-    path: "artifacts/position-workstream-detail-mobile-390x844.png",
+    path: "artifacts/position-workstream-candidate-review-mobile-390x844.png",
     fullPage: true,
   });
 });

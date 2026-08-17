@@ -68,7 +68,8 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
       .locator(".mainline-conversation-main")
       .getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
   ).toBeVisible();
-  await expect(page.getByText("2 个人才平台任务正在运行")).toBeVisible();
+  await expect(page.getByText("猎聘候选人读取", { exact: true })).toBeVisible();
+  await expect(page.getByText("脉脉候选人读取", { exact: true })).toBeVisible();
   await page
     .getByLabel("发送给 Hunter")
     .fill("杭州也可以接受，但每周至少三天到岗");
@@ -130,10 +131,50 @@ test("桌面业务主线导航可收起且状态标签保持单行", async ({ pa
   await expect(
     page.getByRole("button", { name: "展开业务主线" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "业务主线" })
+      .getByText("具身智能 VLA 算法负责人"),
+  ).toHaveCount(0);
   const after = await page.locator(".mainline-conversation-main").boundingBox();
   expect(after.width).toBeGreaterThan(before.width + 120);
   await page.getByRole("button", { name: "展开业务主线" }).click();
   await expect(workspace).not.toHaveClass(/navigation-collapsed/);
+});
+
+test("执行计划与相关任务使用正确的展开箭头方向", async ({ page }) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  const planToggle = page.locator(".plan-list-toggle");
+  const planIcon = planToggle.locator(":scope > svg");
+  await expect(planToggle).toHaveAttribute("aria-expanded", "false");
+  await expect(planIcon.locator("path")).toHaveAttribute("d", "m9 18 6-6-6-6");
+  await planToggle.click();
+  await expect(planToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(planIcon).not.toHaveCSS("transform", "none");
+
+  const taskToggle = page.locator(".task-run-toggle");
+  const taskIcon = taskToggle.locator(":scope > svg");
+  await expect(taskToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(taskIcon.locator("path")).toHaveAttribute("d", "m9 18 6-6-6-6");
+  await taskToggle.click();
+  await expect(taskToggle).toHaveAttribute("aria-expanded", "false");
+  await expect(taskIcon).toHaveCSS("transform", "none");
+});
+
+test("相关任务默认在当前页查看并可选择新标签页", async ({ page }) => {
+  await page.goto("./#/workstreams/position-vla/position");
+  const currentUrl = page.url();
+  await page.getByRole("button", { name: "查看任务：猎聘候选人读取" }).click();
+  await expect(page).toHaveURL(currentUrl);
+  await expect(
+    page.getByRole("complementary", { name: "业务主线详情" }),
+  ).toContainText("68%");
+  const popupPromise = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "新标签页打开" }).click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState();
+  await expect(popup).toHaveURL(/tasks\/task-sourcing/);
+  await popup.close();
 });
 
 test("业务主线仅在用户消息悬停时显示发送时间", async ({ page }) => {
@@ -184,8 +225,11 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
           name: /查看大结果：首批候选人已完成匹配/,
         })
         .click();
+      await page.getByRole("button", { name: "按建议处理未审核" }).click();
+      await page.getByRole("button", { name: "提交本批审核" }).click();
+    } else {
+      await page.getByRole("button", { name: item.confirm }).click();
     }
-    await page.getByRole("button", { name: item.confirm }).click();
     await expect(page.getByText(item.next)).toBeVisible();
   }
 
@@ -228,20 +272,37 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
   await page.goto("./#/workstreams/position-vla/position");
   const workstreamUrl = page.url();
   await expect(page.getByLabel("业务主线详情")).toHaveCount(0);
-  await page.getByRole("button", { name: "查看任务运行" }).click();
+  if (
+    (await page.locator(".task-run-toggle").getAttribute("aria-expanded")) ===
+    "false"
+  ) {
+    await page.locator(".task-run-toggle").click();
+  }
+  await page.getByRole("button", { name: "查看任务：猎聘候选人读取" }).click();
   await expect(page).toHaveURL(workstreamUrl);
   await expect(
-    page.getByLabel("业务主线详情").getByText("2 个人才平台任务正在运行"),
+    page
+      .getByRole("complementary", { name: "业务主线详情" })
+      .getByText("猎聘候选人读取"),
   ).toBeVisible();
   await page.getByRole("button", { name: "关闭业务主线详情" }).click();
 
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
+  await expect(page.getByLabel("候选人完整审核")).toBeVisible();
+  await expect(page.getByText("匹配得分", { exact: true })).toBeVisible();
+  await expect(page.getByText("推荐理由", { exact: true })).toBeVisible();
+  await expect(page.getByText("风险提示", { exact: true })).toBeVisible();
+  await expect(page.getByText("建议动作", { exact: true })).toBeVisible();
   await expect(
-    page.getByLabel("业务主线详情").getByText("首批候选人已完成匹配"),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "确认首批名单" }).click();
+    page.getByRole("button", { name: "提交本批审核" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await expect(
+    page.getByRole("button", { name: "提交本批审核" }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "提交本批审核" }).click();
   await expect(page).toHaveURL(workstreamUrl);
   await expect(page.getByText("候选人赵星羽已加入结果")).toBeVisible();
 
@@ -276,9 +337,7 @@ test("Agent 操作模式在当前业务主线中切换并保留记录", async ({
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Agent 操作模式" }),
-  ).toContainText("自动执行");
+  await expect(page.getByLabel("候选人完整审核")).toBeVisible();
 });
 
 test("移动端新建主线使用对话、计划列表和原处配置编辑", async ({ page }) => {
@@ -334,9 +393,11 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
-  await page.getByRole("button", { name: "确认首批名单" }).click();
+  await page.getByRole("button", { name: "按建议处理未审核" }).click();
+  await page.getByRole("button", { name: "提交本批审核" }).click();
   await expect(page.getByText("新信息只影响 6 位候选人")).toBeVisible();
   await page.getByRole("button", { name: "确认局部重匹配" }).click();
+  await page.locator(".plan-list-toggle").click();
   await expect(
     page.getByText("重算 6 位候选人的地点适配", { exact: true }),
   ).toBeVisible();
@@ -344,19 +405,17 @@ test("新信息会更新唯一执行计划而不是创建第二份计划", async
   await expect(page.getByText(/地点范围已经更新为上海或杭州/)).toBeVisible();
 });
 
-test("移动端业务主线点击大结果后用 Drawer 查看详情", async ({ page }) => {
+test("移动端业务主线点击大结果后仍在当前页完成审核", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./#/workstreams/position-vla/position");
 
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
-  const drawer = page.locator(".drawer");
-  await expect(
-    drawer.getByRole("complementary", { name: "业务主线详情" }),
-  ).toBeVisible();
-  await drawer.getByRole("button", { name: "关闭", exact: true }).click();
-  await expect(drawer).toHaveCount(0);
+  await expect(page.getByLabel("候选人完整审核")).toBeVisible();
+  await expect(page.locator(".drawer")).toHaveCount(0);
+  await page.getByRole("button", { name: "返回业务主线" }).click();
+  await expect(page.getByLabel("候选人完整审核")).toHaveCount(0);
 });
 
 test("全局任务列表只显示独立支线任务", async ({ page }) => {

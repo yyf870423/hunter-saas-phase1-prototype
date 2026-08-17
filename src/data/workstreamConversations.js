@@ -402,6 +402,107 @@ const workstreamPlans = {
   ],
 };
 
+const workstreamTasks = {
+  client: [
+    {
+      id: "client-signal",
+      title: "招聘信号交叉核验",
+      detail: "公司官网、融资公告和公开招聘动态已完成核验。",
+      status: "completed",
+      progress: 100,
+      updatedAt: "今天 09:18",
+      route: "/tasks/task-company",
+    },
+    {
+      id: "client-contact",
+      title: "负责人和联系路径调研",
+      detail: "已确认 4 位联系人，联系草稿等待猎头审核。",
+      status: "waiting",
+      progress: 82,
+      updatedAt: "今天 09:29",
+      route: "/tasks/task-company",
+    },
+  ],
+  position: [
+    {
+      id: "position-internal-recall",
+      title: "内部人才池与学术作者召回",
+      detail: "已完成内部人才、论文作者和专利发明人召回。",
+      status: "completed",
+      progress: 100,
+      updatedAt: "今天 08:31",
+      route: "/tasks/task-sourcing",
+    },
+    {
+      id: "position-liepin",
+      title: "猎聘候选人读取",
+      detail: "正在读取第 2 页候选人详情，已打开 19 个详情。",
+      status: "running",
+      progress: 68,
+      updatedAt: "2 分钟前",
+      route: "/tasks/task-sourcing",
+    },
+    {
+      id: "position-maimai",
+      title: "脉脉候选人读取",
+      detail: "搜索条件已应用，等待平台返回下一批结果。",
+      status: "waiting",
+      progress: 42,
+      updatedAt: "5 分钟前",
+      route: "/tasks/task-sourcing",
+    },
+    {
+      id: "position-match",
+      title: "岗位门禁与首批匹配",
+      detail: "18 位候选人已完成角色门禁、匹配评分和分层。",
+      status: "completed",
+      progress: 100,
+      updatedAt: "今天 09:06",
+      route: "/tasks/task-sourcing",
+    },
+  ],
+  mapping: [
+    {
+      id: "mapping-org-task",
+      title: "目标公司组织与关键人物建档",
+      detail: "12 家公司已建档，3 个团队组织结构仍在补齐。",
+      status: "running",
+      progress: 72,
+      updatedAt: "12 分钟前",
+      route: "/tasks/task-mapping",
+    },
+    {
+      id: "mapping-relation-task",
+      title: "人物关系证据核验",
+      detail: "7 条关系等待猎头结合已有关系做最终判断。",
+      status: "waiting",
+      progress: 76,
+      updatedAt: "今天 09:28",
+      route: "/tasks/task-mapping",
+    },
+  ],
+  career: [
+    {
+      id: "career-position-match",
+      title: "候选人岗位召回与匹配",
+      detail: "18 个岗位已经完成匹配，筛出 6 个建议岗位。",
+      status: "completed",
+      progress: 100,
+      updatedAt: "昨天 16:36",
+      route: "/tasks/task-enrich",
+    },
+    {
+      id: "career-resume-wait",
+      title: "最新简历读取与资料更新",
+      detail: "等待候选人确认并发送最新版简历。",
+      status: "waiting",
+      progress: 45,
+      updatedAt: "昨天 17:42",
+      route: "/tasks/task-enrich",
+    },
+  ],
+};
+
 const events = {
   client: [
     {
@@ -629,17 +730,6 @@ const events = {
       ],
     },
     {
-      type: "task",
-      time: "今天 08:24",
-      title: "2 个人才平台任务正在运行",
-      detail:
-        "内部人才池和论文作者召回已完成；猎聘正在读取第 2 页；脉脉等待平台回复。",
-      status: "运行中",
-      tone: "info",
-      action: "查看任务运行",
-      route: "/tasks/task-sourcing",
-    },
-    {
       type: "agent",
       time: "今天 08:25",
       text: "找人工作已经开始。普通执行过程会留在这条业务主线中；你只需要在异常或需要补充信息时进入任务详情。",
@@ -655,6 +745,7 @@ const events = {
       action: "审核 18 位候选人",
       route: "/candidates",
       largeResult: true,
+      reviewType: "candidate-batch",
       largeResultHint: "18 位候选人包含分层、匹配证据和风险说明",
       blocking: "review",
       confirmLabel: "确认首批名单",
@@ -1075,6 +1166,7 @@ export const workstreamDetails = Object.fromEntries(
       plan: workstreamPlans[kind],
       planVersion: kind === "position" ? 4 : 3,
       planUpdatedAt: kind === "career" ? "今天 09:04" : "今天 09:28",
+      tasks: workstreamTasks[kind],
       events: events[kind].map((event, index) => ({
         ...event,
         id: `${kind}-event-${index + 1}`,

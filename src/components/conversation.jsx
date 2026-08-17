@@ -124,7 +124,7 @@ export function PlanListDock({
             {completed} / {items.length} 已完成 · v{version} · {updatedAt}
           </small>
         </span>
-        <Icon name="chevronDown" />
+        <Icon name="chevronRight" />
       </button>
       {open && (
         <ol>
@@ -147,6 +147,81 @@ export function PlanListDock({
             );
           })}
         </ol>
+      )}
+    </section>
+  );
+}
+
+const taskRunStatus = {
+  completed: ["已完成", "success"],
+  running: ["运行中", "info"],
+  waiting: ["等待", "warning"],
+  paused: ["已暂停", "neutral"],
+  failed: ["需处理", "danger"],
+};
+
+export function TaskRunDock({ items = [], onSelect, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const running = items.filter((item) => item.status === "running").length;
+  const waiting = items.filter((item) => item.status === "waiting").length;
+  const completed = items.filter((item) => item.status === "completed").length;
+  if (!items.length) return null;
+  return (
+    <section className={`task-run-dock ${open ? "is-open" : ""}`}>
+      <button
+        type="button"
+        className="task-run-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <i>
+          <Icon name="route" />
+        </i>
+        <span>
+          <b>相关任务</b>
+          <small>
+            {running} 运行中 · {waiting} 等待 · {completed} 已完成
+          </small>
+        </span>
+        <Icon name="chevronRight" />
+      </button>
+      {open && (
+        <div className="task-run-list">
+          {items.map((item) => {
+            const [label, tone] = taskRunStatus[item.status] || [
+              "未开始",
+              "neutral",
+            ];
+            return (
+              <button
+                type="button"
+                key={item.id}
+                onClick={() => onSelect(item)}
+                aria-label={`查看任务：${item.title}`}
+              >
+                <span className="task-run-state">
+                  <i className={`is-${item.status}`} />
+                </span>
+                <span>
+                  <b>{item.title}</b>
+                  <small>{item.detail}</small>
+                </span>
+                <span className="task-run-progress">
+                  <i>
+                    <em style={{ width: `${item.progress}%` }} />
+                  </i>
+                  <small>
+                    {item.progress}% · {item.updatedAt}
+                  </small>
+                </span>
+                <Status tone={tone} dot={false}>
+                  {label}
+                </Status>
+                <Icon name="chevronRight" />
+              </button>
+            );
+          })}
+        </div>
       )}
     </section>
   );
@@ -194,6 +269,7 @@ export function ConversationDetail({
   onClose,
   onConfirm,
   onReject,
+  onOpenNewTab,
 }) {
   return (
     <aside className="conversation-detail" aria-label="业务主线详情">
@@ -261,6 +337,11 @@ export function ConversationDetail({
           <Button size="sm" icon="copy" onClick={onCopy}>
             复制摘要
           </Button>
+          {onOpenNewTab && (
+            <Button size="sm" icon="maximize" onClick={onOpenNewTab}>
+              新标签页打开
+            </Button>
+          )}
           {onConfirm && (
             <Button size="sm" tone="primary" onClick={onConfirm}>
               {preview.confirmLabel || "确认并继续"}
@@ -363,19 +444,6 @@ export function WorkstreamConversationNav({
             </button>
           ))}
         </div>
-      )}
-      {collapsed && (
-        <button
-          type="button"
-          className="collapsed-workstream-context"
-          aria-label="展开当前业务主线"
-          onClick={onToggleCollapse}
-        >
-          <Icon name="route" />
-          <span>
-            {items.find((item) => item.id === currentId)?.target || "新主线"}
-          </span>
-        </button>
       )}
     </nav>
   );

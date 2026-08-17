@@ -11,6 +11,7 @@ import "./styles/layout.css";
 import "./styles/business.css";
 import "./styles/pages.css";
 import "./styles/conversation.css";
+import "./styles/candidate-review.css";
 import "./styles/responsive.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

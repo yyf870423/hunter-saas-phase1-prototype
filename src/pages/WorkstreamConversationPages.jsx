@@ -24,9 +24,11 @@ import {
   MainlineContextPanel,
   MessageAttachments,
   PlanListDock,
+  TaskRunDock,
   WorkstreamConversationNav,
   WorkstreamTypeChooser,
 } from "../components/conversation";
+import { CandidateReviewWorkspace } from "../components/candidateReview";
 import {
   creationPlans,
   creationFlows,
@@ -532,6 +534,8 @@ export function WorkstreamDetailPage({ kind }) {
   const detail = selectedEvent
     ? eventToDetail(selectedEvent, config, kind)
     : null;
+  const reviewingCandidates =
+    selectedEvent?.reviewType === "candidate-batch" && !selectedEvent.resolved;
 
   const changeMode = (value) => {
     const selected = agentModes.find((item) => item.value === value);
@@ -790,6 +794,36 @@ export function WorkstreamDetailPage({ kind }) {
   const selectEvent = (event) => {
     if (!event.largeResult && !event.route) return;
     setSelectedEvent(event);
+    if (
+      event.reviewType !== "candidate-batch" &&
+      window.matchMedia("(max-width: 1120px)").matches
+    ) {
+      setDetailOpen(true);
+    }
+  };
+
+  const selectTask = (task) => {
+    const taskStatus = {
+      completed: ["已完成", "success"],
+      running: ["运行中", "info"],
+      waiting: ["等待", "warning"],
+      paused: ["已暂停", "neutral"],
+      failed: ["需处理", "danger"],
+    };
+    const [status, tone] = taskStatus[task.status] || ["未开始", "neutral"];
+    setSelectedEvent({
+      ...task,
+      type: "task",
+      status,
+      tone,
+      time: task.updatedAt,
+      metrics: [
+        ["完成进度", `${task.progress}%`],
+        ["当前状态", status],
+        ["最近更新", task.updatedAt],
+      ],
+      detailItems: [task.detail, "完整过程和异常处理记录保留在任务详情中。"],
+    });
     if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
   };
 
@@ -816,6 +850,16 @@ export function WorkstreamDetailPage({ kind }) {
           .catch(() => {});
         toast("详情摘要已复制");
       }}
+      onOpenNewTab={
+        selectedEvent?.type === "task" && selectedEvent.route
+          ? () =>
+              window.open(
+                `${window.location.origin}${window.location.pathname}#${selectedEvent.route}`,
+                "_blank",
+                "noopener,noreferrer",
+              )
+          : undefined
+      }
       onClose={closeDetail}
     />
   ) : null;
@@ -883,79 +927,108 @@ export function WorkstreamDetailPage({ kind }) {
       <ConversationWorkspace
         navigation={conversationNav}
         navigationCollapsed={navigationCollapsed}
-        detail={cardDetail}
+        detail={reviewingCandidates ? null : cardDetail}
       >
-        <div className="conversation-toolbar">
-          <span className="conversation-current-process">
-            <small>与 Hunter 持续推进</small>
-            <b>{config.next}</b>
-          </span>
-          <Status
-            tone={terminated || paused ? "neutral" : config.tone}
-            dot={false}
-          >
-            {terminated ? "已终止" : paused ? "已暂停" : config.status}
-          </Status>
-        </div>
-        <div className="conversation-thread detail-thread" ref={threadRef}>
-          {visibleEvents.map((event, index) => (
-            <ConversationEvent
-              event={event}
-              onAction={act}
-              onSelect={selectEvent}
-              key={event.id || `${event.type}-${index}`}
+        {reviewingCandidates ? (
+          <CandidateReviewWorkspace
+            onBack={closeDetail}
+            onSubmit={(decisions) => {
+              const counts = Object.values(decisions).reduce(
+                (current, decision) => ({
+                  ...current,
+                  [decision]: (current[decision] || 0) + 1,
+                }),
+                {},
+              );
+              resolveEvent(selectedEvent, "primary", {
+                text: `已完成首批 18 位候选人审核：${counts.contact || 0} 位加入联系名单、${counts.hold || 0} 位保留观察、${counts.reject || 0} 位不合适。`,
+                response:
+                  "首批候选人审核决定已保存。我会按联系名单继续准备沟通信息，并继续处理剩余 28 位候选人。",
+              });
+            }}
+          />
+        ) : (
+          <>
+            <div className="conversation-toolbar">
+              <span className="conversation-current-process">
+                <small>与 Hunter 持续推进</small>
+                <b>{config.next}</b>
+              </span>
+              <Status
+                tone={terminated || paused ? "neutral" : config.tone}
+                dot={false}
+              >
+                {terminated ? "已终止" : paused ? "已暂停" : config.status}
+              </Status>
+            </div>
+            <div className="conversation-thread detail-thread" ref={threadRef}>
+              {visibleEvents.map((event, index) => (
+                <ConversationEvent
+                  event={event}
+                  onAction={act}
+                  onSelect={selectEvent}
+                  key={event.id || `${event.type}-${index}`}
+                />
+              ))}
+              {waitingEvent && (
+                <div className="conversation-waiting-note">
+                  <Icon name="clock" />
+                  <span>
+                    <b>等待你的反馈</b>
+                    <small>
+                      Hunter
+                      已暂停后续推进；处理上方内容或直接发送补充信息后继续。
+                    </small>
+                  </span>
+                </div>
+              )}
+              {terminated && (
+                <div className="conversation-waiting-note">
+                  <Icon name="pause" />
+                  <span>
+                    <b>业务主线已终止</b>
+                    <small>已确认成果和完整过程仍然保留在当前页面。</small>
+                  </span>
+                </div>
+              )}
+            </div>
+            <PlanListDock
+              items={plan}
+              version={planVersion}
+              updatedAt={planUpdatedAt}
+              defaultOpen={false}
             />
-          ))}
-          {waitingEvent && (
-            <div className="conversation-waiting-note">
-              <Icon name="clock" />
-              <span>
-                <b>等待你的反馈</b>
-                <small>
-                  Hunter 已暂停后续推进；处理上方内容或直接发送补充信息后继续。
-                </small>
-              </span>
-            </div>
-          )}
-          {terminated && (
-            <div className="conversation-waiting-note">
-              <Icon name="pause" />
-              <span>
-                <b>业务主线已终止</b>
-                <small>已确认成果和完整过程仍然保留在当前页面。</small>
-              </span>
-            </div>
-          )}
-        </div>
-        <PlanListDock
-          items={plan}
-          version={planVersion}
-          updatedAt={planUpdatedAt}
-          defaultOpen={false}
-        />
-        <ConversationComposer
-          value={message}
-          onChange={setMessage}
-          attachments={attachments}
-          onSend={send}
-          onAddFile={() => addAttachment("file")}
-          onAddScreenshot={() => addAttachment("image")}
-          onAddLink={() =>
-            setMessage(
-              (current) =>
-                `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
-            )
-          }
-          onRemoveAttachment={(id) =>
-            setAttachments((current) =>
-              current.filter((item) => item.id !== id),
-            )
-          }
-          mode={mode}
-          onModeChange={changeMode}
-          disabled={processing || terminated}
-          processing={processing}
-        />
+            <TaskRunDock
+              key={`task-run-${kind}`}
+              items={config.tasks}
+              onSelect={selectTask}
+              defaultOpen={kind === "position"}
+            />
+            <ConversationComposer
+              value={message}
+              onChange={setMessage}
+              attachments={attachments}
+              onSend={send}
+              onAddFile={() => addAttachment("file")}
+              onAddScreenshot={() => addAttachment("image")}
+              onAddLink={() =>
+                setMessage(
+                  (current) =>
+                    `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
+                )
+              }
+              onRemoveAttachment={(id) =>
+                setAttachments((current) =>
+                  current.filter((item) => item.id !== id),
+                )
+              }
+              mode={mode}
+              onModeChange={changeMode}
+              disabled={processing || terminated}
+              processing={processing}
+            />
+          </>
+        )}
       </ConversationWorkspace>
       <Drawer
         open={listOpen}
