@@ -7,6 +7,16 @@
   align-items: stretch;
   margin-top: 18px;
 }
+.workstream-detail-conversation-page {
+  max-width: none;
+  padding: 12px 20px 16px;
+}
+.workstream-detail-conversation-page > .conversation-workspace {
+  height: calc(100dvh - var(--topbar) - 28px);
+  min-height: 620px;
+  max-height: none;
+  margin-top: 0;
+}
 .conversation-workspace.has-navigation.has-preview {
   grid-template-columns: minmax(196px, 224px) minmax(500px, 1fr) minmax(
       276px,
@@ -28,11 +38,24 @@
       540px
     );
 }
+.conversation-workspace.has-navigation.has-detail:has(
+    .workstream-runtime-panel
+  ) {
+  grid-template-columns: minmax(210px, 232px) minmax(500px, 1fr) minmax(
+      350px,
+      400px
+    );
+}
 .conversation-workspace.has-navigation.navigation-collapsed {
   grid-template-columns: 48px minmax(680px, 1fr);
 }
 .conversation-workspace.has-navigation.navigation-collapsed.has-detail {
   grid-template-columns: 48px minmax(500px, 1fr) minmax(480px, 560px);
+}
+.conversation-workspace.has-navigation.navigation-collapsed.has-detail:has(
+    .workstream-runtime-panel
+  ) {
+  grid-template-columns: 48px minmax(640px, 1fr) minmax(350px, 410px);
 }
 .mainline-conversation-navigation,
 .mainline-conversation-main,
@@ -59,6 +82,9 @@
   height: fit-content;
 }
 .mainline-conversation-navigation {
+  height: 100%;
+}
+.mainline-conversation-detail:has(.workstream-runtime-panel) {
   height: 100%;
 }
 .workstream-conversation-nav {
@@ -465,6 +491,201 @@
   box-shadow: none;
 }
 .drawer .conversation-detail > header {
+  display: none;
+}
+.workstream-runtime-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.workstream-runtime-panel > header {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px 9px 13px;
+  border-bottom: 1px solid var(--line);
+}
+.workstream-runtime-panel > header > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.workstream-runtime-panel > header small {
+  color: var(--ink-tertiary);
+  font-size: 9px;
+}
+.workstream-runtime-panel > header b {
+  font-size: 12px;
+}
+.runtime-panel-tabs {
+  min-height: 45px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line);
+}
+.runtime-panel-tabs > button {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ink-tertiary);
+  font-size: 10px;
+}
+.runtime-panel-tabs > button::after {
+  position: absolute;
+  right: 8px;
+  bottom: -1px;
+  left: 8px;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: transparent;
+  content: "";
+}
+.runtime-panel-tabs > button:hover {
+  color: var(--ink);
+}
+.runtime-panel-tabs > button.is-active {
+  color: var(--blue-strong);
+  font-weight: 700;
+}
+.runtime-panel-tabs > button.is-active::after {
+  background: var(--blue);
+}
+.runtime-panel-tabs small {
+  color: inherit;
+  font-size: 8px;
+  font-weight: 650;
+}
+.runtime-panel-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.runtime-plan > header,
+.runtime-tasks > header {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 13px;
+  color: var(--ink-tertiary);
+  background: var(--surface-subtle);
+  font-size: 9px;
+}
+.runtime-plan ol,
+.runtime-tasks > div {
+  margin: 0;
+  padding: 4px 12px 10px;
+  list-style: none;
+}
+.runtime-plan li {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.runtime-plan li:last-child,
+.runtime-tasks > div > button:last-child {
+  border-bottom: 0;
+}
+.runtime-plan li > i {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-tertiary);
+  background: var(--surface);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.runtime-plan li > i svg {
+  width: 12px;
+}
+.runtime-plan li.is-completed > i {
+  border-color: var(--success);
+  color: var(--ink-on-accent);
+  background: var(--success);
+}
+.runtime-plan li.is-running > i {
+  border-color: var(--blue);
+  color: var(--ink-on-accent);
+  background: var(--blue);
+}
+.runtime-plan li > span,
+.runtime-tasks > div > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.runtime-plan li b,
+.runtime-tasks b {
+  color: var(--ink);
+  font-size: 10px;
+}
+.runtime-plan li small,
+.runtime-tasks small {
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  line-height: 1.45;
+}
+.runtime-tasks > div > button {
+  width: 100%;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto 13px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-secondary);
+  text-align: left;
+}
+.runtime-tasks > div > button:hover {
+  background: var(--surface-subtle);
+}
+.runtime-tasks em {
+  height: 4px;
+  display: block;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  overflow: hidden;
+}
+.runtime-tasks em > i {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--blue);
+}
+.runtime-tasks > div > button > svg {
+  width: 12px;
+  color: var(--ink-tertiary);
+}
+.drawer .workstream-runtime-panel {
+  height: auto;
+  min-height: 560px;
+  border: 0;
+  box-shadow: none;
+}
+.drawer .workstream-runtime-panel > header {
   display: none;
 }
 .conversation-thread {
@@ -1370,6 +1591,79 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
+.workstream-workbar {
+  min-height: 66px;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 11px 8px 15px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.workstream-workbar-title {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.workstream-workbar-title > small {
+  overflow: hidden;
+  color: var(--blue-strong);
+  font-size: 8px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workstream-workbar-title > h1 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+.workstream-workbar-title h1 > span:first-child {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workstream-workbar-title p {
+  overflow: hidden;
+  margin: 0;
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workstream-workbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+}
+.workstream-workbar-actions .button.is-active {
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--line));
+  color: var(--blue-strong);
+  background: var(--blue-soft);
+}
+.conversation-workspace.has-detail .workstream-workbar {
+  min-height: 88px;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 5px;
+}
+.conversation-workspace.has-detail .workstream-workbar-actions {
+  width: 100%;
+}
+.workstream-detail-conversation-page .conversation-composer {
+  padding: 10px 12px 12px;
+}
+.workstream-detail-conversation-page .conversation-composer > textarea {
+  min-height: 62px;
+}
 .conversation-current-process {
   min-width: 0;
   display: grid;
@@ -1839,6 +2133,29 @@
     height: calc(100vh - 316px);
     min-height: 460px;
     max-height: 540px;
+  }
+  .workstream-detail-conversation-page {
+    padding: 8px;
+  }
+  .workstream-detail-conversation-page > .conversation-workspace {
+    height: calc(100dvh - var(--topbar) - 80px);
+    min-height: 520px;
+    max-height: none;
+  }
+  .workstream-workbar {
+    min-height: 96px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .workstream-workbar-actions {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 1px;
+  }
+  .workstream-workbar-actions .button {
+    min-width: max-content;
   }
   .conversation-thread {
     padding: 16px 12px;

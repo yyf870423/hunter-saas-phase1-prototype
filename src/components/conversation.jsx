@@ -227,6 +227,135 @@ export function TaskRunDock({ items = [], onSelect, defaultOpen = true }) {
   );
 }
 
+export function WorkstreamRuntimePanel({
+  section = "plan",
+  plan = [],
+  tasks = [],
+  version = 1,
+  updatedAt = "刚刚更新",
+  onSectionChange,
+  onSelectTask,
+  onClose,
+}) {
+  const completedSteps = plan.filter(
+    (item) => item.status === "completed",
+  ).length;
+  const runningTasks = tasks.filter((item) => item.status === "running").length;
+  const waitingTasks = tasks.filter((item) => item.status === "waiting").length;
+  return (
+    <aside className="workstream-runtime-panel" aria-label="计划与相关任务">
+      <header>
+        <span>
+          <small>当前业务主线</small>
+          <b>计划与相关任务</b>
+        </span>
+        <IconButton icon="close" label="关闭计划与相关任务" onClick={onClose} />
+      </header>
+      <div className="runtime-panel-tabs" role="tablist" aria-label="运行信息">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={section === "plan"}
+          className={section === "plan" ? "is-active" : ""}
+          onClick={() => onSectionChange("plan")}
+        >
+          <span>执行计划</span>
+          <small>
+            {completedSteps} / {plan.length}
+          </small>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={section === "tasks"}
+          className={section === "tasks" ? "is-active" : ""}
+          onClick={() => onSectionChange("tasks")}
+        >
+          <span>相关任务</span>
+          <small>{runningTasks} 运行中</small>
+        </button>
+      </div>
+      <div className="runtime-panel-scroll">
+        {section === "plan" ? (
+          <section className="runtime-plan" aria-label="执行计划详情">
+            <header>
+              <span>v{version}</span>
+              <small>{updatedAt}</small>
+            </header>
+            <ol>
+              {plan.map((item, index) => {
+                const [label, tone, icon] =
+                  planStatus[item.status] || planStatus.pending;
+                return (
+                  <li
+                    className={`is-${item.status}`}
+                    key={item.id || item.title}
+                  >
+                    <i>
+                      {item.status === "pending" ? (
+                        index + 1
+                      ) : (
+                        <Icon name={icon} />
+                      )}
+                    </i>
+                    <span>
+                      <b>{item.title}</b>
+                      <small>{item.detail}</small>
+                    </span>
+                    <Status tone={tone} dot={false}>
+                      {label}
+                    </Status>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ) : (
+          <section className="runtime-tasks" aria-label="相关任务详情">
+            <header>
+              <span>{tasks.length} 个任务</span>
+              <small>
+                {runningTasks} 运行中 · {waitingTasks} 等待
+              </small>
+            </header>
+            <div>
+              {tasks.map((item) => {
+                const [label, tone] = taskRunStatus[item.status] || [
+                  "未开始",
+                  "neutral",
+                ];
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => onSelectTask(item)}
+                    aria-label={`查看任务：${item.title}`}
+                  >
+                    <span className="task-run-state">
+                      <i className={`is-${item.status}`} />
+                    </span>
+                    <span>
+                      <b>{item.title}</b>
+                      <small>{item.detail}</small>
+                      <em>
+                        <i style={{ width: `${item.progress}%` }} />
+                      </em>
+                    </span>
+                    <Status tone={tone} dot={false}>
+                      {label}
+                    </Status>
+                    <Icon name="chevronRight" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 export function MessageAttachments({ items = [] }) {
   if (!items.length) return null;
   return (
@@ -456,7 +585,6 @@ export function ConversationComposer({
   attachments = [],
   onAddFile,
   onAddScreenshot,
-  onAddLink,
   onRemoveAttachment,
   disabled = false,
   processing = false,
@@ -498,12 +626,6 @@ export function ConversationComposer({
             label="添加截图"
             disabled={disabled}
             onClick={onAddScreenshot}
-          />
-          <IconButton
-            icon="link"
-            label="添加链接"
-            disabled={disabled}
-            onClick={onAddLink}
           />
           <span>Enter 发送 · Shift + Enter 换行</span>
         </div>

@@ -322,15 +322,6 @@ export function TaskDetailPage() {
                   label="添加文件"
                   onClick={() => toast("文件选择已打开", "info")}
                 />
-                <IconButton
-                  icon="link"
-                  label="添加链接"
-                  onClick={() =>
-                    setMessage(
-                      (current) => `${current}${current ? "\n" : ""}https://`,
-                    )
-                  }
-                />
               </div>
               <Button size="sm" tone="primary" icon="send" onClick={send}>
                 发送

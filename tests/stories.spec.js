@@ -68,6 +68,7 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
       .locator(".mainline-conversation-main")
       .getByText(/我会把 VLA 或端到端机器人学习的真实落地经验作为核心门槛/),
   ).toBeVisible();
+  await page.getByRole("button", { name: /相关任务 1 运行中/ }).click();
   await expect(page.getByText("猎聘候选人读取", { exact: true })).toBeVisible();
   await expect(page.getByText("脉脉候选人读取", { exact: true })).toBeVisible();
   await page
@@ -83,7 +84,7 @@ test("业务主线用 Markdown 对话逐段推进并在审核节点等待", asyn
   await expect(
     page
       .locator(".mainline-conversation-main")
-      .getByText("新信息只影响 6 位候选人"),
+      .getByText("地点变化需要重新评估 6 位候选人"),
   ).toBeVisible();
 });
 
@@ -142,28 +143,24 @@ test("桌面业务主线导航可收起且状态标签保持单行", async ({ pa
   await expect(workspace).not.toHaveClass(/navigation-collapsed/);
 });
 
-test("执行计划与相关任务使用正确的展开箭头方向", async ({ page }) => {
+test("执行计划与相关任务默认收起并共享右侧检查区", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  const planToggle = page.locator(".plan-list-toggle");
-  const planIcon = planToggle.locator(":scope > svg");
-  await expect(planToggle).toHaveAttribute("aria-expanded", "false");
-  await expect(planIcon.locator("path")).toHaveAttribute("d", "m9 18 6-6-6-6");
-  await planToggle.click();
-  await expect(planToggle).toHaveAttribute("aria-expanded", "true");
-  await expect(planIcon).not.toHaveCSS("transform", "none");
-
-  const taskToggle = page.locator(".task-run-toggle");
-  const taskIcon = taskToggle.locator(":scope > svg");
-  await expect(taskToggle).toHaveAttribute("aria-expanded", "true");
-  await expect(taskIcon.locator("path")).toHaveAttribute("d", "m9 18 6-6-6-6");
-  await taskToggle.click();
-  await expect(taskToggle).toHaveAttribute("aria-expanded", "false");
-  await expect(taskIcon).toHaveCSS("transform", "none");
+  await expect(page.getByLabel("计划与相关任务")).toHaveCount(0);
+  await expect(page.getByText("猎聘候选人读取", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: /执行计划 3\/5/ }).click();
+  await expect(page.getByLabel("执行计划详情")).toBeVisible();
+  await expect(page.getByLabel("相关任务详情")).toHaveCount(0);
+  await page.getByRole("button", { name: /相关任务 1 运行中/ }).click();
+  await expect(page.getByLabel("相关任务详情")).toBeVisible();
+  await expect(page.getByLabel("执行计划详情")).toHaveCount(0);
 });
 
-test("相关任务默认在当前页查看并可选择新标签页", async ({ page }) => {
+test("相关任务在当前页检查并可选择新标签页", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
   const currentUrl = page.url();
+  await page.getByRole("button", { name: /相关任务 1 运行中/ }).click();
   await page.getByRole("button", { name: "查看任务：猎聘候选人读取" }).click();
   await expect(page).toHaveURL(currentUrl);
   await expect(
@@ -209,9 +206,9 @@ test("四类业务主线都在人工节点暂停并在反馈后继续", async ({
     {
       route: "position-vla/position",
       current: "首批候选人已完成匹配",
-      hidden: "新信息只影响 6 位候选人",
+      hidden: "地点变化需要重新评估 6 位候选人",
       confirm: "确认首批名单",
-      next: "新信息只影响 6 位候选人",
+      next: "地点变化需要重新评估 6 位候选人",
       large: true,
     },
   ];
@@ -272,12 +269,7 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
   await page.goto("./#/workstreams/position-vla/position");
   const workstreamUrl = page.url();
   await expect(page.getByLabel("业务主线详情")).toHaveCount(0);
-  if (
-    (await page.locator(".task-run-toggle").getAttribute("aria-expanded")) ===
-    "false"
-  ) {
-    await page.locator(".task-run-toggle").click();
-  }
+  await page.getByRole("button", { name: /相关任务 1 运行中/ }).click();
   await page.getByRole("button", { name: "查看任务：猎聘候选人读取" }).click();
   await expect(page).toHaveURL(workstreamUrl);
   await expect(
@@ -304,15 +296,22 @@ test("业务主线查看与确认始终留在当前页面", async ({ page }) => 
   ).toBeEnabled();
   await page.getByRole("button", { name: "提交本批审核" }).click();
   await expect(page).toHaveURL(workstreamUrl);
-  await expect(page.getByText("候选人赵星羽已加入结果")).toBeVisible();
-
-  await page.getByRole("button", { name: "打开候选人" }).click();
-  await expect(page).toHaveURL(workstreamUrl);
   await expect(
-    page.getByLabel("业务主线详情").getByText("候选人赵星羽已加入结果"),
+    page.getByText("提交首批候选人审核结果", { exact: true }),
   ).toBeVisible();
-
-  await page.getByRole("button", { name: "关闭业务主线详情" }).click();
+  await expect(
+    page.getByText(/审核结果已保存：12 位候选人进入联系名单/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "客户刚补充：工作地点除了上海，也可以考虑杭州。请更新候选人结果。",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("地点变化需要重新评估 6 位候选人", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("候选人赵星羽已加入结果")).toHaveCount(0);
   await page.getByRole("button", { name: "主线信息" }).click();
   await page.getByRole("button", { name: "终止业务主线" }).click();
   await page.getByRole("button", { name: "确认终止" }).click();
@@ -362,7 +361,7 @@ test("移动端新建主线使用对话、计划列表和原处配置编辑", as
   ).toContainText("规划模式");
 });
 
-test("对话输入统一接收文件、截图、链接并随消息发送", async ({ page }) => {
+test("对话输入接收文件和截图并允许直接粘贴链接", async ({ page }) => {
   await page.goto("./#/workstreams/new?type=position");
   await page.getByRole("button", { name: "添加文件" }).click();
   await page.getByRole("button", { name: "添加截图" }).click();
@@ -370,9 +369,12 @@ test("对话输入统一接收文件、截图、链接并随消息发送", async
     "星澜机器人岗位补充.docx",
   );
   await expect(page.getByLabel("待发送附件")).toContainText("客户聊天截图.png");
-  await page.getByRole("button", { name: "添加链接" }).click();
-  await expect(page.getByLabel("发送给 Hunter")).toContainText(
-    "xinglan-robotics.cn",
+  await expect(page.getByRole("button", { name: "添加链接" })).toHaveCount(0);
+  await page
+    .getByLabel("发送给 Hunter")
+    .fill("https://www.xinglan-robotics.cn/careers/vla-lead");
+  await expect(page.getByLabel("发送给 Hunter")).toHaveValue(
+    /xinglan-robotics\.cn/,
   );
   await page.getByRole("button", { name: "发送", exact: true }).click();
   await expect(page.getByLabel("待发送附件")).toHaveCount(0);
@@ -388,20 +390,21 @@ test("对话输入统一接收文件、截图、链接并随消息发送", async
 
 test("新信息会更新唯一执行计划而不是创建第二份计划", async ({ page }) => {
   await page.goto("./#/workstreams/position-vla/position");
-  await expect(page.getByText("3 / 5 已完成")).toBeVisible();
-  await page.locator(".plan-list-toggle").click();
+  await expect(
+    page.getByRole("button", { name: /执行计划 3\/5/ }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: /查看大结果：首批候选人已完成匹配/ })
     .click();
   await page.getByRole("button", { name: "按建议处理未审核" }).click();
   await page.getByRole("button", { name: "提交本批审核" }).click();
-  await expect(page.getByText("新信息只影响 6 位候选人")).toBeVisible();
+  await expect(page.getByText("地点变化需要重新评估 6 位候选人")).toBeVisible();
   await page.getByRole("button", { name: "确认局部重匹配" }).click();
-  await page.locator(".plan-list-toggle").click();
+  await page.getByRole("button", { name: /执行计划 3\/6/ }).click();
   await expect(
     page.getByText("重算 6 位候选人的地点适配", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/3 \/ 6 已完成 · v5/)).toBeVisible();
+  await expect(page.getByLabel("执行计划详情").getByText("v5")).toBeVisible();
   await expect(page.getByText(/地点范围已经更新为上海或杭州/)).toBeVisible();
 });
 

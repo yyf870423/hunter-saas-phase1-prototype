@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
   Drawer,
+  IconButton,
   Input,
   Modal,
   PageHeader,
@@ -24,7 +25,7 @@ import {
   MainlineContextPanel,
   MessageAttachments,
   PlanListDock,
-  TaskRunDock,
+  WorkstreamRuntimePanel,
   WorkstreamConversationNav,
   WorkstreamTypeChooser,
 } from "../components/conversation";
@@ -343,12 +344,6 @@ export function NewWorkstreamPage() {
           onSend={() => send()}
           onAddFile={() => addAttachment("file")}
           onAddScreenshot={() => addAttachment("image")}
-          onAddLink={() =>
-            setMessage(
-              (current) =>
-                `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
-            )
-          }
           onRemoveAttachment={(id) =>
             setAttachments((current) =>
               current.filter((item) => item.id !== id),
@@ -364,7 +359,7 @@ export function NewWorkstreamPage() {
           }}
           placeholder={
             flow
-              ? `继续补充${kindMeta?.label}目标，或添加文件、截图和链接`
+              ? `继续补充${kindMeta?.label}目标，可直接粘贴链接或添加文件和截图`
               : "请先选择业务主线类型"
           }
         />
@@ -498,6 +493,7 @@ export function WorkstreamDetailPage({ kind }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [runtimeSection, setRuntimeSection] = useState(null);
   const [terminate, setTerminate] = useState(false);
   const threadRef = useRef(null);
   const didInitialScrollRef = useRef(false);
@@ -518,6 +514,7 @@ export function WorkstreamDetailPage({ kind }) {
     setEvents(config.events);
     setVisibleCount(firstBlockingCount(config.events));
     setSelectedEvent(null);
+    setRuntimeSection(null);
     setPlan(config.plan);
     setPlanVersion(config.planVersion);
     setPlanUpdatedAt(config.planUpdatedAt);
@@ -536,6 +533,12 @@ export function WorkstreamDetailPage({ kind }) {
     : null;
   const reviewingCandidates =
     selectedEvent?.reviewType === "candidate-batch" && !selectedEvent.resolved;
+  const completedSteps = plan.filter(
+    (item) => item.status === "completed",
+  ).length;
+  const runningTasks = config.tasks.filter(
+    (item) => item.status === "running",
+  ).length;
 
   const changeMode = (value) => {
     const selected = agentModes.find((item) => item.value === value);
@@ -793,6 +796,10 @@ export function WorkstreamDetailPage({ kind }) {
 
   const selectEvent = (event) => {
     if (!event.largeResult && !event.route) return;
+    if (window.matchMedia("(min-width: 1121px)").matches) {
+      setNavigationCollapsed(true);
+    }
+    setRuntimeSection(null);
     setSelectedEvent(event);
     if (
       event.reviewType !== "candidate-batch" &&
@@ -827,8 +834,22 @@ export function WorkstreamDetailPage({ kind }) {
     if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
   };
 
-  const closeDetail = () => {
+  const openRuntime = (section) => {
+    if (window.matchMedia("(min-width: 1121px)").matches) {
+      setNavigationCollapsed(true);
+    }
     setSelectedEvent(null);
+    setRuntimeSection(section);
+    if (window.matchMedia("(max-width: 1120px)").matches) setDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    if (selectedEvent && runtimeSection) {
+      setSelectedEvent(null);
+      return;
+    }
+    setSelectedEvent(null);
+    setRuntimeSection(null);
     setDetailOpen(false);
   };
   const cardDetail = detail ? (
@@ -863,6 +884,22 @@ export function WorkstreamDetailPage({ kind }) {
       onClose={closeDetail}
     />
   ) : null;
+  const runtimePanel = runtimeSection ? (
+    <WorkstreamRuntimePanel
+      section={runtimeSection}
+      plan={plan}
+      tasks={config.tasks}
+      version={planVersion}
+      updatedAt={planUpdatedAt}
+      onSectionChange={setRuntimeSection}
+      onSelectTask={selectTask}
+      onClose={() => {
+        setRuntimeSection(null);
+        setDetailOpen(false);
+      }}
+    />
+  ) : null;
+  const workspaceDetail = cardDetail || runtimePanel;
   const conversationNav = (
     <WorkstreamConversationNav
       items={workstreams}
@@ -889,45 +926,11 @@ export function WorkstreamDetailPage({ kind }) {
   );
 
   return (
-    <div className="page-content workstream-conversation-page">
-      <PageHeader
-        eyebrow={config.eyebrow}
-        title={config.title}
-        description={config.description}
-        status={
-          <Status tone={config.tone}>
-            {terminated ? "已终止" : paused ? "已暂停" : config.status}
-          </Status>
-        }
-        actions={
-          <>
-            <Button
-              className="chat-mobile-button"
-              icon="panelLeft"
-              onClick={() => setListOpen(true)}
-            >
-              业务主线
-            </Button>
-            <Button icon="info" onClick={() => setContextOpen(true)}>
-              主线信息
-            </Button>
-            <Button
-              icon={paused ? "play" : "pause"}
-              disabled={terminated}
-              onClick={() => {
-                setPaused(!paused);
-                toast(paused ? "业务主线已继续" : "业务主线已暂停", "info");
-              }}
-            >
-              {terminated ? "已终止" : paused ? "继续" : "暂停"}
-            </Button>
-          </>
-        }
-      />
+    <div className="page-content workstream-conversation-page workstream-detail-conversation-page">
       <ConversationWorkspace
         navigation={conversationNav}
         navigationCollapsed={navigationCollapsed}
-        detail={reviewingCandidates ? null : cardDetail}
+        detail={reviewingCandidates ? null : workspaceDetail}
       >
         {reviewingCandidates ? (
           <CandidateReviewWorkspace
@@ -941,25 +944,70 @@ export function WorkstreamDetailPage({ kind }) {
                 {},
               );
               resolveEvent(selectedEvent, "primary", {
-                text: `已完成首批 18 位候选人审核：${counts.contact || 0} 位加入联系名单、${counts.hold || 0} 位保留观察、${counts.reject || 0} 位不合适。`,
-                response:
-                  "首批候选人审核决定已保存。我会按联系名单继续准备沟通信息，并继续处理剩余 28 位候选人。",
+                text: "提交首批候选人审核结果",
+                response: `审核结果已保存：${counts.contact || 0} 位候选人进入联系名单，${counts.hold || 0} 位保留观察，${counts.reject || 0} 位标记为不合适。接下来我会为联系名单准备沟通信息，并继续评估剩余 28 位候选人。`,
               });
             }}
           />
         ) : (
           <>
-            <div className="conversation-toolbar">
-              <span className="conversation-current-process">
-                <small>与 Hunter 持续推进</small>
-                <b>{config.next}</b>
-              </span>
-              <Status
-                tone={terminated || paused ? "neutral" : config.tone}
-                dot={false}
-              >
-                {terminated ? "已终止" : paused ? "已暂停" : config.status}
-              </Status>
+            <div className="workstream-workbar">
+              <div className="workstream-workbar-title">
+                <small>{config.eyebrow}</small>
+                <h1>
+                  <span>{config.title}</span>
+                  <Status tone={terminated || paused ? "neutral" : config.tone}>
+                    {terminated ? "已终止" : paused ? "已暂停" : config.status}
+                  </Status>
+                </h1>
+                <p>{config.next}</p>
+              </div>
+              <div className="workstream-workbar-actions">
+                <Button
+                  className="chat-mobile-button"
+                  size="sm"
+                  icon="panelLeft"
+                  onClick={() => setListOpen(true)}
+                >
+                  业务主线
+                </Button>
+                <Button
+                  className={runtimeSection === "plan" ? "is-active" : ""}
+                  size="sm"
+                  icon="task"
+                  onClick={() => openRuntime("plan")}
+                >
+                  执行计划 {completedSteps}/{plan.length}
+                </Button>
+                <Button
+                  className={runtimeSection === "tasks" ? "is-active" : ""}
+                  size="sm"
+                  icon="route"
+                  onClick={() => openRuntime("tasks")}
+                >
+                  相关任务 {runningTasks} 运行中
+                </Button>
+                <IconButton
+                  icon="info"
+                  label="主线信息"
+                  onClick={() => setContextOpen(true)}
+                />
+                <IconButton
+                  icon={paused ? "play" : "pause"}
+                  label={
+                    terminated
+                      ? "已终止"
+                      : paused
+                        ? "继续业务主线"
+                        : "暂停业务主线"
+                  }
+                  disabled={terminated}
+                  onClick={() => {
+                    setPaused(!paused);
+                    toast(paused ? "业务主线已继续" : "业务主线已暂停", "info");
+                  }}
+                />
+              </div>
             </div>
             <div className="conversation-thread detail-thread" ref={threadRef}>
               {visibleEvents.map((event, index) => (
@@ -992,18 +1040,6 @@ export function WorkstreamDetailPage({ kind }) {
                 </div>
               )}
             </div>
-            <PlanListDock
-              items={plan}
-              version={planVersion}
-              updatedAt={planUpdatedAt}
-              defaultOpen={false}
-            />
-            <TaskRunDock
-              key={`task-run-${kind}`}
-              items={config.tasks}
-              onSelect={selectTask}
-              defaultOpen={kind === "position"}
-            />
             <ConversationComposer
               value={message}
               onChange={setMessage}
@@ -1011,12 +1047,6 @@ export function WorkstreamDetailPage({ kind }) {
               onSend={send}
               onAddFile={() => addAttachment("file")}
               onAddScreenshot={() => addAttachment("image")}
-              onAddLink={() =>
-                setMessage(
-                  (current) =>
-                    `${current}${current ? "\n" : ""}https://www.xinglan-robotics.cn/careers/vla-lead`,
-                )
-              }
               onRemoveAttachment={(id) =>
                 setAttachments((current) =>
                   current.filter((item) => item.id !== id),
@@ -1060,11 +1090,21 @@ export function WorkstreamDetailPage({ kind }) {
       </Drawer>
       <Drawer
         open={detailOpen}
-        onClose={closeDetail}
-        title={selectedEvent?.largeResult ? "完整结果" : "详情"}
+        onClose={() => {
+          setSelectedEvent(null);
+          setRuntimeSection(null);
+          setDetailOpen(false);
+        }}
+        title={
+          selectedEvent?.largeResult
+            ? "完整结果"
+            : runtimeSection
+              ? "计划与相关任务"
+              : "详情"
+        }
         width="520px"
       >
-        {cardDetail}
+        {workspaceDetail}
       </Drawer>
       <Modal
         danger
