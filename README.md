@@ -1,19 +1,20 @@
-# Hunter SaaS 阶段一完整可交互原型
+# Hunter SaaS 阶段一交互原型
 
-本仓库承载 Hunter 阶段一 SaaS 产品的用户端与运营端完整交互原型。它独立于 Hunter 产品代码，不写入真实数据，不调用生产服务。
+本仓库承载 Hunter SaaS 产品的分阶段高保真交互原型。当前只开放**阶段一：全局框架与工作台**，已废弃的旧原型页面不再进入路由、测试或本轮验收范围。
 
 在线原型：<https://yyf870423.github.io/hunter-saas-phase1-prototype/#/review>
 
-## 体验入口
+## 当前入口
 
-- 用户端：`#/home`
-- 运营端：`#/ops`
-- 页面索引与审核入口：`#/review`
-- 31 类对话中间结果审核：`#/review/intermediate-results`
-- 六条用户故事：`#/review/stories`
-- 公共组件与状态：`#/components`
-- 业务主线自然语言审核示例：`#/workstreams/position-vla/position`
-- 四类支线任务示例：`#/tasks/task-company`、`#/tasks/task-sourcing`、`#/tasks/task-mapping`、`#/tasks/task-enrich`
+- 阶段审核入口：`#/review`
+- 工作台：`#/home`
+- 工作台加载态：`#/home?state=loading`
+- 工作台空状态：`#/home?state=empty`
+- 工作台局部错误态：`#/home?state=error`
+- 工作台权限受限态：`#/home?state=limited`
+- 阶段一公共组件：`#/components`
+
+业务主线工作区、支线任务、信号中心、业务资产、设置与运营端将在对应阶段获得人类审批后逐步开放。
 
 ## 本地运行
 
@@ -29,18 +30,17 @@ npm run build
 npm run test:e2e
 ```
 
+E2E 覆盖桌面、iPad、iPhone、亮暗主题、导航、搜索、通知、浮层、工作台主要交互、必要状态、控制台错误和页面级横向溢出。
+
 ## 工程结构
 
-原型使用公共 Token、SVG 图标、产品级 UI 组件和共享业务组件组装页面，不在页面中复制控件实现：
+阶段一使用薄路由、共享数据、共享 SVG 图标、公共 UI 组件与统一设计 Token 组装：
 
-- [原型实施与审核计划](docs/prototype-delivery-plan.md)
-- [v2 重构执行计划](docs/rebuild-plan-v2.md)
-- [公共设计语言与组件体系](docs/component-system.md)
-- [交互覆盖清单](docs/interaction-coverage.md)
-- [Review 报告](docs/review-report.md)
-
-## 对话中间结果
-
-业务主线对话覆盖 31 类中间结果，包括目标与计划、需求澄清、搜索策略、来源证据、来源冲突、业务草稿、候选池、身份查重、字段差异、学术线索、关系路径、岗位解析、人岗匹配、外部操作授权、发送与回复、影响分析、支线建议、文件、部分完成、无结果、覆盖缺口、登录和预算阻塞、运行失败、门禁失败、异步等待和局部重算。
-
-每一类都保留真实业务上下文，并提供与结果类型对应的查看、修改、确认、恢复或继续处理交互；不会把所有结果压成同一种通用卡片。
+- `src/stage1/data.js`：跨入口一致的 Mock 数据。
+- `src/stage1/ui.jsx`：产品级基础组件。
+- `src/stage1/Stage1Shell.jsx`：全局框架与导航。
+- `src/stage1/Dashboard.jsx`：工作台及必要状态。
+- `src/stage1/stage1.css`：WorkBuddy × Vercel 设计 Token、组件和响应式规则。
+- `docs/stage-1-plan.md`：阶段一实施与审批边界。
+- `docs/stage-1-interaction-coverage.md`：交互覆盖清单。
+- `docs/stage-1-design-system.md`：阶段一公共设计系统。
