@@ -1,12 +1,11 @@
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./tests/stage1",
+  testDir: "./tests",
   timeout: 45_000,
   expect: { timeout: 8_000 },
   use: {
     baseURL: "http://127.0.0.1:4173/hunter-saas-phase1-prototype/",
-    locale: "zh-CN",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },

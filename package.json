@@ -9,8 +9,8 @@
     "format:check": "prettier --check .",
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
-    "test:routes": "playwright test tests/stage1/routes.spec.js",
-    "capture": "playwright test tests/stage1/visual.spec.js"
+    "test:routes": "playwright test tests/routes.spec.js",
+    "capture": "playwright test tests/visual.spec.js --update-snapshots"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.2",
